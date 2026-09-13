@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Compare roll and gyroscope bias estimates on reproducible Meridian simulations.">
+    <meta name="theme-color" content="#1e201f">
+    <title>Meridian — Roll estimation</title>
+  </head>
+  <body>
+    <header class="header">
+      <div class="identity"><span class="brand">MERIDIAN</span><span>State estimation</span></div>
+      <span class="metadata">Experiment replay</span>
+    </header>
+    <main>
+      <div class="intro">
+        <div><h1>Roll estimation</h1><p class="muted">Four methods, shared measurements, known simulation truth.</p></div>
+        <span id="record-info" class="metadata"></span>
+      </div>
+      <p id="load-status" role="status">Loading the recorded simulations…</p>
+      <noscript>This explorer needs JavaScript. Static figures and reproduction commands are available in the repository's EKF comparison report.</noscript>
+      <div id="explorer" hidden>
+        <nav class="scenarios" aria-label="Simulation scenario">
+          <button type="button" data-scenario="nominal" aria-pressed="true">Nominal</button>
+          <button type="button" data-scenario="translation_pulse" aria-pressed="false">Translation disturbance</button>
+        </nav>
+        <div class="context"><p id="scenario-description"></p><button type="button" id="jump" hidden>Inspect disturbance</button></div>
+        <div class="player" aria-label="Playback controls">
+          <button type="button" id="play" class="primary">Play</button>
+          <div class="timeline">
+            <label for="time">Time <span><output id="time-value" for="time">8.00 s</output> / <span id="duration"></span></span></label>
+            <input id="time" type="range" min="0" max="30" step="0.01" value="8">
+          </div>
+          <label class="speed" for="speed">Speed <select id="speed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option></select></label>
+        </div>
+        <div class="workspace">
+          <aside class="inspector" aria-label="Estimate at the current time">
+            <section>
+              <div class="panel-heading"><h2>At cursor</h2><span class="metadata">Rear view</span></div>
+              <label for="method" class="muted">Inspect estimate</label>
+              <select id="method"><option value="gyro">Gyro integration</option><option value="complementary">Complementary</option><option value="kalman">Angle KF</option><option value="ekf" selected>Vector EKF</option></select>
+              <div class="pose">
+                <svg viewBox="0 0 240 170" role="img" aria-labelledby="pose-title pose-description">
+                  <title id="pose-title">Roll estimate and simulation truth, viewed from behind</title>
+                  <desc id="pose-description">Solid gray is the selected estimate. Dashed gray is the simulated reference. Positive roll lowers the vehicle's right side.</desc>
+                  <line class="horizon" x1="16" x2="224" y1="85" y2="85"/>
+                  <g transform="translate(120 85)">
+                    <g id="truth-pose" class="truth-pose"><path d="M-86 0H86 M-99 -8H-73 M73 -8H99 M-86 -8V5 M86 -8V5 M-12 -9H12V9H-12Z"/></g>
+                    <g id="estimate-pose" class="estimate-pose"><path d="M-86 0H86 M-99 -8H-73 M73 -8H99 M-86 -8V5 M86 -8V5 M-12 -9H12V9H-12Z"/></g>
+                  </g>
+                </svg>
+                <div class="pose-sides metadata"><span>Vehicle left</span><span>Vehicle right</span></div>
+              </div>
+              <dl class="readings">
+                <div><dt><i class="swatch truth-swatch" aria-hidden="true"></i>Simulation truth</dt><dd id="truth-angle"></dd></div>
+                <div><dt><i class="swatch drone-swatch" aria-hidden="true"></i><span id="method-name">Vector EKF</span></dt><dd id="estimate-angle"></dd></div>
+                <div class="current-error"><dt>Angle error</dt><dd id="angle-error"></dd></div>
+              </dl>
+            </section>
+            <section class="metrics">
+              <h2 class="accent-heading">Full-run error</h2>
+              <p class="metadata">Angle RMSE · lower is better</p>
+              <table><caption class="sr-only">Full-run angle root mean square error in degrees</caption><thead><tr><th scope="col">Method</th><th scope="col">RMSE (°)</th></tr></thead><tbody id="metrics"></tbody></table>
+            </section>
+          </aside>
+          <div class="plots">
+            <section aria-labelledby="roll-heading">
+              <div class="panel-heading"><h2 id="roll-heading">Roll angle</h2><span id="chart-time" class="metadata mono"></span></div>
+              <div id="roll-legend" class="legend" aria-label="Visible roll curves"></div>
+              <div id="roll-chart" class="chart"></div>
+              <p class="metadata chart-note">Move across a plot or use the time slider to inspect both signals.</p>
+            </section>
+            <section class="bias-panel" aria-labelledby="bias-heading">
+              <div class="panel-heading"><h2 id="bias-heading" class="accent-heading">Gyroscope bias</h2><span class="metadata">Two Kalman estimates</span></div>
+              <div id="bias-legend" class="legend" aria-label="Visible bias curves"></div>
+              <div id="bias-chart" class="chart"></div>
+              <dl class="bias-readings metadata" aria-label="Gyroscope bias at the cursor">
+                <div><dt>Truth</dt><dd id="bias-truth"></dd></div>
+                <div><dt>Angle KF</dt><dd id="bias-kalman"></dd></div>
+                <div><dt>Vector EKF</dt><dd id="bias-ekf"></dd></div>
+              </dl>
+            </section>
+          </div>
+        </div>
+        <details class="details">
+          <summary>Experiment settings and limitations</summary>
+          <dl id="settings" class="settings"></dl>
+          <p id="display-note"></p>
+          <p>Playback reads recorded Python results. It does not rerun or retune the filters. Both scenarios share the same sensor-noise realizations. Plot scales stay fixed between scenarios.</p>
+          <p>Accelerometer tilt assumes gravity dominates the measurement. Translation can violate that assumption. This single-axis simulation does not establish accuracy on a physical drone, or embedded or flight performance.</p>
+          <p>Source: <code>meridian.ekf_experiment</code>, nominal and translation-pulse exports. The download includes full-run metrics and source-file SHA-256 fingerprints.</p>
+          <a id="download" download="roll-comparison.json">Download displayed data and metrics</a>
+        </details>
+        <footer><span>Recorded simulation · No hardware connection</span><span class="signature">Meridian / Roll and bias study</span></footer>
+        <div id="announcement" class="sr-only" role="status"></div>
+      </div>
+    </main>
+    <div id="tooltip" class="tooltip" hidden></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

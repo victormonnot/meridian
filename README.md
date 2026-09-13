@@ -17,7 +17,8 @@ and angle KF estimates on an explicitly selected log segment with declared
 sampling and tuning assumptions. The vector EKF has been evaluated in simulation
 only. A C++17 port of the vector EKF now provides a separate numerical core and
 event replay executable, checked against Python after every operation.
-A new documented bench acquisition and the web interface remain planned.
+A static web explorer now replays the two selected simulation runs. A new
+documented bench acquisition remains planned.
 
 ![Vector EKF and baseline comparison on shared simulated measurements](results/ekf-comparison/overview.png)
 
@@ -48,6 +49,17 @@ intervals**, so the ideal case reconstructs the trajectory up to roundoff by
 construction. This is not an established sample convention for real logs.
 
 ## Run the experiment
+
+To explore the included results in a browser, install Node.js 22.12+ and run:
+
+```sh
+npm --prefix web ci
+npm --prefix web run dev
+```
+
+Open the local URL printed by the server. The [explorer guide](docs/web-explorer.md)
+describes playback, data provenance, reproducible export, tests and static builds.
+Viewing the bundled simulations requires no Python environment or drone connection.
 
 The pinned environment was verified with **Python 3.12 on Linux**. From the
 repository root:
@@ -144,12 +156,15 @@ Historical recordings do not establish current acquisition conditions.
 | `src/meridian/dataflash_audit.py` | Per-instance timing, measurement inspection and local exports. |
 | `src/meridian/replay.py` | Causal roll/bias replay of contiguous snapshots, independent of file formats. |
 | `src/meridian/imu_replay.py` | Explicit DataFlash segment selection, replay diagnostics and exports. |
+| `src/meridian/web_export.py` | Checked display export from existing paired simulation records. |
+| `web/` | Static JavaScript/D3 explorer, selected display data, and presentation tests. |
 | `tests/` | Numerical contracts, analytical drift, reproducibility, and export checks. |
 | `results/` | Selected results and reproduction reports. |
 
-The next presentation step is a lightweight web interface for comparison plots
-and time-based replay. Its technology stack is undecided; the numerical core
-works independently of the presentation layer. A new documented bench acquisition
+The web explorer reads existing nominal and translation-disturbed results, with
+synchronized roll/bias plots and a roll indicator. Its JavaScript/Vite/D3
+presentation works independently of the numerical core. Interactive retuning and
+real-log browser replay are not implemented. A new documented bench acquisition
 and evaluation of known static poses and slow manual roll remain required.
 
 The [linear Kalman model](docs/linear-kalman.md), [accelerometer fusion model](docs/accelerometer-fusion.md),

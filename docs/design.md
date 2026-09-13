@@ -16,9 +16,10 @@ An optional [DataFlash audit](dataflash-audit.md) now extracts IMU snapshots,
 checks recorded units, and reports timing discontinuities and selected metadata.
 [Offline replay](imu-replay.md) compares the estimators on one explicit log segment
 with shared initialization and a previous-snapshot gyro hold. The
-vector EKF has only been evaluated in simulation. Its real-log replay, new
-documented bench acquisition, and web interface are pending; historical replay is
-not a completed bench validation.
+vector EKF has only been evaluated in simulation. Its real-log replay and new
+documented bench acquisition are pending; historical replay is not a completed
+bench validation. A [static web explorer](web-explorer.md) replays the two selected
+nominal/translation simulations with full-run metrics and source provenance.
 
 ## Scope
 
@@ -180,10 +181,14 @@ comparison driver remain separate. Broader sample conventions
 must account for unequal sensor rates and observed log semantics; the initial CSVs
 are an experiment format, not a general sensor interchange specification.
 
-The planned web interface will initially read exported results after useful
-Python comparisons exist. Later interactive settings will invoke the same
-simulation and estimator core. A roll indicator can complement the curves.
-The UI stack and deployment are undecided.
+The web interface uses JavaScript ES modules, Vite and D3. A small Python adapter
+validates existing paired experiment CSVs against their summary, then exports a
+versioned JSON display artifact. The browser reads that artifact and synchronizes
+roll/bias plots, playback and a rear-view roll indicator. Display decimation and
+interpolation never replace full-resolution metrics. Neither the estimator core
+nor raw sensor logs enter the browser. No backend or hosting provider is configured.
+Later interactive settings, if implemented, should invoke the same simulation and
+estimator core rather than duplicate algorithms in the presentation layer.
 
 ## Next step and open decisions
 
@@ -191,9 +196,7 @@ Read back the installed flight-controller configuration and acquire a short
 stationary and manual-roll bench recording with documented poses and conditions.
 Use the implemented audit and replay to inspect those measurements, with explicit
 angle-reference uncertainty and noise assumptions. Historical logs do not replace
-that acquisition. With C++ agreement now checked, the next presentation step is
-the first web interface for exploring the existing reproducible results.
-Current exported comparisons can also inform a first web replay interface;
-its implementation and stack still require design decisions. Real angle reference,
+that acquisition. The first web interface now explores two reproducible simulated
+runs; its next evaluation is browser interaction and responsive use. Real angle reference,
 sensor noise, and broader validation criteria remain open. Current parameters have
 not been fitted to a physical IMU.

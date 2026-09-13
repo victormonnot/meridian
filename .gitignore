@@ -11,5 +11,9 @@ __pycache__/
 /build/
 /dist/
 
+# Web dependencies and build output.
+/web/node_modules/
+/web/dist/
+
 # Experiment outputs; selected published results are kept in results/.
 /outputs/
