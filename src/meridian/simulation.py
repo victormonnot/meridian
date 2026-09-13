@@ -1,4 +1,4 @@
-"""One-axis roll truth and an idealized gyroscope measurement model."""
+"""One-axis roll truth and idealized gyro, angle, and accelerometer measurements."""
 
 from dataclasses import dataclass
 import math
@@ -117,3 +117,43 @@ def sample_angle(
         raise ValueError("seed must be a nonnegative integer")
     rng = np.random.Generator(np.random.PCG64(seed))
     return angles + rng.normal(0.0, noise_std_rad, size=angles.size)
+
+
+def sample_accelerometer(
+    roll_rad: ArrayLike,
+    *,
+    noise_std_m_s2: float,
+    seed: int,
+    gravity_m_s2: float = 9.80665,
+    translation_yz_m_s2: ArrayLike | None = None,
+) -> NDArray[np.float64]:
+    """Sample endpoint specific force [f_y, f_z] for pure roll, in m/s².
+
+    In a forward-right-down body frame, f = [-g*sin(roll), -g*cos(roll)] + a.
+    a is prescribed translational acceleration of the IMU, resolved in body y/z,
+    either a constant pair or one pair per endpoint. No lever arm or full vehicle
+    dynamics is modeled. Samples have independent Gaussian noise per axis with
+    the specified per-sample standard deviation, not a continuous noise density.
+    """
+    angles = np.asarray(roll_rad, dtype=np.float64)
+    if angles.ndim != 1 or angles.size == 0 or not np.all(np.isfinite(angles)):
+        raise ValueError("roll_rad must be a nonempty finite 1D array")
+    if not math.isfinite(gravity_m_s2) or gravity_m_s2 <= 0.0:
+        raise ValueError("gravity_m_s2 must be finite and positive")
+    if not math.isfinite(noise_std_m_s2) or noise_std_m_s2 < 0.0:
+        raise ValueError("noise_std_m_s2 must be finite and nonnegative")
+    if isinstance(seed, (bool, np.bool_)) or not isinstance(seed, (int, np.integer)) or seed < 0:
+        raise ValueError("seed must be a nonnegative integer")
+    shape = (len(angles), 2)
+    translation = np.zeros(shape) if translation_yz_m_s2 is None else np.asarray(
+        translation_yz_m_s2, dtype=np.float64
+    )
+    if translation.shape not in ((2,), shape) or not np.all(np.isfinite(translation)):
+        raise ValueError("translation_yz_m_s2 must be a finite pair or an (N, 2) array")
+    rng = np.random.Generator(np.random.PCG64(seed))
+    with np.errstate(over="ignore", invalid="ignore"):
+        force = -gravity_m_s2 * np.column_stack((np.sin(angles), np.cos(angles)))
+        force = force + translation + rng.normal(0.0, noise_std_m_s2, size=shape)
+    if not np.all(np.isfinite(force)):
+        raise ValueError("accelerometer values exceed the finite numerical range")
+    return force

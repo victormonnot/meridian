@@ -1,0 +1,518 @@
+{
+  "schema_version": 1,
+  "experiment": "accelerometer_fusion",
+  "data_source": "simulation",
+  "config": {
+    "duration_s": 30.0,
+    "sample_rate_hz": 100.0,
+    "amplitude_deg": 20.0,
+    "frequency_hz": 0.1,
+    "bias_deg_s": 0.5,
+    "gyro_noise_std_deg_s": 1.0,
+    "accel_noise_std_m_s2": 0.2,
+    "observation_every": 10,
+    "complementary_tau_s": 1.0,
+    "pulse_start_s": 12.0,
+    "pulse_end_s": 17.0,
+    "pulse_y_m_s2": 2.0
+  },
+  "seed": 42,
+  "stream_seeds": {
+    "gyro": 16138347438539916964,
+    "accelerometer": 134183728835869882
+  },
+  "random_generator": "SeedSequence children -> uint64 seeds -> Generator(PCG64)",
+  "gravity_m_s2": 9.80665,
+  "filter_angle_std_rad": 0.020394324259558567,
+  "initialization": {
+    "angle_rad": 0.0,
+    "angle_std_rad": 0.0,
+    "bias_rad_s": 0.0,
+    "bias_std_rad_s": 0.017453292519943295,
+    "policy": "known angle shared by all methods"
+  },
+  "model": "FRD pure roll; endpoint specific force; fixed nominal tilt R; constant gyro bias",
+  "timing": "interval-mean gyro; predict to endpoint then apply wrapped accel-tilt innovation",
+  "paired_noise": "same gyro and accelerometer noise in nominal and pulse scenarios",
+  "interval_count": 3000,
+  "observation_count": 300,
+  "scenarios": {
+    "nominal": {
+      "gyro": {
+        "rmse_deg": 8.853980024011173,
+        "max_abs_error_deg": 15.357701321030545,
+        "final_error_deg": 15.357701321030545,
+        "window_rmse_deg": {
+          "before": 3.550684279895419,
+          "during": 7.2795458718037835,
+          "after": 12.199739008895094
+        },
+        "observation_epoch_rmse_deg": 8.875583245019566
+      },
+      "complementary": {
+        "rmse_deg": 0.6596174084155878,
+        "max_abs_error_deg": 1.2600626166939026,
+        "final_error_deg": 1.081588373556893,
+        "window_rmse_deg": {
+          "before": 0.5815519143604402,
+          "during": 0.7769602800176911,
+          "after": 0.6779970491785932
+        },
+        "observation_epoch_rmse_deg": 0.6414550641137645
+      },
+      "kalman": {
+        "rmse_deg": 0.35393952501930853,
+        "max_abs_error_deg": 1.3485412677931874,
+        "final_error_deg": 0.3245758454520027,
+        "window_rmse_deg": {
+          "before": 0.4787560786844217,
+          "during": 0.24093698633459887,
+          "after": 0.23503750523373157
+        },
+        "observation_epoch_rmse_deg": 0.34788871219510253
+      },
+      "accel_tilt": {
+        "rmse_deg": 1.1862371323403045,
+        "max_abs_error_deg": 3.5953512799808385,
+        "final_error_deg": 3.3725665466117944,
+        "window_rmse_deg": {
+          "before": 1.1709318762276433,
+          "during": 1.046729808327885,
+          "after": 1.2485310515865298
+        }
+      },
+      "final_bias_estimate_deg_s": 0.5009372034514652,
+      "final_bias_error_deg_s": 0.0009372034514651961,
+      "mean_normalized_innovation_squared": 1.021763705410288
+    },
+    "translation_pulse": {
+      "gyro": {
+        "rmse_deg": 8.853980024011173,
+        "max_abs_error_deg": 15.357701321030545,
+        "final_error_deg": 15.357701321030545,
+        "window_rmse_deg": {
+          "before": 3.550684279895419,
+          "during": 7.2795458718037835,
+          "after": 12.199739008895094
+        },
+        "observation_epoch_rmse_deg": 8.875583245019566
+      },
+      "complementary": {
+        "rmse_deg": 3.8772264623884265,
+        "max_abs_error_deg": 10.473617581594928,
+        "final_error_deg": 1.0815665252806193,
+        "window_rmse_deg": {
+          "before": 0.5815519143604402,
+          "during": 8.956963484144755,
+          "after": 1.8791806937781688
+        },
+        "observation_epoch_rmse_deg": 3.8867098431369107
+      },
+      "kalman": {
+        "rmse_deg": 3.8789061136411296,
+        "max_abs_error_deg": 10.303968957565294,
+        "final_error_deg": 0.052204134537326884,
+        "window_rmse_deg": {
+          "before": 0.4787560786844217,
+          "during": 7.41793460451617,
+          "after": 3.6533978656450077
+        },
+        "observation_epoch_rmse_deg": 3.869463076957747
+      },
+      "accel_tilt": {
+        "rmse_deg": 4.717138519340564,
+        "max_abs_error_deg": 15.382562344803743,
+        "final_error_deg": 3.3725665466117944,
+        "window_rmse_deg": {
+          "before": 1.1709318762276433,
+          "during": 11.232144361192272,
+          "after": 1.2485310515865298
+        }
+      },
+      "final_bias_estimate_deg_s": 0.510013235138063,
+      "final_bias_error_deg_s": 0.01001323513806296,
+      "mean_normalized_innovation_squared": 9.299289653587767
+    }
+  },
+  "validation": {
+    "seeds": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19
+    ],
+    "trials": [
+      {
+        "seed": 0,
+        "nominal": {
+          "gyro_angle_rmse_deg": 8.81129402608498,
+          "complementary_angle_rmse_deg": 0.5077637193896245,
+          "kalman_angle_rmse_deg": 0.2047847931726943,
+          "final_bias_abs_error_deg_s": 0.009938353988194093
+        },
+        "translation_pulse": {
+          "gyro_angle_rmse_deg": 8.81129402608498,
+          "complementary_angle_rmse_deg": 4.017332719708048,
+          "kalman_angle_rmse_deg": 4.129643055660818,
+          "final_bias_abs_error_deg_s": 0.01905250909992151
+        }
+      },
+      {
+        "seed": 1,
+        "nominal": {
+          "gyro_angle_rmse_deg": 8.59568293899724,
+          "complementary_angle_rmse_deg": 0.5597103253344838,
+          "kalman_angle_rmse_deg": 0.221648390559896,
+          "final_bias_abs_error_deg_s": 0.006068978106967882
+        },
+        "translation_pulse": {
+          "gyro_angle_rmse_deg": 8.59568293899724,
+          "complementary_angle_rmse_deg": 3.980398580464767,
+          "kalman_angle_rmse_deg": 3.994556955423014,
+          "final_bias_abs_error_deg_s": 0.0030369042311974015
+        }
+      },
+      {
+        "seed": 2,
+        "nominal": {
+          "gyro_angle_rmse_deg": 8.457783549347134,
+          "complementary_angle_rmse_deg": 0.5440855196261151,
+          "kalman_angle_rmse_deg": 0.20064317641904997,
+          "final_bias_abs_error_deg_s": 0.014255539958727803
+        },
+        "translation_pulse": {
+          "gyro_angle_rmse_deg": 8.457783549347134,
+          "complementary_angle_rmse_deg": 3.8979637774187426,
+          "kalman_angle_rmse_deg": 3.942178734702846,
+          "final_bias_abs_error_deg_s": 0.005187162397843448
+        }
+      },
+      {
+        "seed": 3,
+        "nominal": {
+          "gyro_angle_rmse_deg": 8.755470178318896,
+          "complementary_angle_rmse_deg": 0.5473685713536203,
+          "kalman_angle_rmse_deg": 0.32712756505035834,
+          "final_bias_abs_error_deg_s": 0.005634049391288309
+        },
+        "translation_pulse": {
+          "gyro_angle_rmse_deg": 8.755470178318896,
+          "complementary_angle_rmse_deg": 4.014946159470652,
+          "kalman_angle_rmse_deg": 4.079595087195445,
+          "final_bias_abs_error_deg_s": 0.014721254562752195
+        }
+      },
+      {
+        "seed": 4,
+        "nominal": {
+          "gyro_angle_rmse_deg": 9.553619792389808,
+          "complementary_angle_rmse_deg": 0.6003518906398618,
+          "kalman_angle_rmse_deg": 0.266819327489127,
+          "final_bias_abs_error_deg_s": 0.046627393604467327
+        },
+        "translation_pulse": {
+          "gyro_angle_rmse_deg": 9.553619792389808,
+          "complementary_angle_rmse_deg": 3.957471824999081,
+          "kalman_angle_rmse_deg": 4.0747277028144975,
+          "final_bias_abs_error_deg_s": 0.05571982589462943
+        }
+      },
+      {
+        "seed": 5,
+        "nominal": {
+          "gyro_angle_rmse_deg": 8.988681068244837,
+          "complementary_angle_rmse_deg": 0.6110382623538105,
+          "kalman_angle_rmse_deg": 0.21003095596801757,
+          "final_bias_abs_error_deg_s": 0.007238858561268269
+        },
+        "translation_pulse": {
+          "gyro_angle_rmse_deg": 8.988681068244837,
+          "complementary_angle_rmse_deg": 3.939669806089364,
+          "kalman_angle_rmse_deg": 4.063028892905114,
+          "final_bias_abs_error_deg_s": 0.016302795113830593
+        }
+      },
+      {
+        "seed": 6,
+        "nominal": {
+          "gyro_angle_rmse_deg": 8.861852272571946,
+          "complementary_angle_rmse_deg": 0.6381075404510635,
+          "kalman_angle_rmse_deg": 0.25269033173801503,
+          "final_bias_abs_error_deg_s": 0.008218722676824997
+        },
+        "translation_pulse": {
+          "gyro_angle_rmse_deg": 8.861852272571946,
+          "complementary_angle_rmse_deg": 3.9155626682495868,
+          "kalman_angle_rmse_deg": 3.9634355495540348,
+          "final_bias_abs_error_deg_s": 0.01728177603446568
+        }
+      },
+      {
+        "seed": 7,
+        "nominal": {
+          "gyro_angle_rmse_deg": 8.412513470376442,
+          "complementary_angle_rmse_deg": 0.5000742896788319,
+          "kalman_angle_rmse_deg": 0.1898889729342792,
+          "final_bias_abs_error_deg_s": 0.00984861325288705
+        },
+        "translation_pulse": {
+          "gyro_angle_rmse_deg": 8.412513470376442,
+          "complementary_angle_rmse_deg": 4.008322360006148,
+          "kalman_angle_rmse_deg": 4.013926637914667,
+          "final_bias_abs_error_deg_s": 0.0007684752589449118
+        }
+      },
+      {
+        "seed": 8,
+        "nominal": {
+          "gyro_angle_rmse_deg": 8.775095615900563,
+          "complementary_angle_rmse_deg": 0.42733851573060155,
+          "kalman_angle_rmse_deg": 0.2792773751440003,
+          "final_bias_abs_error_deg_s": 0.0100887754026876
+        },
+        "translation_pulse": {
+          "gyro_angle_rmse_deg": 8.775095615900563,
+          "complementary_angle_rmse_deg": 4.007742895902114,
+          "kalman_angle_rmse_deg": 4.137826912517325,
+          "final_bias_abs_error_deg_s": 0.01917055345171914
+        }
+      },
+      {
+        "seed": 9,
+        "nominal": {
+          "gyro_angle_rmse_deg": 8.552778061315134,
+          "complementary_angle_rmse_deg": 0.5153058289017892,
+          "kalman_angle_rmse_deg": 0.23485423303448913,
+          "final_bias_abs_error_deg_s": 0.002717993249060857
+        },
+        "translation_pulse": {
+          "gyro_angle_rmse_deg": 8.552778061315134,
+          "complementary_angle_rmse_deg": 3.9971591534714874,
+          "kalman_angle_rmse_deg": 4.0906925312492595,
+          "final_bias_abs_error_deg_s": 0.006384537917972111
+        }
+      },
+      {
+        "seed": 10,
+        "nominal": {
+          "gyro_angle_rmse_deg": 8.740146911017538,
+          "complementary_angle_rmse_deg": 0.5980480092380837,
+          "kalman_angle_rmse_deg": 0.2380096747384762,
+          "final_bias_abs_error_deg_s": 0.015513655962363093
+        },
+        "translation_pulse": {
+          "gyro_angle_rmse_deg": 8.740146911017538,
+          "complementary_angle_rmse_deg": 3.9409303630089756,
+          "kalman_angle_rmse_deg": 3.910497845601846,
+          "final_bias_abs_error_deg_s": 0.024611896357954022
+        }
+      },
+      {
+        "seed": 11,
+        "nominal": {
+          "gyro_angle_rmse_deg": 8.503125732410552,
+          "complementary_angle_rmse_deg": 0.48607479978707374,
+          "kalman_angle_rmse_deg": 0.22890843907919947,
+          "final_bias_abs_error_deg_s": 0.001661421391256912
+        },
+        "translation_pulse": {
+          "gyro_angle_rmse_deg": 8.503125732410552,
+          "complementary_angle_rmse_deg": 3.899270341932495,
+          "kalman_angle_rmse_deg": 3.939555919001556,
+          "final_bias_abs_error_deg_s": 0.007474750906984795
+        }
+      },
+      {
+        "seed": 12,
+        "nominal": {
+          "gyro_angle_rmse_deg": 8.650279217936296,
+          "complementary_angle_rmse_deg": 0.5219760338625204,
+          "kalman_angle_rmse_deg": 0.2424720281306657,
+          "final_bias_abs_error_deg_s": 0.012897530434868187
+        },
+        "translation_pulse": {
+          "gyro_angle_rmse_deg": 8.650279217936296,
+          "complementary_angle_rmse_deg": 3.9495411711430117,
+          "kalman_angle_rmse_deg": 4.03917743199952,
+          "final_bias_abs_error_deg_s": 0.02200975544679773
+        }
+      },
+      {
+        "seed": 13,
+        "nominal": {
+          "gyro_angle_rmse_deg": 9.079977500462713,
+          "complementary_angle_rmse_deg": 0.4918837196326528,
+          "kalman_angle_rmse_deg": 0.30845428036898426,
+          "final_bias_abs_error_deg_s": 0.01580153957983743
+        },
+        "translation_pulse": {
+          "gyro_angle_rmse_deg": 9.079977500462713,
+          "complementary_angle_rmse_deg": 4.003295145740455,
+          "kalman_angle_rmse_deg": 4.167322039311355,
+          "final_bias_abs_error_deg_s": 0.024924119581171356
+        }
+      },
+      {
+        "seed": 14,
+        "nominal": {
+          "gyro_angle_rmse_deg": 8.932241482238815,
+          "complementary_angle_rmse_deg": 0.6258400557322416,
+          "kalman_angle_rmse_deg": 0.3172070894493377,
+          "final_bias_abs_error_deg_s": 0.014275097681660243
+        },
+        "translation_pulse": {
+          "gyro_angle_rmse_deg": 8.932241482238815,
+          "complementary_angle_rmse_deg": 3.9301434999254257,
+          "kalman_angle_rmse_deg": 3.9789846459131524,
+          "final_bias_abs_error_deg_s": 0.023328999104709536
+        }
+      },
+      {
+        "seed": 15,
+        "nominal": {
+          "gyro_angle_rmse_deg": 8.860513152504021,
+          "complementary_angle_rmse_deg": 0.5332485758021878,
+          "kalman_angle_rmse_deg": 0.21033432481983838,
+          "final_bias_abs_error_deg_s": 0.01019314950586736
+        },
+        "translation_pulse": {
+          "gyro_angle_rmse_deg": 8.860513152504021,
+          "complementary_angle_rmse_deg": 4.028260296841398,
+          "kalman_angle_rmse_deg": 4.127808148612369,
+          "final_bias_abs_error_deg_s": 0.019289790668433726
+        }
+      },
+      {
+        "seed": 16,
+        "nominal": {
+          "gyro_angle_rmse_deg": 8.495823650464638,
+          "complementary_angle_rmse_deg": 0.49590166609710923,
+          "kalman_angle_rmse_deg": 0.24775959597466773,
+          "final_bias_abs_error_deg_s": 0.007282645503466578
+        },
+        "translation_pulse": {
+          "gyro_angle_rmse_deg": 8.495823650464638,
+          "complementary_angle_rmse_deg": 3.9626378294345526,
+          "kalman_angle_rmse_deg": 3.9356096461389587,
+          "final_bias_abs_error_deg_s": 0.0017846517235686754
+        }
+      },
+      {
+        "seed": 17,
+        "nominal": {
+          "gyro_angle_rmse_deg": 8.388503963468771,
+          "complementary_angle_rmse_deg": 0.43682954449745326,
+          "kalman_angle_rmse_deg": 0.24849810558363178,
+          "final_bias_abs_error_deg_s": 0.01537107121159792
+        },
+        "translation_pulse": {
+          "gyro_angle_rmse_deg": 8.388503963468771,
+          "complementary_angle_rmse_deg": 3.9660679779649795,
+          "kalman_angle_rmse_deg": 4.156475933088118,
+          "final_bias_abs_error_deg_s": 0.0062545812706563675
+        }
+      },
+      {
+        "seed": 18,
+        "nominal": {
+          "gyro_angle_rmse_deg": 8.666284356927093,
+          "complementary_angle_rmse_deg": 0.5057497843356045,
+          "kalman_angle_rmse_deg": 0.25183377508134486,
+          "final_bias_abs_error_deg_s": 0.008675855640997598
+        },
+        "translation_pulse": {
+          "gyro_angle_rmse_deg": 8.666284356927093,
+          "complementary_angle_rmse_deg": 3.998141979970331,
+          "kalman_angle_rmse_deg": 4.033779606151631,
+          "final_bias_abs_error_deg_s": 0.0003880666230321461
+        }
+      },
+      {
+        "seed": 19,
+        "nominal": {
+          "gyro_angle_rmse_deg": 8.875826253774733,
+          "complementary_angle_rmse_deg": 0.5495683054932402,
+          "kalman_angle_rmse_deg": 0.22129241370929273,
+          "final_bias_abs_error_deg_s": 0.012026494841922086
+        },
+        "translation_pulse": {
+          "gyro_angle_rmse_deg": 8.875826253774733,
+          "complementary_angle_rmse_deg": 3.9347515383747624,
+          "kalman_angle_rmse_deg": 3.99062004274028,
+          "final_bias_abs_error_deg_s": 0.02109693226413656
+        }
+      }
+    ],
+    "aggregates": {
+      "nominal": {
+        "gyro_angle_rmse_deg": {
+          "mean": 8.747874659737608,
+          "worst": 9.553619792389808
+        },
+        "complementary_angle_rmse_deg": {
+          "mean": 0.5348132478968985,
+          "worst": 0.6381075404510635
+        },
+        "kalman_angle_rmse_deg": {
+          "mean": 0.24512674242226834,
+          "worst": 0.32712756505035834
+        },
+        "final_bias_abs_error_deg_s": {
+          "mean": 0.01171678699731058,
+          "worst": 0.046627393604467327
+        }
+      },
+      "translation_pulse": {
+        "gyro_angle_rmse_deg": {
+          "mean": 8.747874659737608,
+          "worst": 9.553619792389808
+        },
+        "complementary_angle_rmse_deg": {
+          "mean": 3.9674805045058195,
+          "worst": 4.028260296841398
+        },
+        "kalman_angle_rmse_deg": {
+          "mean": 4.038472165924789,
+          "worst": 4.167322039311355
+        },
+        "final_bias_abs_error_deg_s": {
+          "mean": 0.015439466895536066,
+          "worst": 0.05571982589462943
+        }
+      }
+    }
+  },
+  "acceptance": {
+    "scope": "nominal default configuration only; strict per-run limits",
+    "limits": {
+      "kalman_angle_rmse_deg": 0.75,
+      "complementary_angle_rmse_deg": 1.0,
+      "final_bias_abs_error_deg_s": 0.15
+    },
+    "applied": true,
+    "selected_passed": true,
+    "failed_validation_seeds": [],
+    "translation_pulse": "characterization of model violation; no nominal accuracy threshold"
+  },
+  "environment": {
+    "python": "3.12.3",
+    "numpy": "2.5.3",
+    "matplotlib": "3.11.2"
+  }
+}

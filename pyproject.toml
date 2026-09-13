@@ -19,6 +19,7 @@ dev = ["pytest>=8,<9"]
 [project.scripts]
 meridian-gyro-drift = "meridian.gyro_drift:main"
 meridian-linear-kalman = "meridian.kalman_experiment:main"
+meridian-accel-fusion = "meridian.accel_experiment:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

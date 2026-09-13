@@ -5,6 +5,8 @@ import math
 import numpy as np
 from numpy.typing import NDArray
 
+from meridian.tilt import wrap_angle
+
 
 class AngleBiasKalman:
     """Estimate unwrapped roll (rad) and constant gyro bias (rad/s).
@@ -17,9 +19,10 @@ class AngleBiasKalman:
     Gyro noise is independent between interval-mean rate samples. Its standard
     deviation is in rad/s per sample, not a continuous-time noise density:
     Q = diag([(gyro_noise_std_rad_s * dt_s)**2, 0]). Bias has no random walk.
-    Angle observations are direct, unwrapped angles with independent noise,
-    H = [1, 0], and R = angle_noise_std_rad**2. This is a one-axis model;
-    accelerometer components and wrapped angles are not accepted observations.
+    Angle observations use H = [1, 0] and R = angle_noise_std_rad**2.
+    ``update`` accepts direct, unwrapped angles; ``update_wrapped_angle`` uses
+    the closest angular branch for a local correction. Neither method observes
+    accelerometer components directly or implements an accelerometer-vector EKF.
 
     The caller owns timestamps and observation scheduling. Predict once with
     the rate over an interval, then update with an observation at its endpoint
@@ -102,6 +105,29 @@ class AngleBiasKalman:
             raise ValueError("angle_rad must be finite")
         with np.errstate(over="ignore", invalid="ignore"):
             innovation = float(angle_rad - self._state[0])
+        return self._correct(innovation)
+
+    def update_wrapped_angle(self, angle_rad: float) -> tuple[float, float]:
+        """Correct with the shortest signed angular innovation in [-pi, pi).
+
+        The state angle stays unwrapped, preserving accumulated turns. This
+        local correction selects the observed branch nearest the prediction;
+        an angle observation alone cannot resolve an error of more than pi or
+        recover a lost turn count. At exactly pi, the innovation is -pi.
+        R remains the configured angular variance, which must describe the
+        local observation noise. Return the prior innovation (rad) and S (rad²).
+        """
+        if not math.isfinite(angle_rad):
+            raise ValueError("angle_rad must be finite")
+        with np.errstate(over="ignore", invalid="ignore"):
+            innovation = float(angle_rad - self._state[0])
+        if not math.isfinite(innovation):
+            raise ValueError("innovation exceeds the finite numerical range")
+        return self._correct(float(wrap_angle(innovation)))
+
+    def _correct(self, innovation: float) -> tuple[float, float]:
+        """Apply the shared scalar-angle correction and Joseph covariance update."""
+        with np.errstate(over="ignore", invalid="ignore"):
             innovation_variance = float(self._covariance[0, 0] + self._angle_variance_rad2)
         if not math.isfinite(innovation) or not math.isfinite(innovation_variance):
             raise ValueError("innovation exceeds the finite numerical range")

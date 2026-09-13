@@ -1,9 +1,10 @@
 # Design and validation approach
 
-Status: Python gyro integration and the linear angle/bias Kalman reference are
-implemented, with tests, controlled simulation, and [reproducible comparisons](../results/linear-kalman/README.md).
-The Kalman reference currently uses a direct synthetic angle observation.
-Accelerometer fusion, the EKF, C++, bench replay, and the web interface are pending.
+Status: Python gyro integration, accelerometer tilt, complementary fusion, and the
+angle/bias Kalman reference are implemented, with tests and
+[paired nominal/disturbed simulations](../results/accelerometer-fusion/README.md).
+The earlier direct synthetic angle experiment remains available.
+The accelerometer-vector EKF, C++, bench replay, and web interface are pending.
 
 ## Scope
 
@@ -41,12 +42,12 @@ updated through the angle–bias covariance; no bias random walk is modeled yet.
 Slow variations are a later scenario. Per-sample variance and continuous-time
 noise density are different quantities.
 
-The linear Kalman filter uses a synthetic angle observation `z = theta + noise`.
-The default experiment corrects at 10 Hz after predictions using 100 Hz gyro
-intervals. The [implemented model](linear-kalman.md) details initialization, Q/R,
-time ordering, and predeclared evaluation criteria. The next observation model
-will use tilt derived from two accelerometer components, with an approximate
-angular-noise model and explicit angle wrapping.
+The linear Kalman reference first used a synthetic angle observation
+`z = theta + noise`. It now also accepts tilt derived from two accelerometer
+components using principal angular innovations and an approximate noise model.
+The experiments correct at 10 Hz after predictions using 100 Hz gyro intervals.
+The [linear model](linear-kalman.md) and [accelerometer fusion model](accelerometer-fusion.md)
+detail initialization, Q/R, time ordering, complementary gain, and predeclared criteria.
 
 The planned EKF retains this propagation but directly observes accelerometer specific
 force. Under a forward-right-down body frame, positive right-hand roll, zero
@@ -58,9 +59,11 @@ H(theta, b) = [[-g * cos(theta), 0], [g * sin(theta), 0]]
 theta_acc = atan2(-f_y, -f_z)
 ```
 
+This force model is now used to simulate accelerometer measurements and invert
+them into tilt; the EKF's direct vector correction is still pending.
 The nonlinear observation justifies the EKF. Whether it improves on simpler
-filters must be measured. Hardware signs and frames require physical pose checks
-before using this model with logs.
+filters must be measured, and it will not by itself resolve translation ambiguity.
+Hardware signs and frames require physical pose checks before using this model with logs.
 
 ## Assumptions and acquisition
 
@@ -123,10 +126,11 @@ The UI stack and deployment are undecided.
 
 ## Next step and open decisions
 
-Add simulated accelerometer specific force and tilt extraction, verify signs and
-angle wrapping, then compare a complementary baseline and the linear reference on
-shared measurements. In parallel, read back the installed flight-controller
-configuration and prepare a short stationary bench recording. Open decisions
-include firmware, streams, synchronization, the angle reference, real sensor noise,
-and criteria for the extended scenarios. The current simulation parameters are
-illustrative and have not been fitted to a physical IMU.
+Read back the installed flight-controller configuration and acquire a short
+stationary bench recording, then inspect streams, timing, units, and calibration
+before defining a replay adapter. The next numerical extension is the nonlinear
+accelerometer-vector reference, with independent Jacobian checks before C++.
+Current exported comparisons can also inform a first web replay interface;
+its implementation and stack still require design decisions. Real angle reference,
+sensor noise, and extended-scenario criteria remain open. Current parameters have
+not been fitted to a physical IMU.

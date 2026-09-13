@@ -1,8 +1,8 @@
 # Linear angle and gyroscope-bias Kalman reference
 
 This experiment adds a direct noisy angle observation to the gyro integration
-baseline. The observation is synthetic; accelerometer signals and their physical
-limitations will be introduced separately.
+baseline. The observation is synthetic; the subsequent [accelerometer study](accelerometer-fusion.md)
+introduces specific-force signals and their physical limitations separately.
 
 ## State, prediction, and correction
 

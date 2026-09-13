@@ -108,7 +108,7 @@ observations. Twenty seeds test noise realizations for this fixed configuration,
 not robustness to different sensors, models, timing, or motion.
 
 The synthetic angle observation supplies additional information unavailable to
-gyro integration alone. Next, model accelerometer specific force and derive the
-tilt observation, with sign, wrapping, and acceleration-disturbance checks; add
-the complementary baseline on the same data. Real bench acquisition and replay
+gyro integration alone. The subsequent [accelerometer fusion experiment](../accelerometer-fusion/README.md)
+derives tilt from specific force, checks signs and wrapping, and compares a
+complementary baseline under nominal and disturbed conditions. Real bench acquisition and replay
 remain required. Embedded, real-time, and flight validation are not claimed.
