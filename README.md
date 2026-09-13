@@ -15,7 +15,9 @@ model in both Kalman filters. A DataFlash IMU audit checks real-log units,
 timing, gaps and health metadata. Offline replay compares gyro, complementary,
 and angle KF estimates on an explicitly selected log segment with declared
 sampling and tuning assumptions. The vector EKF has been evaluated in simulation
-only. C++, a new documented bench acquisition, and the web interface remain planned.
+only. A C++17 port of the vector EKF now provides a separate numerical core and
+event replay executable, checked against Python after every operation.
+A new documented bench acquisition and the web interface remain planned.
 
 ![Vector EKF and baseline comparison on shared simulated measurements](results/ekf-comparison/overview.png)
 
@@ -33,6 +35,11 @@ this comparison to wrong initialization, changing bias, unavailable observations
 irregular intervals, underestimated noise, and unmodeled delay. Estimator tuning
 stays fixed. It reports transient and final-window errors; only the nominal case
 receives accuracy pass/fail criteria.
+
+The [C++ agreement report](results/cpp-parity/README.md) compares states,
+covariances, and innovations on those eight cases plus the translation pulse.
+Agreement includes unfavorable cases; it establishes implementation agreement
+within numerical tolerances, not improved physical accuracy.
 
 The earlier [gyro-drift baseline](results/gyro-drift/README.md) isolates integration
 error from bias and noise, and the [linear reference](results/linear-kalman/README.md)
@@ -66,6 +73,20 @@ summary and PNG plot. Fusion experiments also export covariance and innovation
 diagnostics and evaluate seeds 0–19. Use a **new output directory** for each run;
 existing directories are refused. Generated runs under `outputs/` are ignored by
 Git. Selected figures and summaries under `results/` document the default runs.
+
+For the C++ EKF, install CMake 3.20+, a C++17 compiler and Eigen 3.4+, then:
+
+```sh
+cmake -S . -B build/cpp -DCMAKE_BUILD_TYPE=Release -DMERIDIAN_TEST_PYTHON="$PWD/.venv/bin/python"
+cmake --build build/cpp --parallel 2
+ctest --test-dir build/cpp --output-on-failure
+python -m meridian.cpp_parity --binary build/cpp/meridian_ekf_replay --output outputs/cpp-parity
+```
+
+These commands were verified on Linux. The [C++ guide](docs/cpp-ekf.md) describes
+dependencies, other build configurations, the event protocol, and comparison
+tolerances. The default Python-only test run skips C++ integration tests unless
+`MERIDIAN_CPP_BINARY` is set; the configured CTest job supplies the built executable.
 
 For a stationary scenario or a different noise realization:
 
@@ -107,6 +128,10 @@ Historical recordings do not establish current acquisition conditions.
 | `src/meridian/integration.py` | Gyro integration from interval rates and timestamps. |
 | `src/meridian/kalman.py` | Linear angle/bias prediction and correction; no file or plotting dependencies. |
 | `src/meridian/ekf.py` | Roll/bias EKF with a nonlinear gravity-vector observation and analytical Jacobian. |
+| `cpp/include/meridian/`, `cpp/src/` | Independent C++17/Eigen vector EKF core and public API. |
+| `cpp/apps/ekf_replay.cpp` | Explicit prediction/update event replay with strict CSV input. |
+| `cpp/tests/` | Native numerical and failure-handling checks, active in Release builds. |
+| `src/meridian/cpp_parity.py` | Full-precision input serialization and comparison after every C++/Python operation. |
 | `src/meridian/tilt.py` | Tilt extraction, angular wrapping, and complementary roll estimation. |
 | `src/meridian/gyro_drift.py` | Experiment configuration, evaluation, plots, and exports. |
 | `src/meridian/kalman_experiment.py` | Shared-data comparison, sparse angle observations, and repeated trials. |
@@ -122,15 +147,14 @@ Historical recordings do not establish current acquisition conditions.
 | `tests/` | Numerical contracts, analytical drift, reproducibility, and export checks. |
 | `results/` | Selected results and reproduction reports. |
 
-Next comes C++ implementation with parity checks against the Python references.
-A new documented bench acquisition
+The next presentation step is a lightweight web interface for comparison plots
+and time-based replay. Its technology stack is undecided; the numerical core
+works independently of the presentation layer. A new documented bench acquisition
 and evaluation of known static poses and slow manual roll remain required.
-A lightweight web interface will expose comparison plots and
-time-based replay after the first filter comparisons exist. Its technology stack
-is undecided; the numerical core works independently of the presentation layer.
 
 The [linear Kalman model](docs/linear-kalman.md), [accelerometer fusion model](docs/accelerometer-fusion.md),
-and [vector EKF model](docs/vector-ekf.md), with the [controlled evaluation contract](docs/controlled-scenarios.md),
+and [vector EKF model](docs/vector-ekf.md), with the [controlled evaluation contract](docs/controlled-scenarios.md)
+and [C++ agreement contract](docs/cpp-ekf.md),
 specify timing, noise, initialization, and limitations.
 The [design and validation approach](docs/design.md) defines the broader models,
 assumptions, software boundaries, and remaining decisions. Real bench acquisition

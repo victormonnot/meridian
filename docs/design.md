@@ -8,12 +8,15 @@ same simulated inputs with a nonlinear force observation and verified Jacobian.
 The [controlled scenarios](controlled-scenarios.md) now exercise initialization,
 changing bias, observation loss, irregular timing, noise mismatch, and delay while
 keeping all estimator algorithms and tuning fixed.
+A separate [C++17/Eigen EKF](cpp-ekf.md) implements the same model, with native
+tests and every-operation numerical comparison against Python on those cases
+and the translation pulse.
 The earlier direct synthetic angle experiment remains available.
 An optional [DataFlash audit](dataflash-audit.md) now extracts IMU snapshots,
 checks recorded units, and reports timing discontinuities and selected metadata.
 [Offline replay](imu-replay.md) compares the estimators on one explicit log segment
 with shared initialization and a previous-snapshot gyro hold. The
-vector EKF has only been evaluated in simulation. Its real-log replay, C++, new
+vector EKF has only been evaluated in simulation. Its real-log replay, new
 documented bench acquisition, and web interface are pending; historical replay is
 not a completed bench validation.
 
@@ -62,7 +65,7 @@ The controlled suite additionally uses irregular intervals and omitted correctio
 The [linear model](linear-kalman.md) and [accelerometer fusion model](accelerometer-fusion.md)
 detail initialization, Q/R, time ordering, complementary gain, and predeclared criteria.
 
-The Python EKF retains this propagation but directly observes accelerometer specific
+The EKF in Python and C++ retains this propagation but directly observes accelerometer specific
 force. Under a forward-right-down body frame, positive right-hand roll, zero
 pitch, and negligible translational acceleration:
 
@@ -146,6 +149,13 @@ unmodeled delay, not delayed-measurement compensation. The
 [scenario report](../results/controlled-scenarios/README.md) retains every repeat,
 including unfavorable cases, without extending nominal accuracy claims to them.
 
+The C++ comparison reuses full-precision serialized input operations, and checks
+the initial state and every prediction/correction in both implementations. States,
+all P entries, vector innovations and all S entries have separately declared
+tolerances. Native tests verify the model independently; port agreement is not
+treated as additional physical accuracy evidence. The C++ CLI is an event replay
+adapter, not a new DataFlash decoder or an embedded implementation.
+
 For real data, use known static fixture angles with stated uncertainty if feasible.
 Without an independent dynamic reference, report repeatability and agreement;
 ArduPilot attitude is another estimate, not ground truth. Bench replay does not
@@ -164,7 +174,9 @@ The first implementation uses small Python modules: NumPy in the simulation and
 integration core, Matplotlib in the experiment layer, and pytest for verification.
 The CLI exports measurements and truth separately; only the experiment layer uses
 truth for initialization and evaluation. No vehicle software or web framework is
-required. Add C++ after the reference model is verified. Broader sample conventions
+required. The C++ core uses fixed-size Eigen double matrices and CMake, with no
+Python or file dependency in the algorithm. Its input/output adapter and Python
+comparison driver remain separate. Broader sample conventions
 must account for unequal sensor rates and observed log semantics; the initial CSVs
 are an experiment format, not a general sensor interchange specification.
 
@@ -179,8 +191,8 @@ Read back the installed flight-controller configuration and acquire a short
 stationary and manual-roll bench recording with documented poses and conditions.
 Use the implemented audit and replay to inspect those measurements, with explicit
 angle-reference uncertainty and noise assumptions. Historical logs do not replace
-that acquisition. The next implementation step is C++ with agreement checks on
-identical inputs, following the evaluated Python reference and controlled cases.
+that acquisition. With C++ agreement now checked, the next presentation step is
+the first web interface for exploring the existing reproducible results.
 Current exported comparisons can also inform a first web replay interface;
 its implementation and stack still require design decisions. Real angle reference,
 sensor noise, and broader validation criteria remain open. Current parameters have

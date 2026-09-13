@@ -134,7 +134,8 @@ component noise, and exact interval-mean rates. There is no complete translation
 dynamics model, lever arm, time delay, calibration error, or physical gate.
 The later [controlled suite](../controlled-scenarios/README.md) evaluates additional
 initialization/bias/timing scenarios without changing this result snapshot.
-C++ parity remains subsequent work.
+The later [C++ agreement study](../cpp-parity/README.md) reuses these inputs and
+the controlled cases without changing this snapshot.
 This vector EKF has **only been evaluated in simulation**. Existing historical
 IMU replay uses the earlier filters. New documented bench acquisition and replay
 remain required; no embedded, real-time, or flight validation is claimed.

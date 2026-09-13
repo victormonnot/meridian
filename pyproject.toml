@@ -23,6 +23,7 @@ meridian-linear-kalman = "meridian.kalman_experiment:main"
 meridian-accel-fusion = "meridian.accel_experiment:main"
 meridian-ekf-comparison = "meridian.ekf_experiment:main"
 meridian-controlled-scenarios = "meridian.stress_experiment:main"
+meridian-cpp-parity = "meridian.cpp_parity:main"
 meridian-dataflash-audit = "meridian.dataflash_audit:main"
 meridian-imu-replay = "meridian.imu_replay:main"
 

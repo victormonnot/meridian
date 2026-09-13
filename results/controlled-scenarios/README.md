@@ -161,5 +161,7 @@ These cases retain pure roll, exact interval-mean gyro rates, imposed white nois
 and no lever-arm or complete vehicle dynamics. They do not cover every combination
 of faults, arbitrary initialization, calibration errors, temperature, vibration,
 or real sensor synchronization. The estimator cores and previous result snapshots
-are unchanged. C++ parity and new documented bench acquisition/replay remain
-subsequent work; no embedded, real-time, or flight validation is claimed.
+are unchanged. The later [C++ agreement study](../cpp-parity/README.md) reuses these
+cases for numerical comparison without changing this snapshot. New documented
+bench acquisition/replay remains required; no embedded, real-time, or flight
+validation is claimed.

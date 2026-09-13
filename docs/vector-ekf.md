@@ -132,3 +132,9 @@ existing nominal and prescribed-translation scenarios. The later
 [controlled suite](controlled-scenarios.md) evaluates additional initialization,
 bias, availability, noise, and timing assumptions with this core unchanged.
 Broader robustness claims and physical acquisition remain separate work.
+
+The [C++ port](cpp-ekf.md) exposes the same state and update model through a
+separate C++17/Eigen API. Its [agreement report](../results/cpp-parity/README.md)
+compares the initial state and every prediction/correction, including full P and
+S matrices and prior innovations. Both implementations retain the local model
+limitations described above.
