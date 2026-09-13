@@ -4,6 +4,8 @@ Status: Python gyro integration, accelerometer tilt, complementary fusion, and t
 angle/bias Kalman reference are implemented, with tests and
 [paired nominal/disturbed simulations](../results/accelerometer-fusion/README.md).
 The earlier direct synthetic angle experiment remains available.
+An optional [DataFlash audit](dataflash-audit.md) now extracts IMU snapshots,
+checks recorded units, and reports timing discontinuities and selected metadata.
 The accelerometer-vector EKF, C++, bench replay, and web interface are pending.
 
 ## Scope
@@ -84,6 +86,13 @@ timestamps, clock behavior, gaps, duplicates, and relative sensor delay. Disarme
 recording and usable timing must be demonstrated before fixing the replay format.
 Log timestamps alone do not prove simultaneous sampling.
 
+The implemented audit retains integer `TimeUS` and original file order, analyzes
+each IMU instance separately, and marks finite timing segments without filling
+gaps. Its configurable 0.2 s gap threshold is an inspection policy. Logged frontend
+snapshots require a separate replay sampling model; the simulator's exact
+interval-average convention is not transferred to hardware data. Audit statistics
+do not identify physical noise or validate arming/pose conditions.
+
 ## Validation
 
 Compare gyro integration, accelerometer-only tilt, a complementary filter, the
@@ -126,9 +135,11 @@ The UI stack and deployment are undecided.
 
 ## Next step and open decisions
 
+Use the audit on available recordings, then define the first replay on explicitly
+selected contiguous data with stated sampling, initialization and noise assumptions.
 Read back the installed flight-controller configuration and acquire a short
-stationary bench recording, then inspect streams, timing, units, and calibration
-before defining a replay adapter. The next numerical extension is the nonlinear
+stationary and manual-roll bench recording with documented poses and conditions.
+Historical logs do not replace that acquisition. The next numerical extension is the nonlinear
 accelerometer-vector reference, with independent Jacobian checks before C++.
 Current exported comparisons can also inform a first web replay interface;
 its implementation and stack still require design decisions. Real angle reference,

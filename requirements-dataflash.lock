@@ -1,0 +1,6 @@
+# Optional DataFlash reader, validated with Python 3.12 on Linux.
+# Install with: python -m pip install -r requirements-dataflash.lock -e '.[dataflash]'
+-r requirements.lock
+fastcrc==0.3.6
+lxml==6.1.3
+pymavlink==2.4.49

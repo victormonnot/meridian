@@ -10,8 +10,9 @@ filter, and an angle/bias Kalman reference, with controlled simulation,
 reproducible exports, and numerical tests. On the selected nominal simulation,
 angle RMSE is 8.854° for gyro integration, 0.660° for the complementary filter, and
 0.354° for Kalman. A paired translation disturbance exposes failure of the
-gravity-based observation model. The EKF, C++, bench replay, and web interface
-remain planned.
+gravity-based observation model. A DataFlash IMU audit now checks real-log units,
+timing, gaps and health metadata before replay. The EKF, C++, bench replay, and
+web interface remain planned.
 
 ![Nominal and disturbed gyro–accelerometer fusion](results/accelerometer-fusion/overview.png)
 
@@ -61,6 +62,18 @@ python -m meridian.kalman_experiment --help
 python -m meridian.accel_experiment --help
 ```
 
+For existing DataFlash recordings, install the optional decoder and generate a
+local measurement audit:
+
+```sh
+python -m pip install -r requirements-dataflash.lock -e '.[dataflash]'
+python -m meridian.dataflash_audit /path/to/recording.bin --output outputs/dataflash-audit
+```
+
+The [DataFlash audit guide](docs/dataflash-audit.md) describes the input contract,
+exports and timing checks. It preserves logged values without running the filters;
+an audit does not establish acquisition conditions or estimation accuracy.
+
 ## Design and next steps
 
 | Location | Responsibility |
@@ -72,11 +85,14 @@ python -m meridian.accel_experiment --help
 | `src/meridian/gyro_drift.py` | Experiment configuration, evaluation, plots, and exports. |
 | `src/meridian/kalman_experiment.py` | Shared-data comparison, sparse angle observations, and repeated trials. |
 | `src/meridian/accel_experiment.py` | Nominal/disturbed comparisons using shared simulated IMU data. |
+| `src/meridian/dataflash.py` | Optional DataFlash reader with recorded-unit checks and selected metadata. |
+| `src/meridian/dataflash_audit.py` | Per-instance timing, measurement inspection and local exports. |
 | `tests/` | Numerical contracts, analytical drift, reproducibility, and export checks. |
 | `results/` | Selected results and reproduction reports. |
 
-Next come current bench-data inspection and a nonlinear accelerometer-vector
-reference, followed by C++ verification. A lightweight web interface will expose comparison plots and
+Next come a documented bench acquisition and configured replay of audited data,
+plus a nonlinear accelerometer-vector reference followed by C++ verification.
+A lightweight web interface will expose comparison plots and
 time-based replay after the first filter comparisons exist. Its technology stack
 is undecided; the numerical core works independently of the presentation layer.
 
