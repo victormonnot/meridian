@@ -1,9 +1,9 @@
 # Design and validation approach
 
-Status: the Python gyro integration baseline and controlled simulation are
-implemented, with tests and a [reproducible result](../results/gyro-drift/README.md).
-Angle/bias filters, accelerometer fusion, C++, bench replay, and the web interface
-are pending. The model below describes the intended filter, not implemented behavior.
+Status: Python gyro integration and the linear angle/bias Kalman reference are
+implemented, with tests, controlled simulation, and [reproducible comparisons](../results/linear-kalman/README.md).
+The Kalman reference currently uses a direct synthetic angle observation.
+Accelerometer fusion, the EKF, C++, bench replay, and the web interface are pending.
 
 ## Scope
 
@@ -25,7 +25,7 @@ reconstruction isolates sensor error; it does not validate numerical integration
 instantaneous samples or establish a convention for real logs. Internal units are
 radians and seconds; exported measurement intervals and angle endpoints are explicit.
 
-The proposed state is `x = [theta, b]`, with roll `theta` in radians and gyro bias
+The Kalman state is `x = [theta, b]`, with roll `theta` in radians and gyro bias
 `b` in radians per second. For motion about the longitudinal axis:
 
 ```text
@@ -35,15 +35,20 @@ b_next = b + process_noise_bias
 F = [[1, -dt], [0, 1]]
 ```
 
-Bias scenarios cover constant offsets followed by slow variations. Process
-covariance will follow an explicit noise model and elapsed time; per-sample
-variance and continuous-time noise density are different quantities.
+The implemented reference assumes constant bias, independent interval-mean gyro
+noise, and `Q = diag(sigma_g^2 * dt^2, 0)`. Bias uncertainty starts nonzero and is
+updated through the angle–bias covariance; no bias random walk is modeled yet.
+Slow variations are a later scenario. Per-sample variance and continuous-time
+noise density are different quantities.
 
-A linear Kalman filter first uses a synthetic angle observation
-`z = theta + noise`. It then uses tilt derived from two accelerometer components,
-with an approximate angular-noise model and explicit angle wrapping.
+The linear Kalman filter uses a synthetic angle observation `z = theta + noise`.
+The default experiment corrects at 10 Hz after predictions using 100 Hz gyro
+intervals. The [implemented model](linear-kalman.md) details initialization, Q/R,
+time ordering, and predeclared evaluation criteria. The next observation model
+will use tilt derived from two accelerometer components, with an approximate
+angular-noise model and explicit angle wrapping.
 
-The EKF retains this propagation but directly observes accelerometer specific
+The planned EKF retains this propagation but directly observes accelerometer specific
 force. Under a forward-right-down body frame, positive right-hand roll, zero
 pitch, and negligible translational acceleration:
 
@@ -118,9 +123,10 @@ The UI stack and deployment are undecided.
 
 ## Next step and open decisions
 
-Add the linear angle/bias Kalman reference with a synthetic angle observation,
-documenting its process noise and measurement uncertainty before tuning. In parallel,
-read back the installed flight-controller configuration and prepare a short stationary
-bench recording. Open decisions include firmware, streams, synchronization, the
-angle reference, sensor noise parameters, and filter acceptance criteria. The current
-simulation parameters are illustrative and have not been fitted to a physical IMU.
+Add simulated accelerometer specific force and tilt extraction, verify signs and
+angle wrapping, then compare a complementary baseline and the linear reference on
+shared measurements. In parallel, read back the installed flight-controller
+configuration and prepare a short stationary bench recording. Open decisions
+include firmware, streams, synchronization, the angle reference, real sensor noise,
+and criteria for the extended scenarios. The current simulation parameters are
+illustrative and have not been fitted to a physical IMU.

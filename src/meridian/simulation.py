@@ -91,3 +91,29 @@ def sample_gyro(
     rng = np.random.Generator(np.random.PCG64(seed))
     noise_rad_s = rng.normal(0.0, noise_std_rad_s, size=rates.size)
     return rates + bias_rad_s + noise_rad_s
+
+
+def sample_angle(
+    angle_rad: ArrayLike,
+    *,
+    noise_std_rad: float,
+    seed: int,
+) -> NDArray[np.float64]:
+    """Generate independent noisy, unwrapped angle observations in radians.
+
+    This is a direct synthetic observation, not an accelerometer model.
+    noise_std_rad is the standard deviation per observation, not a density.
+    """
+    angles = np.asarray(angle_rad, dtype=np.float64)
+    if angles.ndim != 1 or angles.size == 0 or not np.all(np.isfinite(angles)):
+        raise ValueError("angle_rad must be a nonempty finite 1D array")
+    if not math.isfinite(noise_std_rad) or noise_std_rad < 0.0:
+        raise ValueError("noise_std_rad must be finite and nonnegative")
+    if (
+        isinstance(seed, (bool, np.bool_))
+        or not isinstance(seed, (int, np.integer))
+        or seed < 0
+    ):
+        raise ValueError("seed must be a nonnegative integer")
+    rng = np.random.Generator(np.random.PCG64(seed))
+    return angles + rng.normal(0.0, noise_std_rad, size=angles.size)

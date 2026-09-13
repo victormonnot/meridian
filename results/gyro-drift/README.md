@@ -123,7 +123,8 @@ Kalman filtering, bias variation, temperature effects, correlated noise, timing
 jitter in simulated measurements, or a 3D attitude model. The numerical tests do
 not establish physical IMU accuracy or statistical performance across many seeds.
 
-Next, add an independent noisy angle observation and the linear Kalman reference.
+The subsequent [linear Kalman experiment](../linear-kalman/README.md) adds an
+independent noisy angle observation and estimates constant gyro bias.
 Real drone acquisition and replay remain required for the full study; log timing,
 units, calibration, and sample semantics must be checked before adaptation. No
 embedded, real-time, or flight validation is claimed.
