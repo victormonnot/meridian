@@ -6,7 +6,10 @@ angle/bias Kalman reference are implemented, with tests and
 The earlier direct synthetic angle experiment remains available.
 An optional [DataFlash audit](dataflash-audit.md) now extracts IMU snapshots,
 checks recorded units, and reports timing discontinuities and selected metadata.
-The accelerometer-vector EKF, C++, bench replay, and web interface are pending.
+[Offline replay](imu-replay.md) compares the estimators on one explicit log segment
+with shared initialization and a previous-snapshot gyro hold. The
+accelerometer-vector EKF, C++, new documented bench acquisition, and web interface
+are pending; historical replay is not a completed bench validation.
 
 ## Scope
 
@@ -89,9 +92,16 @@ Log timestamps alone do not prove simultaneous sampling.
 The implemented audit retains integer `TimeUS` and original file order, analyzes
 each IMU instance separately, and marks finite timing segments without filling
 gaps. Its configurable 0.2 s gap threshold is an inspection policy. Logged frontend
-snapshots require a separate replay sampling model; the simulator's exact
+snapshots use an explicit previous-sample hold for replay; the simulator's exact
 interval-average convention is not transferred to hardware data. Audit statistics
 do not identify physical noise or validate arming/pose conditions.
+
+Replay starts all methods from the first selected tilt, with KF angle variance
+equal to R and zero initial bias with nonzero default uncertainty. The first
+measurement is not corrected twice. Later rows use actual integer timestamp
+differences, then correct at the endpoint. Effective Q/R settings remain
+illustrative; filtered snapshot correlations and unknown delays are not modeled.
+The report distinguishes disagreement with fused tilt from independent accuracy.
 
 ## Validation
 
@@ -135,11 +145,11 @@ The UI stack and deployment are undecided.
 
 ## Next step and open decisions
 
-Use the audit on available recordings, then define the first replay on explicitly
-selected contiguous data with stated sampling, initialization and noise assumptions.
 Read back the installed flight-controller configuration and acquire a short
 stationary and manual-roll bench recording with documented poses and conditions.
-Historical logs do not replace that acquisition. The next numerical extension is the nonlinear
+Use the implemented audit and replay to inspect those measurements, with explicit
+angle-reference uncertainty and noise assumptions. Historical logs do not replace
+that acquisition. The next numerical extension is the nonlinear
 accelerometer-vector reference, with independent Jacobian checks before C++.
 Current exported comparisons can also inform a first web replay interface;
 its implementation and stack still require design decisions. Real angle reference,

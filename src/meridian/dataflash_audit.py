@@ -128,7 +128,8 @@ def _plot(records: list[ImuRecord], labels: list, output: Path) -> None:
     figure.savefig(output, dpi=140, metadata={"Software": "Meridian"})
 
 
-def _sha256(path: Path) -> str:
+def sha256_file(path: Path) -> str:
+    """Fingerprint source bytes for offline audit and replay provenance."""
     digest = hashlib.sha256()
     with path.open("rb") as source:
         for block in iter(lambda: source.read(1024 * 1024), b""):
@@ -143,11 +144,11 @@ def audit_file(source: Path, output: Path, *, gap_threshold_s: float = 0.2) -> d
         raise FileExistsError(f"output directory already exists: {output}")
     if not math.isfinite(gap_threshold_s) or gap_threshold_s <= 0:
         raise ValueError("gap_threshold_s must be finite and positive")
-    fingerprint = _sha256(source)
+    fingerprint = sha256_file(source)
     data = read_dataflash(source)
     streams, labels = analyze_records(data.records, gap_threshold_s=gap_threshold_s)
     # Detect ordinary source changes during decoding; this does not authenticate provenance.
-    if _sha256(source) != fingerprint:
+    if sha256_file(source) != fingerprint:
         raise ValueError("source file changed during audit")
     summary = {
         "schema_version": 1,

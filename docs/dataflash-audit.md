@@ -100,16 +100,20 @@ Historical logging parameters do not identify the controller's current settings.
 
 ## Next step toward replay
 
+The [offline replay tool](imu-replay.md) now implements a previous-snapshot hold,
+shared initialization and explicit selection of one audited segment. The audit
+itself remains a measurement inspection tool and runs no estimator.
+
 Associate a selected recording with an acquisition note: hardware and firmware,
 disarmed state, propellers removed, mounting/axes, static poses or prescribed
 roll motion, clock behavior, and any known interruptions. Read back the current
 controller configuration for a new acquisition. Keep Meridian outside the
 control loop.
 
-Choose contiguous intervals and explicitly define how logged rate snapshots
-approximate interval motion before invoking an estimator. Initialization,
-calibration, residual noise, delay assumptions, and behavior at gaps require
-their own replay configuration. ArduPilot attitude can provide an estimate for
+Choose contiguous intervals and review the replay's approximation of logged rate
+snapshots. Initialization, calibration, residual noise, delay assumptions, and
+behavior at gaps need experimental justification beyond the illustrative default
+configuration. ArduPilot attitude can provide an estimate for
 comparison, not independent ground truth. Use a static angle reference with
 stated uncertainty where possible. Without it, report agreement and repeatability
 instead of accuracy. Current audit plots are measurement inspection, not filter
