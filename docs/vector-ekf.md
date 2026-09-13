@@ -128,5 +128,7 @@ symmetry/positive semidefiniteness, and input/failure handling.
 existing gyro, complementary, and angle Kalman baselines on shared measurements.
 The [comparison report](../results/ekf-comparison/README.md) records the reproducible
 command, evaluation contract, results, and limitations. The new estimator uses the
-existing nominal and prescribed-translation scenarios; broader robustness testing
-and physical acquisition remain separate work.
+existing nominal and prescribed-translation scenarios. The later
+[controlled suite](controlled-scenarios.md) evaluates additional initialization,
+bias, availability, noise, and timing assumptions with this core unchanged.
+Broader robustness claims and physical acquisition remain separate work.

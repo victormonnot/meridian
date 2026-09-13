@@ -5,6 +5,9 @@ angle/bias Kalman reference are implemented, with tests and
 [paired nominal/disturbed simulations](../results/accelerometer-fusion/README.md).
 The [vector EKF comparison](../results/ekf-comparison/README.md) now uses those
 same simulated inputs with a nonlinear force observation and verified Jacobian.
+The [controlled scenarios](controlled-scenarios.md) now exercise initialization,
+changing bias, observation loss, irregular timing, noise mismatch, and delay while
+keeping all estimator algorithms and tuning fixed.
 The earlier direct synthetic angle experiment remains available.
 An optional [DataFlash audit](dataflash-audit.md) now extracts IMU snapshots,
 checks recorded units, and reports timing discontinuities and selected metadata.
@@ -47,13 +50,15 @@ F = [[1, -dt], [0, 1]]
 The implemented reference assumes constant bias, independent interval-mean gyro
 noise, and `Q = diag(sigma_g^2 * dt^2, 0)`. Bias uncertainty starts nonzero and is
 updated through the angle–bias covariance; no bias random walk is modeled yet.
-Slow variations are a later scenario. Per-sample variance and continuous-time
+The controlled suite also varies the true bias while keeping this filter model
+constant to measure the resulting mismatch. Per-sample variance and continuous-time
 noise density are different quantities.
 
 The linear Kalman reference first used a synthetic angle observation
 `z = theta + noise`. It now also accepts tilt derived from two accelerometer
 components using principal angular innovations and an approximate noise model.
-The experiments correct at 10 Hz after predictions using 100 Hz gyro intervals.
+The nominal experiments correct at 10 Hz after predictions using 100 Hz gyro intervals.
+The controlled suite additionally uses irregular intervals and omitted corrections.
 The [linear model](linear-kalman.md) and [accelerometer fusion model](accelerometer-fusion.md)
 detail initialization, Q/R, time ordering, complementary gain, and predeclared criteria.
 
@@ -132,6 +137,15 @@ to seed 42 and seeds 0–19. It imposes no superiority requirement or nominal ac
 threshold on the disturbance. Joint EKF NIS has two measurement dimensions, versus
 one for the angle KF; these diagnostics do not establish statistical consistency.
 
+The controlled suite retains nominal accuracy checks and adds numerical-contract
+checks across eight fixed cases. Its duration-weighted error metric complements
+the endpoint RMSE when intervals are irregular; the fixed final five-second window
+separates remaining error from initialization transients. Delay source times are
+simulation provenance and are never supplied to a filter. This is an evaluation of
+unmodeled delay, not delayed-measurement compensation. The
+[scenario report](../results/controlled-scenarios/README.md) retains every repeat,
+including unfavorable cases, without extending nominal accuracy claims to them.
+
 For real data, use known static fixture angles with stated uncertainty if feasible.
 Without an independent dynamic reference, report repeatability and agreement;
 ArduPilot attitude is another estimate, not ground truth. Bench replay does not
@@ -165,9 +179,9 @@ Read back the installed flight-controller configuration and acquire a short
 stationary and manual-roll bench recording with documented poses and conditions.
 Use the implemented audit and replay to inspect those measurements, with explicit
 angle-reference uncertainty and noise assumptions. Historical logs do not replace
-that acquisition. The next numerical work extends controlled scenarios for the
-Python references, before implementing C++ and checking agreement on identical inputs.
+that acquisition. The next implementation step is C++ with agreement checks on
+identical inputs, following the evaluated Python reference and controlled cases.
 Current exported comparisons can also inform a first web replay interface;
 its implementation and stack still require design decisions. Real angle reference,
-sensor noise, and extended-scenario criteria remain open. Current parameters have
+sensor noise, and broader validation criteria remain open. Current parameters have
 not been fitted to a physical IMU.

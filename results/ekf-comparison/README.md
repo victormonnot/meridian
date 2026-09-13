@@ -132,7 +132,9 @@ simulation correction was also checked against the scalar-equivalent formulation
 The experiment assumes known initialization, constant bias, pure roll, white
 component noise, and exact interval-mean rates. There is no complete translation
 dynamics model, lever arm, time delay, calibration error, or physical gate.
-Broader initialization/bias/timing scenarios and C++ parity remain subsequent work.
+The later [controlled suite](../controlled-scenarios/README.md) evaluates additional
+initialization/bias/timing scenarios without changing this result snapshot.
+C++ parity remains subsequent work.
 This vector EKF has **only been evaluated in simulation**. Existing historical
 IMU replay uses the earlier filters. New documented bench acquisition and replay
 remain required; no embedded, real-time, or flight validation is claimed.

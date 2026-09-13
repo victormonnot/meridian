@@ -15,12 +15,11 @@ model in both Kalman filters. A DataFlash IMU audit checks real-log units,
 timing, gaps and health metadata. Offline replay compares gyro, complementary,
 and angle KF estimates on an explicitly selected log segment with declared
 sampling and tuning assumptions. The vector EKF has been evaluated in simulation
-only. C++, a new documented bench
-acquisition, and the web interface remain planned.
+only. C++, a new documented bench acquisition, and the web interface remain planned.
 
 ![Vector EKF and baseline comparison on shared simulated measurements](results/ekf-comparison/overview.png)
 
-The latest experiment combines 100 Hz gyro intervals with 10 Hz accelerometer
+The vector EKF comparison combines 100 Hz gyro intervals with 10 Hz accelerometer
 components. The EKF corrects directly from the y/z force vector; the earlier
 filters use derived tilt. All methods share measurements and a known initial
 angle. The [EKF comparison report](results/ekf-comparison/README.md) includes
@@ -28,6 +27,12 @@ angle. The [EKF comparison report](results/ekf-comparison/README.md) includes
 limits. Near the correct angle, the two Kalman formulations behave similarly;
 the nonlinear observation does not remove translation ambiguity.
 The noise and timing models are controlled assumptions, not identified sensor characteristics.
+
+The [controlled scenario suite](results/controlled-scenarios/README.md) extends
+this comparison to wrong initialization, changing bias, unavailable observations,
+irregular intervals, underestimated noise, and unmodeled delay. Estimator tuning
+stays fixed. It reports transient and final-window errors; only the nominal case
+receives accuracy pass/fail criteria.
 
 The earlier [gyro-drift baseline](results/gyro-drift/README.md) isolates integration
 error from bias and noise, and the [linear reference](results/linear-kalman/README.md)
@@ -48,6 +53,7 @@ python -m meridian.gyro_drift --output outputs/gyro-drift
 python -m meridian.kalman_experiment --output outputs/linear-kalman
 python -m meridian.accel_experiment --output outputs/accelerometer-fusion
 python -m meridian.ekf_experiment --output outputs/ekf-comparison
+python -m meridian.stress_experiment --output outputs/controlled-scenarios
 python -m pytest -q
 ```
 
@@ -69,6 +75,7 @@ python -m meridian.gyro_drift --seed 7 --output outputs/seed-7
 python -m meridian.kalman_experiment --help
 python -m meridian.accel_experiment --help
 python -m meridian.ekf_experiment --help
+python -m meridian.stress_experiment --help
 ```
 
 For existing DataFlash recordings, install the optional decoder and generate a
@@ -105,6 +112,9 @@ Historical recordings do not establish current acquisition conditions.
 | `src/meridian/kalman_experiment.py` | Shared-data comparison, sparse angle observations, and repeated trials. |
 | `src/meridian/accel_experiment.py` | Nominal/disturbed comparisons using shared simulated IMU data. |
 | `src/meridian/ekf_experiment.py` | Vector EKF comparison on the same inputs, with vector innovations and repeated trials. |
+| `src/meridian/stress_scenarios.py` | Fixed controlled scenarios, paired sensor noise, and separate timing/bias truth. |
+| `src/meridian/stress_evaluation.py` | Shared-input evaluation of unchanged filters using actual intervals and availability. |
+| `src/meridian/stress_experiment.py` | Repeated scenario evaluation, exports, numerical checks, and comparison figures. |
 | `src/meridian/dataflash.py` | Optional DataFlash reader with recorded-unit checks and selected metadata. |
 | `src/meridian/dataflash_audit.py` | Per-instance timing, measurement inspection and local exports. |
 | `src/meridian/replay.py` | Causal roll/bias replay of contiguous snapshots, independent of file formats. |
@@ -112,15 +122,15 @@ Historical recordings do not establish current acquisition conditions.
 | `tests/` | Numerical contracts, analytical drift, reproducibility, and export checks. |
 | `results/` | Selected results and reproduction reports. |
 
-Next come controlled tests of initialization, changing bias, and timing assumptions,
-followed by C++ implementation and parity checks. A new documented bench acquisition
+Next comes C++ implementation with parity checks against the Python references.
+A new documented bench acquisition
 and evaluation of known static poses and slow manual roll remain required.
 A lightweight web interface will expose comparison plots and
 time-based replay after the first filter comparisons exist. Its technology stack
 is undecided; the numerical core works independently of the presentation layer.
 
 The [linear Kalman model](docs/linear-kalman.md), [accelerometer fusion model](docs/accelerometer-fusion.md),
-and [vector EKF model](docs/vector-ekf.md)
+and [vector EKF model](docs/vector-ekf.md), with the [controlled evaluation contract](docs/controlled-scenarios.md),
 specify timing, noise, initialization, and limitations.
 The [design and validation approach](docs/design.md) defines the broader models,
 assumptions, software boundaries, and remaining decisions. Real bench acquisition
