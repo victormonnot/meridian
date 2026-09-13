@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "experiment": "gyro_drift",
+  "data_source": "simulation",
+  "config": {
+    "duration_s": 30.0,
+    "sample_rate_hz": 100.0,
+    "amplitude_deg": 20.0,
+    "frequency_hz": 0.1,
+    "bias_deg_s": 0.5,
+    "noise_std_deg_s": 1.0,
+    "seed": 42
+  },
+  "interval_count": 3000,
+  "measurement_semantics": "mean angular rate over [t_start_s, t_end_s]",
+  "noise_model": "independent Gaussian noise per interval-mean rate sample",
+  "random_generator": "NumPy Generator(PCG64)",
+  "initialization": "known initial angle, identical for all conditions",
+  "initial_angle_rad": 0.0,
+  "metrics": {
+    "ideal": {
+      "angle_rmse_deg": 3.420470568194714e-19,
+      "max_abs_error_deg": 1.0666663149732516e-17,
+      "final_error_deg": 1.054427144840537e-17
+    },
+    "bias_only": {
+      "angle_rmse_deg": 8.660975695612917,
+      "max_abs_error_deg": 14.999999999999808,
+      "final_error_deg": 14.999999999999808
+    },
+    "bias_and_noise": {
+      "angle_rmse_deg": 8.018184334548755,
+      "max_abs_error_deg": 14.234312990569657,
+      "final_error_deg": 14.234312990569657
+    }
+  },
+  "analytic_predictions": {
+    "bias_only_final_error_deg": 15.0,
+    "noise_only_final_error_std_deg": 0.5477225575051662
+  },
+  "environment": {
+    "python": "3.12.3",
+    "numpy": "2.5.3",
+    "matplotlib": "3.11.2"
+  }
+}
