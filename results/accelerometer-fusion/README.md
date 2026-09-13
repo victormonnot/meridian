@@ -141,7 +141,7 @@ gating. Near-g magnitude does not prove that an observation represents gravity.
 The angular Gaussian noise model and covariance bands are approximate even in the
 nominal case and do not account for the pulse.
 
-Next, inspect current bench measurements and their timing, and develop the
-nonlinear accelerometer-vector reference within the documented scope. An EKF
-alone will not remove the translation ambiguity. Real acquisition and replay
-remain required; no embedded, real-time, or flight validation is claimed.
+The later [vector EKF comparison](../ekf-comparison/README.md) adds a nonlinear
+correction on these same simulated inputs. It retains the translation ambiguity;
+this earlier result set is unchanged. A new documented real acquisition and its
+replay remain required; no embedded, real-time, or flight validation is claimed.

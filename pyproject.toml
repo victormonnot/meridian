@@ -21,6 +21,7 @@ dataflash = ["pymavlink==2.4.49"]
 meridian-gyro-drift = "meridian.gyro_drift:main"
 meridian-linear-kalman = "meridian.kalman_experiment:main"
 meridian-accel-fusion = "meridian.accel_experiment:main"
+meridian-ekf-comparison = "meridian.ekf_experiment:main"
 meridian-dataflash-audit = "meridian.dataflash_audit:main"
 meridian-imu-replay = "meridian.imu_replay:main"
 

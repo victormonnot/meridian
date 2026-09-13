@@ -109,3 +109,8 @@ magnitude is only a diagnostic: at level, +2 m/s² in y creates approximately
 −11.53° apparent roll while changing the magnitude by only +2.06%. A norm near g
 therefore does not establish a valid gravity observation. Bias contamination and
 subsequent recovery are part of the reported limitations.
+
+The later [vector EKF comparison](../results/ekf-comparison/README.md) reuses these
+exact simulation streams and baselines. Its [model guide](vector-ekf.md) describes
+the nonlinear correction from force components, including local equivalence to
+this angle KF and the same translation ambiguity.

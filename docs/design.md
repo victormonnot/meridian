@@ -3,13 +3,16 @@
 Status: Python gyro integration, accelerometer tilt, complementary fusion, and the
 angle/bias Kalman reference are implemented, with tests and
 [paired nominal/disturbed simulations](../results/accelerometer-fusion/README.md).
+The [vector EKF comparison](../results/ekf-comparison/README.md) now uses those
+same simulated inputs with a nonlinear force observation and verified Jacobian.
 The earlier direct synthetic angle experiment remains available.
 An optional [DataFlash audit](dataflash-audit.md) now extracts IMU snapshots,
 checks recorded units, and reports timing discontinuities and selected metadata.
 [Offline replay](imu-replay.md) compares the estimators on one explicit log segment
 with shared initialization and a previous-snapshot gyro hold. The
-accelerometer-vector EKF, C++, new documented bench acquisition, and web interface
-are pending; historical replay is not a completed bench validation.
+vector EKF has only been evaluated in simulation. Its real-log replay, C++, new
+documented bench acquisition, and web interface are pending; historical replay is
+not a completed bench validation.
 
 ## Scope
 
@@ -54,7 +57,7 @@ The experiments correct at 10 Hz after predictions using 100 Hz gyro intervals.
 The [linear model](linear-kalman.md) and [accelerometer fusion model](accelerometer-fusion.md)
 detail initialization, Q/R, time ordering, complementary gain, and predeclared criteria.
 
-The planned EKF retains this propagation but directly observes accelerometer specific
+The Python EKF retains this propagation but directly observes accelerometer specific
 force. Under a forward-right-down body frame, positive right-hand roll, zero
 pitch, and negligible translational acceleration:
 
@@ -64,10 +67,14 @@ H(theta, b) = [[-g * cos(theta), 0], [g * sin(theta), 0]]
 theta_acc = atan2(-f_y, -f_z)
 ```
 
-This force model is now used to simulate accelerometer measurements and invert
-them into tilt; the EKF's direct vector correction is still pending.
-The nonlinear observation justifies the EKF. Whether it improves on simpler
-filters must be measured, and it will not by itself resolve translation ambiguity.
+The direct vector correction linearizes once at the prior, with
+`R = sigma_accel^2 * I`, a joint gain solve, and Joseph covariance update.
+The [vector model guide](vector-ekf.md) derives the observation and explains its
+local relationship to the angle KF. Under isotropic noise and the same initial
+covariance and schedule, the two covariance histories are mathematically equal,
+even when translation produces different state errors. Their nominal accuracy
+is similar in the selected simulation; neither resolves translation ambiguity.
+The EKF does not normalize observations or reject physical model violations.
 Hardware signs and frames require physical pose checks before using this model with logs.
 
 ## Assumptions and acquisition
@@ -116,6 +123,15 @@ disturbances. Report angle RMSE, drift, and bias convergence over multiple seeds
 inspect covariance behavior and innovations. Set numerical criteria before
 evaluating results. Check the EKF Jacobian and Python/C++ agreement independently.
 
+The Python EKF's Jacobian is checked by centered finite differences; its correction
+is checked against independent least-squares and tangent-projection calculations.
+Tests retain the opposite-vector failure mode: a radial innovation can leave the
+angle unchanged while covariance contracts. The comparison applies predeclared
+nominal limits (angle RMSE < 0.75°, final absolute bias error < 0.15°/s) separately
+to seed 42 and seeds 0–19. It imposes no superiority requirement or nominal accuracy
+threshold on the disturbance. Joint EKF NIS has two measurement dimensions, versus
+one for the angle KF; these diagnostics do not establish statistical consistency.
+
 For real data, use known static fixture angles with stated uncertainty if feasible.
 Without an independent dynamic reference, report repeatability and agreement;
 ArduPilot attitude is another estimate, not ground truth. Bench replay does not
@@ -149,8 +165,8 @@ Read back the installed flight-controller configuration and acquire a short
 stationary and manual-roll bench recording with documented poses and conditions.
 Use the implemented audit and replay to inspect those measurements, with explicit
 angle-reference uncertainty and noise assumptions. Historical logs do not replace
-that acquisition. The next numerical extension is the nonlinear
-accelerometer-vector reference, with independent Jacobian checks before C++.
+that acquisition. The next numerical work extends controlled scenarios for the
+Python references, before implementing C++ and checking agreement on identical inputs.
 Current exported comparisons can also inform a first web replay interface;
 its implementation and stack still require design decisions. Real angle reference,
 sensor noise, and extended-scenario criteria remain open. Current parameters have

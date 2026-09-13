@@ -6,21 +6,27 @@ accelerometer measurements, with reproducible simulation and offline replay of
 real drone bench data.
 
 **Implemented:** Python gyro integration, accelerometer tilt, a complementary
-filter, and an angle/bias Kalman reference, with controlled simulation,
-reproducible exports, and numerical tests. On the selected nominal simulation,
-angle RMSE is 8.854° for gyro integration, 0.660° for the complementary filter, and
-0.354° for Kalman. A paired translation disturbance exposes failure of the
-gravity-based observation model. A DataFlash IMU audit now checks real-log units,
-timing, gaps and health metadata. Offline replay compares the same estimators on
-an explicitly selected log segment with declared sampling and tuning assumptions.
-The EKF, C++, a new documented bench acquisition, and web interface remain planned.
+filter, an angle/bias Kalman reference, and an accelerometer-vector EKF, with
+controlled simulation, reproducible exports, and numerical tests. On the selected
+nominal simulation, angle RMSE is 8.854° for gyro integration, 0.660° for the
+complementary filter, 0.354° for the angle KF, and 0.353° for the vector EKF.
+A paired translation disturbance exposes failure of the gravity-based observation
+model in both Kalman filters. A DataFlash IMU audit checks real-log units,
+timing, gaps and health metadata. Offline replay compares gyro, complementary,
+and angle KF estimates on an explicitly selected log segment with declared
+sampling and tuning assumptions. The vector EKF has been evaluated in simulation
+only. C++, a new documented bench
+acquisition, and the web interface remain planned.
 
-![Nominal and disturbed gyro–accelerometer fusion](results/accelerometer-fusion/overview.png)
+![Vector EKF and baseline comparison on shared simulated measurements](results/ekf-comparison/overview.png)
 
-The latest experiment combines 100 Hz gyro intervals with tilt derived from 10 Hz
-accelerometer components. All methods share measurements and a known initial angle.
-The [fusion report](results/accelerometer-fusion/README.md) includes 20 additional
-paired noise seeds, disturbance recovery, and covariance limitations.
+The latest experiment combines 100 Hz gyro intervals with 10 Hz accelerometer
+components. The EKF corrects directly from the y/z force vector; the earlier
+filters use derived tilt. All methods share measurements and a known initial
+angle. The [EKF comparison report](results/ekf-comparison/README.md) includes
+20 additional paired noise seeds, innovation diagnostics, and local convergence
+limits. Near the correct angle, the two Kalman formulations behave similarly;
+the nonlinear observation does not remove translation ambiguity.
 The noise and timing models are controlled assumptions, not identified sensor characteristics.
 
 The earlier [gyro-drift baseline](results/gyro-drift/README.md) isolates integration
@@ -41,6 +47,7 @@ python -m pip install -r requirements.lock -e .
 python -m meridian.gyro_drift --output outputs/gyro-drift
 python -m meridian.kalman_experiment --output outputs/linear-kalman
 python -m meridian.accel_experiment --output outputs/accelerometer-fusion
+python -m meridian.ekf_experiment --output outputs/ekf-comparison
 python -m pytest -q
 ```
 
@@ -61,6 +68,7 @@ python -m meridian.gyro_drift --amplitude-deg 0 --output outputs/stationary
 python -m meridian.gyro_drift --seed 7 --output outputs/seed-7
 python -m meridian.kalman_experiment --help
 python -m meridian.accel_experiment --help
+python -m meridian.ekf_experiment --help
 ```
 
 For existing DataFlash recordings, install the optional decoder and generate a
@@ -91,10 +99,12 @@ Historical recordings do not establish current acquisition conditions.
 | `src/meridian/simulation.py` | Roll truth and gyro, angle, and specific-force measurements. |
 | `src/meridian/integration.py` | Gyro integration from interval rates and timestamps. |
 | `src/meridian/kalman.py` | Linear angle/bias prediction and correction; no file or plotting dependencies. |
+| `src/meridian/ekf.py` | Roll/bias EKF with a nonlinear gravity-vector observation and analytical Jacobian. |
 | `src/meridian/tilt.py` | Tilt extraction, angular wrapping, and complementary roll estimation. |
 | `src/meridian/gyro_drift.py` | Experiment configuration, evaluation, plots, and exports. |
 | `src/meridian/kalman_experiment.py` | Shared-data comparison, sparse angle observations, and repeated trials. |
 | `src/meridian/accel_experiment.py` | Nominal/disturbed comparisons using shared simulated IMU data. |
+| `src/meridian/ekf_experiment.py` | Vector EKF comparison on the same inputs, with vector innovations and repeated trials. |
 | `src/meridian/dataflash.py` | Optional DataFlash reader with recorded-unit checks and selected metadata. |
 | `src/meridian/dataflash_audit.py` | Per-instance timing, measurement inspection and local exports. |
 | `src/meridian/replay.py` | Causal roll/bias replay of contiguous snapshots, independent of file formats. |
@@ -102,13 +112,15 @@ Historical recordings do not establish current acquisition conditions.
 | `tests/` | Numerical contracts, analytical drift, reproducibility, and export checks. |
 | `results/` | Selected results and reproduction reports. |
 
-Next come a new documented bench acquisition and evaluation of known static poses
-and slow manual roll, plus a nonlinear accelerometer-vector reference followed by C++ verification.
+Next come controlled tests of initialization, changing bias, and timing assumptions,
+followed by C++ implementation and parity checks. A new documented bench acquisition
+and evaluation of known static poses and slow manual roll remain required.
 A lightweight web interface will expose comparison plots and
 time-based replay after the first filter comparisons exist. Its technology stack
 is undecided; the numerical core works independently of the presentation layer.
 
-The [linear Kalman model](docs/linear-kalman.md) and [accelerometer fusion model](docs/accelerometer-fusion.md)
+The [linear Kalman model](docs/linear-kalman.md), [accelerometer fusion model](docs/accelerometer-fusion.md),
+and [vector EKF model](docs/vector-ekf.md)
 specify timing, noise, initialization, and limitations.
 The [design and validation approach](docs/design.md) defines the broader models,
 assumptions, software boundaries, and remaining decisions. Real bench acquisition
