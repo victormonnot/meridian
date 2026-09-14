@@ -417,5 +417,6 @@ Only the nine selected Python simulation runs are displayed. There is no live
 hardware connection, real-log browser replay, parameter tuning, C++ execution in
 the browser, or formal statistical-consistency evaluation. The similar nominal KF/EKF RMSE
 does not imply superiority; the translation case demonstrates a shared physical
-model limitation. New documented bench acquisition and real EKF replay remain
-separate work.
+model limitation. [Real EKF replay](imu-replay.md) is available separately in
+Python; those local log outputs do not enter the browser. New documented bench
+acquisition remains separate work.

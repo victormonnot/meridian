@@ -6,8 +6,11 @@ import math
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
+from meridian.ekf import AngleBiasEKF
 from meridian.kalman import AngleBiasKalman
 from meridian.tilt import ComplementaryRoll, accel_roll
+
+REPLAY_GRAVITY_M_S2 = 9.80665
 
 
 @dataclass(frozen=True)
@@ -17,7 +20,9 @@ class ReplayConfig:
     Standard deviations are in degrees per second and degrees as named. Gyro
     noise is modeled as independent between held snapshots: Q_theta = sigma_g²
     dt². This effective approximation ignores filtering and sample correlation.
-    The angle observation variance is fixed; there is no acceleration gate,
+    The angle observation variance is fixed. Vector component noise is matched
+    locally at nominal gravity: sigma_a = g * sigma_angle, not fitted to data.
+    There is no acceleration gate,
     bias random walk, or timing/synchronization uncertainty in the covariance.
     """
 
@@ -40,10 +45,18 @@ class ReplayConfig:
                 raise ValueError(f"{name} must give a finite variance in radians")
             if name == "angle_noise_std_deg" and variance <= 0.0:
                 raise ValueError("angle_noise_std_deg must give a strictly positive variance")
+        force_variance = self.accel_noise_std_m_s2 * self.accel_noise_std_m_s2
+        if not math.isfinite(force_variance) or force_variance <= 0.0:
+            raise ValueError("angle_noise_std_deg must give a finite positive vector observation variance")
         for name in ("complementary_tau_s", "max_gap_s"):
             value = getattr(self, name)
             if not math.isfinite(value) or value <= 0.0:
                 raise ValueError(f"{name} must be finite and positive")
+
+    @property
+    def accel_noise_std_m_s2(self) -> float:
+        """Isotropic force noise with the same local angular variance at g."""
+        return REPLAY_GRAVITY_M_S2 * math.radians(self.angle_noise_std_deg)
 
 
 @dataclass(frozen=True)
@@ -65,6 +78,11 @@ class ReplayResult:
     kalman_covariance: NDArray[np.float64]
     innovation_rad: NDArray[np.float64]
     innovation_variance_rad2: NDArray[np.float64]
+    ekf_state: NDArray[np.float64]
+    ekf_covariance: NDArray[np.float64]
+    ekf_innovation_m_s2: NDArray[np.float64]
+    ekf_innovation_covariance_m2_s4: NDArray[np.float64]
+    ekf_nis: NDArray[np.float64]
 
 
 def _timestamps(time_us: ArrayLike) -> NDArray[np.int64]:
@@ -107,11 +125,12 @@ def replay_snapshots(
     Inputs are N integer message timestamps in microseconds and N x 3 gyro and
     specific-force snapshots in the forward-right-down body frame. At epoch k,
     propagate with gyro_x[k-1] over the actual elapsed interval, then correct
-    with atan2(-accel_y[k], -accel_z[k]). The last gyro sample is unused. This is
+    with atan2(-accel_y[k], -accel_z[k]) for the scalar filters and unnormalized
+    accel_y/z[k] for the vector EKF. The last gyro sample is unused. This is
     causal rectangular quadrature of logged frontend snapshots, not a claim
     that they are interval means or simultaneous sensor samples.
 
-    All methods start at the first accelerometer tilt. Kalman starts with zero
+    All methods start at the first accelerometer tilt. Both Kalman filters start with zero
     bias, angular variance equal to the configured observation variance, and
     independent configured bias uncertainty. The first tilt is not applied a
     second time as a correction. Every later snapshot produces a correction.
@@ -139,6 +158,15 @@ def replay_snapshots(
         gyro_noise_std_rad_s=math.radians(config.gyro_noise_std_deg_s),
         angle_noise_std_rad=angle_std,
     )
+    ekf = AngleBiasEKF(
+        initial_angle_rad=initial_angle,
+        initial_bias_rad_s=0.0,
+        initial_angle_std_rad=angle_std,
+        initial_bias_std_rad_s=math.radians(config.initial_bias_std_deg_s),
+        gyro_noise_std_rad_s=math.radians(config.gyro_noise_std_deg_s),
+        accel_noise_std_m_s2=config.accel_noise_std_m_s2,
+        gravity_m_s2=REPLAY_GRAVITY_M_S2,
+    )
     complementary = ComplementaryRoll(initial_angle, config.complementary_tau_s)
     gyro_roll = np.empty(len(times), dtype=np.float64)
     complementary_roll = np.empty(len(times), dtype=np.float64)
@@ -146,8 +174,13 @@ def replay_snapshots(
     covariance = np.empty((len(times), 2, 2), dtype=np.float64)
     innovation = np.empty(len(times) - 1, dtype=np.float64)
     innovation_variance = np.empty(len(times) - 1, dtype=np.float64)
+    ekf_states = np.empty((len(times), 2), dtype=np.float64)
+    ekf_covariance = np.empty((len(times), 2, 2), dtype=np.float64)
+    ekf_innovation = np.empty((len(times) - 1, 2), dtype=np.float64)
+    ekf_innovation_covariance = np.empty((len(times) - 1, 2, 2), dtype=np.float64)
     gyro_roll[0] = complementary_roll[0] = initial_angle
     states[0], covariance[0] = kalman.state, kalman.covariance
+    ekf_states[0], ekf_covariance[0] = ekf.state, ekf.covariance
     for k, interval in enumerate(intervals_s, start=1):
         rate, dt = float(gyro[k - 1, 0]), float(interval)
         integrated_angle = float(gyro_roll[k - 1]) + rate * dt
@@ -160,6 +193,14 @@ def replay_snapshots(
         innovation[k - 1], innovation_variance[k - 1] = kalman.update_wrapped_angle(float(tilt[k]))
         states[k], covariance[k] = kalman.state, kalman.covariance
         complementary_roll[k] = complementary.angle_rad
+        ekf.predict(rate, dt)
+        ekf_innovation[k - 1], ekf_innovation_covariance[k - 1] = ekf.update(accel[k, 1:3])
+        ekf_states[k], ekf_covariance[k] = ekf.state, ekf.covariance
+    with np.errstate(over="ignore", invalid="ignore"):
+        ekf_nis = np.sum(ekf_innovation * np.linalg.solve(
+            ekf_innovation_covariance, ekf_innovation[:, :, None])[:, :, 0], axis=1)
+    if not np.all(np.isfinite(ekf_nis)) or np.any(ekf_nis < 0):
+        raise ValueError("EKF normalized innovation exceeds the finite numerical range")
     return ReplayResult(
         time_us=times,
         elapsed_s=(times - times[0]).astype(np.float64) / 1_000_000.0,
@@ -170,4 +211,9 @@ def replay_snapshots(
         kalman_covariance=covariance,
         innovation_rad=innovation,
         innovation_variance_rad2=innovation_variance,
+        ekf_state=ekf_states,
+        ekf_covariance=ekf_covariance,
+        ekf_innovation_m_s2=ekf_innovation,
+        ekf_innovation_covariance_m2_s4=ekf_innovation_covariance,
+        ekf_nis=ekf_nis,
     )

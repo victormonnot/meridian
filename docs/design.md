@@ -15,9 +15,10 @@ The earlier direct synthetic angle experiment remains available.
 An optional [DataFlash audit](dataflash-audit.md) now extracts IMU snapshots,
 checks recorded units, and reports timing discontinuities and selected metadata.
 [Offline replay](imu-replay.md) compares the estimators on one explicit log segment
-with shared initialization and a previous-snapshot gyro hold. The
-vector EKF has only been evaluated in simulation. Its real-log replay and new
-documented bench acquisition are pending; historical replay is not a completed
+with shared initialization and a previous-snapshot gyro hold, including the vector
+EKF on unnormalized body y/z measurements. The [historical replay report](../results/imu-replay/README.md)
+has no independent angle reference. A new documented bench acquisition is pending;
+historical replay is not a completed
 bench validation. A [static web explorer](web-explorer.md) replays the selected
 nominal and translation simulations, plus controlled cases with an incorrect
 initial angle at two confidence levels, unavailable accelerometer observations,
@@ -115,8 +116,10 @@ snapshots use an explicit previous-sample hold for replay; the simulator's exact
 interval-average convention is not transferred to hardware data. Audit statistics
 do not identify physical noise or validate arming/pose conditions.
 
-Replay starts all methods from the first selected tilt, with KF angle variance
-equal to R and zero initial bias with nonzero default uncertainty. The first
+Replay starts all four methods from the first selected tilt. Both Kalman filters
+share initial angle variance equal to the scalar R and zero initial bias with
+nonzero default uncertainty. EKF force noise is `g * sigma_angle`, a declared
+local equivalence at nominal gravity, without fitting to recorded forces. The first
 measurement is not corrected twice. Later rows use actual integer timestamp
 differences, then correct at the endpoint. Effective Q/R settings remain
 illustrative; filtered snapshot correlations and unknown delays are not modeled.

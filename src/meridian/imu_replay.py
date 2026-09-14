@@ -16,7 +16,7 @@ import numpy as np
 
 from meridian.dataflash import ImuRecord, read_dataflash
 from meridian.dataflash_audit import analyze_records, sha256_file
-from meridian.replay import ReplayConfig, ReplayResult, replay_snapshots
+from meridian.replay import REPLAY_GRAVITY_M_S2, ReplayConfig, ReplayResult, replay_snapshots
 from meridian.tilt import wrap_angle
 
 
@@ -39,7 +39,7 @@ def select_segment(records: list[ImuRecord], *, instance: int, segment: int,
 
 def _angles(result: ReplayResult) -> dict[str, np.ndarray]:
     return {"gyro": result.gyro_roll_rad, "complementary": result.complementary_roll_rad,
-            "kalman": result.kalman_state[:, 0]}
+            "kalman": result.kalman_state[:, 0], "ekf": result.ekf_state[:, 0]}
 
 
 def _metrics(result: ReplayResult) -> dict:
@@ -58,6 +58,11 @@ def _metrics(result: ReplayResult) -> dict:
         "kalman_model_final_angle_std_deg": float(np.rad2deg(np.sqrt(result.kalman_covariance[-1, 0, 0]))),
         "kalman_model_final_bias_std_deg_s": float(np.rad2deg(np.sqrt(result.kalman_covariance[-1, 1, 1]))),
         "mean_squared_normalized_innovation": float(np.mean(result.innovation_rad**2 / result.innovation_variance_rad2)),
+        "ekf_final_bias_deg_s": float(np.rad2deg(result.ekf_state[-1, 1])),
+        "ekf_model_final_angle_std_deg": float(np.rad2deg(np.sqrt(result.ekf_covariance[-1, 0, 0]))),
+        "ekf_model_final_bias_std_deg_s": float(np.rad2deg(np.sqrt(result.ekf_covariance[-1, 1, 1]))),
+        "ekf_mean_normalized_innovation_squared": float(np.mean(result.ekf_nis)),
+        "ekf_innovation_component_rms_m_s2": np.sqrt(np.mean(result.ekf_innovation_m_s2**2, axis=0)).tolist(),
     }
 
 
@@ -68,25 +73,30 @@ def _broken_principal(values: np.ndarray) -> np.ndarray:
 
 
 def _plot(result: ReplayResult, output: Path) -> None:
-    figure = Figure(figsize=(11, 10), constrained_layout=True)
+    figure = Figure(figsize=(11, 12), constrained_layout=True)
     FigureCanvasAgg(figure)
-    axes = figure.subplots(4, 1, sharex=True)
+    axes = figure.subplots(5, 1, sharex=True)
     elapsed = result.elapsed_s
     axes[0].plot(elapsed, _broken_principal(np.rad2deg(result.accel_roll_rad)),
                  color="0.6", linewidth=0.7, label="Apparent accelerometer tilt")
     for k, (name, values) in enumerate(_angles(result).items()):
         axes[0].plot(elapsed, _broken_principal(np.rad2deg(wrap_angle(values))),
-                     color=f"C{k}", linewidth=1, label=name.capitalize())
+                     color=f"C{k}", linewidth=1, label={"kalman": "Angle KF", "ekf": "Vector EKF"}.get(name, name.capitalize()))
         difference = np.rad2deg(wrap_angle(values - result.accel_roll_rad))
         axes[1].plot(elapsed, _broken_principal(difference), color=f"C{k}", linewidth=0.8)
-    bias = np.rad2deg(result.kalman_state[:, 1])
-    std = np.rad2deg(np.sqrt(result.kalman_covariance[:, 1, 1]))
-    axes[2].plot(elapsed, bias, color="C2", label="Estimated residual gyro bias")
-    axes[2].fill_between(elapsed, bias - 2 * std, bias + 2 * std, color="C2", alpha=0.18,
-                         label="±2 model standard deviations")
+    for label, state, covariance, color in (
+        ("Angle KF", result.kalman_state, result.kalman_covariance, "C2"),
+        ("Vector EKF", result.ekf_state, result.ekf_covariance, "C3"),
+    ):
+        bias = np.rad2deg(state[:, 1])
+        std = np.rad2deg(np.sqrt(covariance[:, 1, 1]))
+        axes[2].plot(elapsed, bias, color=color, label=label)
+        axes[2].fill_between(elapsed, bias - 2 * std, bias + 2 * std, color=color, alpha=0.12)
+    axes[2].set_title("Estimated bias with ±2 model standard deviations", fontsize="small")
     axes[3].plot(elapsed[1:], result.innovation_rad**2 / result.innovation_variance_rad2,
-                 color="C2", linewidth=0.8)
-    labels = ("Principal roll (deg)", "Difference to tilt (deg)", "Bias (deg/s)", "Innovation² / S")
+                 color="C2", marker=".", markersize=1, linestyle="none")
+    axes[4].plot(elapsed[1:], result.ekf_nis, color="C3", marker=".", markersize=1, linestyle="none")
+    labels = ("Principal roll (deg)", "Difference to tilt (deg)", "Bias (deg/s)", "Angle KF NIS (1D)", "Vector EKF NIS (2D)")
     for axis, label in zip(axes, labels):
         axis.set_ylabel(label)
         axis.grid(alpha=0.25)
@@ -115,19 +125,31 @@ def run_replay(source: Path, output: Path, *, instance: int, segment: int,
     if sha256_file(source) != fingerprint:
         raise ValueError("source file changed during replay")
     summary = {
-        "schema_version": 1,
+        "schema_version": 2,
         "source": {"sha256": fingerprint, "size_bytes": source.stat().st_size},
         "environment": {"python": platform.python_version(), "numpy": np.__version__,
                         "matplotlib": matplotlib.__version__},
         "metadata": data.metadata,
         "selection": {"instance": instance, "gap_threshold_s": config.max_gap_s, **selection},
         "config": asdict(config),
+        "observation_models": {
+            "kalman": {"dimension": 1, "variance_rad2": float(np.deg2rad(config.angle_noise_std_deg)**2)},
+            "ekf": {"dimension": 2, "components": ["body_y", "body_z"],
+                    "gravity_m_s2": REPLAY_GRAVITY_M_S2,
+                    "component_std_m_s2": config.accel_noise_std_m_s2,
+                    "covariance_m2_s4": (np.eye(2) * config.accel_noise_std_m_s2**2).tolist(),
+                    "noise_mapping": "sigma_accel = g * radians(angle_noise_std_deg); local equivalence at nominal gravity, not identified noise",
+                    "measurement_normalized": False},
+        },
         "initialization": {"angle_rad": float(result.accel_roll_rad[0]), "bias_rad_s": 0.0,
                            "state_order": ["roll_rad", "bias_rad_s"],
                            "angle_source": "first selected accelerometer tilt; used once",
-                           "covariance": result.kalman_covariance[0].tolist()},
+                           "covariance": result.kalman_covariance[0].tolist(),
+                           "covariance_applies_to": ["kalman", "ekf"]},
         "sampling": {"gyro_rule": "previous snapshot held over the next logged interval",
-                     "correction_rule": "current accelerometer tilt after prediction; none at initialization",
+                     "correction_rule": "current accelerometer tilt for scalar filters, raw body y/z force for EKF after prediction; none at initialization",
+                     "state_phase": "after prediction and correction; initial state at row 0",
+                     "innovation_phase": "prior before correction, rows 1 through N-1",
                      "propagations_and_corrections": len(records) - 1,
                      "final_gyro_snapshot_used_for_propagation": False},
         "selected_force_norm_m_s2": {"min": float(np.min(np.linalg.norm(force, axis=1))),
@@ -139,6 +161,8 @@ def run_replay(source: Path, output: Path, *, instance: int, segment: int,
             "Filtered logger snapshots may be correlated and delayed; a left hold does not restore independence or synchronization.",
             "The one-axis gravity model does not cover general 3D motion or translational acceleration.",
             "Covariance and normalized innovations describe the assumed model, not calibrated physical uncertainty.",
+            "Scalar and vector NIS have different dimensions (1 and 2); vector NIS includes force-magnitude mismatch invisible to tilt.",
+            "Replay rejects undefined accelerometer tilt for the shared comparison, even though the standalone EKF accepts finite zero force.",
             "No sorting, interpolation across gaps, rejection of physical disturbances, or bias random walk is applied.",
             "Health and arming metadata cover the source; a finite segment does not certify bench conditions.",
             "Historical source metadata does not identify current firmware, complete recording integrity, or new acquisition conditions.",
@@ -166,9 +190,24 @@ def run_replay(source: Path, output: Path, *, instance: int, segment: int,
         writer.writerow(["time_us", "innovation_rad", "innovation_variance_rad2", "squared_normalized_innovation"])
         for time, innovation, variance in zip(result.time_us[1:], result.innovation_rad, result.innovation_variance_rad2):
             writer.writerow([int(time), innovation, variance, innovation * innovation / variance])
+    with (output / "ekf_estimates.csv").open("w", newline="", encoding="utf-8") as stream:
+        writer = csv.writer(stream)
+        writer.writerow(["time_us", "elapsed_s", "ekf_roll_rad", "ekf_bias_rad_s",
+                         "p_angle_rad2", "p_angle_bias_rad2_s", "p_bias_rad2_s2"])
+        for k, (state, covariance) in enumerate(zip(result.ekf_state, result.ekf_covariance)):
+            writer.writerow([int(result.time_us[k]), result.elapsed_s[k], *state,
+                             covariance[0, 0], covariance[0, 1], covariance[1, 1]])
+    with (output / "ekf_innovations.csv").open("w", newline="", encoding="utf-8") as stream:
+        writer = csv.writer(stream)
+        writer.writerow(["time_us", "innovation_y_m_s2", "innovation_z_m_s2",
+                         "s_yy_m2_s4", "s_yz_m2_s4", "s_zz_m2_s4", "normalized_innovation_squared"])
+        for time, innovation, covariance, nis in zip(result.time_us[1:], result.ekf_innovation_m_s2,
+                                                     result.ekf_innovation_covariance_m2_s4, result.ekf_nis):
+            writer.writerow([int(time), *innovation, covariance[0, 0], covariance[0, 1], covariance[1, 1], nis])
     _plot(result, output / "overview.png")
     summary["artifact_sha256"] = {name: sha256_file(output / name)
-                                  for name in ("measurements.csv", "estimates.csv", "innovations.csv", "overview.png")}
+                                  for name in ("measurements.csv", "estimates.csv", "innovations.csv",
+                                               "ekf_estimates.csv", "ekf_innovations.csv", "overview.png")}
     (output / "summary.json").write_text(json.dumps(summary, indent=2, allow_nan=False) + "\n", encoding="utf-8")
     return summary
 
@@ -180,7 +219,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--segment", type=int, required=True, help="per-instance segment ID from the audit")
     parser.add_argument("--output", type=Path, required=True, help="new local output directory")
     parser.add_argument("--gyro-noise-std-deg-s", type=float, default=1.0, help="illustrative per-held-sample tuning")
-    parser.add_argument("--angle-noise-std-deg", type=float, default=2.0)
+    parser.add_argument("--angle-noise-std-deg", type=float, default=2.0,
+                        help="tilt noise and initial angle uncertainty; EKF component noise = g * radians(this value)")
     parser.add_argument("--initial-bias-std-deg-s", type=float, default=1.0)
     parser.add_argument("--complementary-tau-s", type=float, default=1.0)
     parser.add_argument("--max-gap-s", type=float, default=0.2, help="must match the audited segmentation threshold")

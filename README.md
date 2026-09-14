@@ -13,9 +13,9 @@ complementary filter, 0.354° for the angle KF, and 0.353° for the vector EKF.
 A paired translation disturbance exposes failure of the gravity-based observation
 model in both Kalman filters. A DataFlash IMU audit checks real-log units,
 timing, gaps and health metadata. Offline replay compares gyro, complementary,
-and angle KF estimates on an explicitly selected log segment with declared
-sampling and tuning assumptions. The vector EKF has been evaluated in simulation
-only. A C++17 port of the vector EKF now provides a separate numerical core and
+angle KF and vector EKF estimates on an explicitly selected log segment with declared
+sampling and tuning assumptions. The [historical replay](results/imu-replay/README.md)
+has no independent angle reference. A C++17 port of the vector EKF provides a separate numerical core and
 event replay executable, checked against Python after every operation.
 A static web explorer replays the nominal and translation runs, plus wrong
 initialization at two confidence levels, accelerometer loss, changing gyro bias

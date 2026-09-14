@@ -4,8 +4,9 @@ The Python EKF estimates the same two states as the [angle Kalman reference](lin
 unwrapped roll `theta` in rad and constant gyro bias `b` in rad/s. Its observation
 uses two accelerometer components directly. The sine/cosine observation makes the
 model nonlinear; the prediction remains linear. This implementation is evaluated
-in simulation. It has not been applied to the recorded IMU replay, embedded in a
-flight controller, or validated on a physical angle reference.
+in simulation and used by the [offline IMU replay](imu-replay.md), with a declared
+previous-snapshot hold and shared initialization. It has not been embedded in a
+flight controller or validated against a physical angle reference.
 
 ## Coordinates and prediction
 

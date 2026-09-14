@@ -10,6 +10,7 @@ import pytest
 
 from meridian import imu_replay
 from meridian.dataflash import DataFlashData, ImuRecord
+from meridian.ekf import gravity_observation
 from meridian.imu_replay import main, run_replay, select_segment
 from meridian.replay import ReplayConfig
 
@@ -53,9 +54,16 @@ def test_exports_reproduce_selection_and_preserve_source(tmp_path, monkeypatch):
     assert source.read_bytes() == original
     assert summary["source"]["sha256"] == hashlib.sha256(original).hexdigest()
     assert summary["sampling"]["propagations_and_corrections"] == 1
+    assert summary["schema_version"] == 2
+    assert summary["initialization"]["covariance_applies_to"] == ["kalman", "ekf"]
+    model = summary["observation_models"]["ekf"]
+    assert model["dimension"] == 2 and model["measurement_normalized"] is False
+    assert model["component_std_m_s2"] == pytest.approx(9.80665 * math.radians(2))
+    np.testing.assert_allclose(model["covariance_m2_s4"], np.eye(2) * (9.80665 * math.radians(2))**2)
     assert summary["initialization"]["covariance"][0][0] == pytest.approx(np.deg2rad(2)**2)
     assert source.name not in json.dumps(summary) and str(source.parent) not in json.dumps(summary)
-    for name in ("summary.json", "measurements.csv", "estimates.csv", "innovations.csv", "overview.png"):
+    for name in ("summary.json", "measurements.csv", "estimates.csv", "innovations.csv",
+                 "ekf_estimates.csv", "ekf_innovations.csv", "overview.png"):
         assert (first / name).read_bytes() == (second / name).read_bytes()
         if name != "summary.json":
             assert summary["artifact_sha256"][name] == hashlib.sha256((first / name).read_bytes()).hexdigest()
@@ -70,6 +78,22 @@ def test_exports_reproduce_selection_and_preserve_source(tmp_path, monkeypatch):
     with (first / "innovations.csv").open(newline="") as stream:
         innovations = list(csv.DictReader(stream))
     assert len(innovations) == 1 and innovations[0]["time_us"] == "2040000"
+    with (first / "ekf_estimates.csv").open(newline="") as stream:
+        vector_states = list(csv.DictReader(stream))
+    assert [int(row["time_us"]) for row in vector_states] == [2_000_000, 2_040_000]
+    assert float(vector_states[0]["ekf_roll_rad"]) == 0
+    assert float(vector_states[0]["p_angle_rad2"]) == float(estimates[0]["p_angle_rad2"])
+    with (first / "ekf_innovations.csv").open(newline="") as stream:
+        vector_innovations = list(csv.DictReader(stream))
+    assert len(vector_innovations) == 1 and vector_innovations[0]["time_us"] == "2040000"
+    row = vector_innovations[0]
+    residual = np.array([float(row[f"innovation_{axis}_m_s2"]) for axis in ("y", "z")])
+    np.testing.assert_allclose(residual, np.array([0, -9.81]) - gravity_observation(.05 * .04))
+    covariance = np.array([[float(row["s_yy_m2_s4"]), float(row["s_yz_m2_s4"])],
+                           [float(row["s_yz_m2_s4"]), float(row["s_zz_m2_s4"])]])
+    expected_nis = float(residual @ np.linalg.solve(covariance, residual))
+    assert float(row["normalized_innovation_squared"]) == pytest.approx(expected_nis)
+    assert summary["diagnostics"]["ekf_mean_normalized_innovation_squared"] == pytest.approx(expected_nis)
     with pytest.raises(FileExistsError):
         run_replay(source, first, instance=0, segment=1)
 
@@ -102,6 +126,7 @@ def test_cli_exposes_tuning_and_refuses_bad_arguments(tmp_path, monkeypatch, cap
     summary = json.loads((output / "summary.json").read_text())
     assert summary["config"]["angle_noise_std_deg"] == 3
     assert summary["config"]["complementary_tau_s"] == 2
+    assert summary["observation_models"]["ekf"]["component_std_m_s2"] == pytest.approx(9.80665 * math.radians(3))
     assert "no independent ground truth" in capsys.readouterr().out
     with pytest.raises(SystemExit) as error:
         main([*argv, "--max-gap-s", "nan"])
@@ -116,4 +141,9 @@ def test_small_real_binary_fixture_runs_through_decoder_and_replay(tmp_path):
     summary = run_replay(source, tmp_path / "out", instance=0, segment=0)
     assert summary["selection"]["samples"] == 30
     assert summary["metadata"]["imu_format"]["units"]["GyrX"] == "rad/s"
+    assert summary["observation_models"]["ekf"]["dimension"] == 2
+    with (tmp_path / "out" / "ekf_innovations.csv").open(newline="") as stream:
+        rows = list(csv.DictReader(stream))
+    assert len(rows) == 29
+    assert [int(row["time_us"]) for row in rows] == [1_000_000 + k * 40_000 for k in range(1, 30)]
     assert summary["diagnostics"]["gyro_angle_change_deg"] == pytest.approx(math.degrees(0.01 * 29 * 0.04))

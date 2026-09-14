@@ -136,6 +136,7 @@ The later [controlled suite](../controlled-scenarios/README.md) evaluates additi
 initialization/bias/timing scenarios without changing this result snapshot.
 The later [C++ agreement study](../cpp-parity/README.md) reuses these inputs and
 the controlled cases without changing this snapshot.
-This vector EKF has **only been evaluated in simulation**. Existing historical
-IMU replay uses the earlier filters. New documented bench acquisition and replay
+This report contains **simulation evidence only**. The separate
+[historical IMU replay](../imu-replay/README.md) now includes the vector EKF,
+without changing this result snapshot. New documented bench acquisition and replay
 remain required; no embedded, real-time, or flight validation is claimed.
