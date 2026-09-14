@@ -20,8 +20,9 @@ event replay executable, checked against Python after every operation in simulat
 and on the same [recorded IMU segment](results/imu-cpp-parity/README.md).
 A static web explorer replays the nominal and translation runs, plus wrong
 initialization at two confidence levels, accelerometer loss, changing gyro bias
-and underestimated noise, irregular timing and unmodeled delay from the controlled suite. A new documented bench
-acquisition remains planned.
+and underestimated noise, irregular timing and unmodeled delay from the controlled suite.
+It also compares full-run angle RMSE across 20 repeated noise seeds per scenario.
+A new documented bench acquisition remains planned.
 
 ![Vector EKF and baseline comparison on shared simulated measurements](results/ekf-comparison/overview.png)
 
@@ -163,6 +164,7 @@ Historical recordings do not establish current acquisition conditions.
 | `src/meridian/web_export.py` | Checked display export from existing paired simulation records. |
 | `src/meridian/web_scenarios.py` | Combine the paired runs with selected controlled cases, preserving corrections and provenance. |
 | `src/meridian/web_diagnostics.py` | Check endpoint covariance and pre-correction innovations, then export diagnostic states and NIS. |
+| `src/meridian/web_trials.py` | Validate and extract recorded repeated-trial scores from experiment summaries. |
 | `web/` | Static JavaScript/D3 explorer, selected display data, and presentation tests. |
 | `tests/` | Numerical contracts, analytical drift, reproducibility, and export checks. |
 | `results/` | Selected results and reproduction reports. |
@@ -175,6 +177,8 @@ Its Diagnostics view plots signed roll/bias errors with model uncertainty and
 discrete scalar/vector innovations or NIS. Model uncertainty is not an accuracy guarantee.
 Select a diagnostic time window to inspect startup or later behavior with local
 plot scales; RMSE and mean NIS remain full-run statistics.
+The Repeated trials panel shows individual scores and their observed min–max
+range alongside the displayed seed, without treating that range as a confidence interval.
 In Trajectories, estimated biases remain held between recorded
 corrections; true bias is interpolated along its continuous ramp. Its JavaScript/Vite/D3
 presentation works independently of the numerical core. Interactive retuning and

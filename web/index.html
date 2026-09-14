@@ -72,6 +72,7 @@
               <table><caption id="metric-caption" class="sr-only">Full-run angle root mean square error in degrees</caption><thead><tr><th scope="col">Method</th><th scope="col">RMSE (°)</th></tr></thead><tbody id="metrics"></tbody></table>
               <p id="weighting-note" class="metadata"></p>
               <p id="metric-note" class="metadata"></p>
+              <a href="#trial-heading" class="metadata">Compare repeated trials ↓</a>
             </section>
           </aside>
           <div class="plots">
@@ -131,6 +132,31 @@
             </div>
           </div>
         </div>
+        <section class="trial-panel" aria-labelledby="trial-heading">
+          <div class="panel-heading">
+            <h2 id="trial-heading" class="accent-heading">Repeated trials</h2>
+            <label class="metadata" for="trial-method">Inspect method <select id="trial-method"><option value="gyro">Gyro integration</option><option value="complementary">Complementary</option><option value="kalman">Angle KF</option><option value="ekf" selected>Vector EKF</option></select></label>
+          </div>
+          <p id="trial-context" class="metadata"></p>
+          <div class="trial-layout">
+            <div>
+              <div class="legend trial-legend" aria-label="Trial markers"><span><i id="trial-dot-key" class="trial-dot-key" aria-hidden="true"></i>Repeated seed</span><span><i id="trial-reference-key" class="swatch" aria-hidden="true"></i><span id="trial-reference-label">Displayed run</span></span></div>
+              <div id="trial-chart" class="chart"></div>
+              <p id="trial-readout" class="metadata mono chart-note" role="status"></p>
+            </div>
+            <div>
+              <table id="trial-summary">
+                <caption class="metadata">Full-run angle RMSE (°) · sample-count weighting</caption>
+                <thead><tr><th scope="col">Method</th><th scope="col">Mean</th><th scope="col">Observed min–max</th><th scope="col" id="trial-displayed-heading">Displayed</th></tr></thead>
+                <tbody id="trial-values"></tbody>
+              </table>
+              <p id="trial-position" class="metadata chart-note"></p>
+            </div>
+          </div>
+          <p class="metadata chart-note">Each point summarizes all 3,001 states of a 30 s run, including initialization. Trials keep the scenario and filter settings fixed while changing noise draws; irregular timing also varies between seeds.</p>
+          <p class="metadata chart-note">These scores always use sample-count weighting and the full run, independently of the playback cursor, diagnostic window and weighting selector above. The plot scale fits the inspected method and includes the displayed run.</p>
+          <p class="metadata chart-note">The observed range describes these trials. It is not a confidence interval, a general robustness ranking, or a hardware accuracy bound. Only the displayed seed has a trajectory in this explorer.</p>
+        </section>
         <details class="details">
           <summary>Experiment settings and limitations</summary>
           <dl id="settings" class="settings"></dl>

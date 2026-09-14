@@ -115,6 +115,30 @@ tbody tr:last-child td { border: 0; }
 .legend button[aria-pressed=false] { color: var(--muted); text-decoration: line-through; }
 .legend button[aria-pressed=false] .swatch { opacity: .45; }
 .chart svg { display: block; width: 100%; }
+.trial-panel { margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--line); }
+.trial-panel .panel-heading label { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.trial-layout { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 28px; align-items: start; margin-top: 16px; }
+.trial-layout > div { min-width: 0; }
+.trial-legend { margin-left: 8px; }
+.trial-dot-key { width: 7px; height: 7px; border-radius: 50%; }
+#trial-reference-key { border-top-style: dashed; }
+#trial-summary { table-layout: fixed; margin-top: 0; font-size: .8125rem; }
+#trial-summary caption { text-align: left; padding-bottom: 4px; }
+#trial-summary th:first-child { width: 32%; }
+#trial-summary th:nth-child(2) { width: 17%; }
+#trial-summary th:nth-child(3) { width: 32%; }
+#trial-summary th:last-child { width: 19%; }
+#trial-summary th { font-family: inherit; }
+#trial-summary td:not(:first-child) { font-family: var(--mono); }
+#trial-summary td, #trial-summary th { padding-right: 8px; overflow-wrap: anywhere; }
+#trial-summary td:last-child, #trial-summary th:last-child { padding-right: 0; }
+#trial-summary button { padding: 6px 0; min-height: 40px; text-align: left; border: 0; background: transparent; font-size: inherit; }
+#trial-summary button[aria-pressed=true] { text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: 4px; }
+.trial-range span { white-space: nowrap; }
+.trial-point { cursor: crosshair; outline: none; }
+.trial-point:focus-visible .trial-dot, .trial-point.is-inspected .trial-dot { r: 5; stroke: var(--text); stroke-width: 2; }
+.trial-panel > .chart-note { max-width: 1000px; }
+@media (max-width: 950px) { .trial-layout { grid-template-columns: minmax(0, 1fr); gap: 16px; } }
 .chart svg text { font: 400 .75rem var(--mono); fill: var(--muted); }
 .chart .domain, .chart .tick line { stroke: var(--line); }
 .chart .axis-title { font-family: 'IBM Plex Sans', sans-serif; fill: var(--text); font-size: .8125rem; }

@@ -1,6 +1,8 @@
 import './style.css';
 import { createChart } from './chart.js';
 import { createDiagnosticChart } from './diagnostic-chart.js';
+import { createTrialChart } from './trial-chart.js';
+import { trialStatistics } from './trials.js';
 import { diagnosticStateAt, lastInnovation, stateDiagnostic } from './diagnostics.js';
 import { clampToWindow, correctionInWindow, innovationsInWindow, inWindow, validateWindow, windowPreset } from './diagnostic-window.js';
 import { SERIES, advanceTime, correctionDetails, formatValue, sampleAt, validateComparison } from './data.js';
@@ -57,6 +59,7 @@ function startExplorer(data) {
       if (!playing) setTime(next);
     },
   ));
+  const trialChart = createTrialChart($('#trial-chart'), $('#trial-readout'));
 
   $('#download').href = dataUrl;
   $('#record-info').textContent = `Simulation · ${formatValue(duration, 0)} s · seed ${data.seed}`;
@@ -215,6 +218,64 @@ function startExplorer(data) {
     }
   }
 
+  function renderTrials() {
+    const focusedMethod = document.activeElement?.dataset.trialMethod;
+    const statistics = trialStatistics(scenario(), methodId);
+    const seeds = statistics.seeds;
+    const consecutive = seeds.every((seed, index) => seed === seeds[0] + index);
+    const seedLabel = seeds.length === 1 ? `seed ${seeds[0]}`
+      : consecutive ? `seeds ${seeds[0]}–${seeds.at(-1)}` : 'seeds listed on the plot';
+    const scenarioLabel = $(`[data-scenario="${scenarioId}"]`).textContent;
+    $('#trial-context').textContent = `${scenarioLabel} · ${seeds.length} recorded ${seeds.length === 1 ? 'trial' : 'trials'} · ${seedLabel}. `
+      + (seeds.includes(data.seed) ? `Displayed seed ${data.seed} is also included in these trials.`
+        : `Displayed seed ${data.seed} is a separate reference, excluded from their mean and range.`);
+    $('#trial-reference-label').textContent = `Displayed seed ${data.seed}`;
+    $('#trial-reference-key').style.borderColor = method().color;
+    $('#trial-dot-key').style.backgroundColor = method().color;
+    $('#trial-method').value = methodId;
+    $('#trial-displayed-heading').textContent = `Displayed ${data.seed}`;
+    $('#trial-values').replaceChildren();
+    for (const item of SERIES.slice(1)) {
+      const result = trialStatistics(scenario(), item.id);
+      const row = document.createElement('tr');
+      row.dataset.focused = String(item.id === methodId);
+      const name = document.createElement('td');
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = item.label;
+      button.dataset.trialMethod = item.id;
+      button.setAttribute('aria-pressed', String(item.id === methodId));
+      button.addEventListener('click', () => selectMethod(item.id));
+      name.append(button);
+      const mean = document.createElement('td');
+      mean.textContent = formatValue(result.mean, 3);
+      const range = document.createElement('td');
+      range.className = 'trial-range';
+      const lo = document.createElement('span'), hi = document.createElement('span');
+      lo.textContent = formatValue(result.min, 3);
+      hi.textContent = formatValue(result.max, 3);
+      range.append(lo, document.createTextNode(' – '), hi);
+      const selected = document.createElement('td');
+      selected.textContent = formatValue(result.selected, 3);
+      row.append(name, mean, range, selected);
+      $('#trial-values').append(row);
+    }
+    const position = statistics.selected < statistics.min ? 'below'
+      : statistics.selected > statistics.max ? 'above' : 'within';
+    $('#trial-position').textContent = `${method().label}: the displayed run is ${position} the observed range of these ${seeds.length} trials. The mean and range use full-precision scores; labels are rounded.`;
+    trialChart.setData(scenario(), method(), data.seed);
+    if (focusedMethod) $(`[data-trial-method="${focusedMethod}"]`).focus({ preventScroll: true });
+  }
+
+  function selectMethod(id) {
+    methodId = id;
+    $('#method').value = id;
+    visible.add(id);
+    renderMetrics();
+    renderTrials();
+    redraw();
+  }
+
   function renderScenario() {
     const event = scenario().event;
     const pulse = event?.kind === 'translation' ? event : null;
@@ -286,8 +347,9 @@ function startExplorer(data) {
       $('#settings').append(pair);
     }
     $('#display-note').textContent = `Trajectories: ${scenario().rows.length.toLocaleString('en-US')} display samples, every ${data.display_stride}th endpoint plus corrections, their predecessors and event boundaries. Roll and true bias are interpolated; estimated biases are held until correction. Diagnostics: all ${scenario().source_sample_count.toLocaleString('en-US')} original endpoints, held until the next endpoint; innovations are discrete correction samples. Source times are retained; labels round to milliseconds. Both RMSE metrics use every original endpoint. Trajectory reduction can hide short transients; neither view reconstructs the continuous path between recorded operations.`;
-    $('#source-note').textContent = `Source for this scenario: meridian.${scenario().source === 'paired' ? 'ekf_experiment' : 'stress_experiment'}. The download contains all ${Object.keys(data.scenarios).length} selected runs, full-run metrics and source-file SHA-256 fingerprints grouped by experiment.`;
+    $('#source-note').textContent = `Source for this scenario: meridian.${scenario().source === 'paired' ? 'ekf_experiment' : 'stress_experiment'}. The download contains all ${Object.keys(data.scenarios).length} selected trajectories, their diagnostics, repeated-trial RMSE scores and source-file SHA-256 fingerprints grouped by experiment.`;
     renderMetrics();
+    renderTrials();
     redraw();
   }
 
@@ -346,12 +408,8 @@ function startExplorer(data) {
     setTime(next);
   });
   $('#speed').addEventListener('change', event => { speed = Number(event.target.value); lastFrame = null; });
-  $('#method').addEventListener('change', event => {
-    methodId = event.target.value;
-    visible.add(methodId);
-    renderMetrics();
-    redraw();
-  });
+  $('#method').addEventListener('change', event => selectMethod(event.target.value));
+  $('#trial-method').addEventListener('change', event => selectMethod(event.target.value));
   $('#rmse-weight').addEventListener('change', renderMetrics);
   $('#diagnostic-window').addEventListener('submit', event => {
     event.preventDefault();

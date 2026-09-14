@@ -26,7 +26,10 @@ bench validation. A [static web explorer](web-explorer.md) replays the selected
 nominal and translation simulations, plus controlled cases with an incorrect
 initial angle at two confidence levels, unavailable accelerometer observations,
 changing gyro bias, underestimated noise, irregular timing and unmodeled delay,
-with full-run metrics and source provenance.
+with full-run metrics and source provenance. Its Repeated trials panel exposes
+the existing 20 noise realizations per scenario as individual endpoint RMSE scores,
+with their mean and observed range. The selected trajectory remains separate;
+these repeats do not establish hardware accuracy or statistical confidence bounds.
 
 ## Scope
 

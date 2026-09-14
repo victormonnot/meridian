@@ -1,4 +1,5 @@
 import { validateDiagnostics } from './diagnostics.js';
+import { validateRepeatedTrials } from './trials.js';
 
 // Display units are explicit. These columns never enter an estimator.
 export const COLUMNS = [
@@ -20,7 +21,7 @@ function require(condition, message) {
 }
 
 export function validateComparison(data) {
-  require(data?.schema_version === 4 && data.experiment === 'roll_scenario_explorer'
+  require(data?.schema_version === 5 && data.experiment === 'roll_scenario_explorer'
     && data.data_source === 'simulation', 'unsupported format');
   require(JSON.stringify(data.columns) === JSON.stringify(COLUMNS), 'columns or units');
   const config = data.config;
@@ -43,6 +44,7 @@ export function validateComparison(data) {
         && /^[a-f0-9]{64}$/.test(hash), 'source fingerprint');
     }
   }
+  const trialSeedsBySource = new Map();
   for (const name of names) {
     const scenario = data.scenarios[name];
     require(scenario && Array.isArray(scenario.rows) && scenario.rows.length >= 2, `${name} is empty`);
@@ -90,6 +92,11 @@ export function validateComparison(data) {
       }
     }
     for (const id of ['kalman', 'ekf']) require(Number.isFinite(scenario.metrics?.final_bias_error_deg_s?.[id]), 'bias metrics');
+    const trials = validateRepeatedTrials(scenario, data.seed);
+    const seedOrder = JSON.stringify(trials.seeds);
+    require(!trialSeedsBySource.has(scenario.source) || trialSeedsBySource.get(scenario.source) === seedOrder,
+      'repeated trial seeds differ within one source');
+    trialSeedsBySource.set(scenario.source, seedOrder);
     const expectedTimes = Array.from({ length: 300 }, (_, i) => (i + 1) / 10)
       .filter(time => name !== 'accel_dropout' || time < 12 || time >= 17);
     require(scenario.scheduled_accel_count === 300 && Array.isArray(scenario.correction_times_s)

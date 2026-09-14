@@ -7,6 +7,8 @@ from the [vector EKF comparison](../results/ekf-comparison/README.md), plus
 [controlled suite](../results/controlled-scenarios/README.md). It compares
 gyro integration, complementary fusion, angle KF and vector EKF against simulation
 truth. Playback reads recorded results; it does not execute an estimator.
+The Repeated trials panel adds full-run angle RMSE for seeds 0–19 in each scenario,
+using the saved experiment summaries. Only seed 42 has playback trajectories.
 
 ## Run locally
 
@@ -216,14 +218,49 @@ rises from 0.228687° at 11.9 s to 0.423325° at 16.99 s, then falls to 0.398316
 after the 17 s correction. The first EKF innovation in the wrong-initial-angle
 case has NIS 719.589703: the full-run mean includes this startup transient.
 
+## Repeated trials
+
+Use **Compare repeated trials** beneath the full-run error table to reach the
+panel below the plots. It shows how full-run angle RMSE varies across **20 noise
+seeds, 0–19**, for the current scenario. Each dot is one complete run, not a point
+in time. Hover, tap or focus a dot for its seed and six-decimal score; Left/Right
+arrow keys move between seeds. Dot inspection does not change playback.
+
+**Inspect method**, the method buttons in the table and the main estimate selector
+stay synchronized. The chart shows one method at a time; the table lists all four
+methods' mean, observed minimum/maximum and displayed-seed RMSE. Its mean and range
+use only the declared repeats; seed 42 is excluded. A dashed horizontal line shows
+seed 42, even when it falls outside the repeated range. The vertical scale fits
+both the repeats and that reference, and changes with scenario or method.
+
+For example, the nominal EKF repeats span 0.189672–0.327756°, while the displayed
+seed gives 0.353101°. For translation, they span 3.868136–4.117733°, while the
+displayed result is 3.831214°. These are observed sample extrema, **not a confidence
+interval** or expected bounds on another trial. Methods share inputs within each
+seed; cases also reuse noise draws as described by their source experiment.
+They are not independent replications of different physical systems.
+
+All scores use equal weight for the 3,001 original endpoints over 30 s, including
+initialization. They remain unchanged by playback, a diagnostic window, or the
+**Weight errors by** selector in the inspector. The paired source has no saved
+duration-weighted repeated scores, so no such comparison is offered. The scenario,
+motion configuration and estimator settings stay fixed across repeats; the random
+noise changes. Irregular timing also redraws its interval schedule for each seed.
+
+The JSON download includes all 720 repeated scores (nine cases × twenty seeds ×
+four methods), at source precision, but no repeated-seed trajectories or diagnostics.
+The panel neither reruns filters nor assigns new pass/fail or superiority claims.
+Physical noise identification and new bench acquisition remain separate work.
+
 ## Data contract and reproduction
 
 `web/public/data/roll-comparison.json` is a selected, versioned display artifact
 produced by `meridian.web_scenarios`. It reads existing simulation exports and
 never reads a drone log or reruns a filter. The original `meridian.web_export`
 continues to support its schema-1 paired-only export independently.
-The combined artifact now uses schema 4, adding full endpoint diagnostics and
-pre-correction innovation records to the explicit timing and two RMSE bases.
+The combined artifact now uses schema 5, adding repeated endpoint RMSE scores to
+the full endpoint diagnostics, pre-correction innovations, explicit timing and
+two selected-run RMSE bases.
 Earlier combined artifacts must be regenerated for the current browser contract.
 
 With the Python environment described in the repository README:
@@ -242,12 +279,13 @@ selected-data checks and descriptions.
 
 | Field | Meaning |
 | --- | --- |
-| `schema_version`, `experiment`, `data_source` | Version 4, `roll_scenario_explorer`, `simulation`. |
+| `schema_version`, `experiment`, `data_source` | Version 5, `roll_scenario_explorer`, `simulation`. |
 | `config`, `seed` | Motion, nominal rates and filter settings, and selected seed. `sample_rate_hz` and `observation_every` describe nominal scheduling; irregular times belong to each scenario. `bias_deg_s` is initial true bias; the ramp specifies its later change. `accel_noise_std_m_s2` is assumed noise; actual noise belongs to each scenario. |
 | `columns` | The same nine ordered fields: time in seconds, roll in degrees, bias in degrees/second. |
 | `display_stride`, `display_decimal_places` | Every fifth endpoint by default, augmented with required event/correction points; six-decimal angle/bias rounding. |
 | `sources.paired`, `sources.controlled` | Experiment names, relative input filenames and SHA-256 fingerprints, with separate namespaces for the two `summary.json` files. Large stream seeds remain decimal strings. |
 | `scenarios.<name>.source` | Key into `sources`; metrics and provenance belong to that experiment. |
+| `scenarios.<name>.repeated_trials` | Ordered `seeds` and four `rmse_deg` arrays (`gyro`, `complementary`, `kalman`, `ekf`) of the same nonzero length. Element i is that method's full-run endpoint RMSE in degrees for `seeds[i]`. |
 | `scenarios.<name>.initialization` | Initial estimated roll/bias and their model standard deviations. True initial roll is zero for all nine cases. |
 | `scenarios.<name>.accelerometer_noise` | `actual_std_m_s2` describes the simulated per-component noise (0.6 for noise mismatch, otherwise 0.2); `assumed_std_m_s2` remains 0.2. These are distribution settings, not measured sample statistics. |
 | `scenarios.<name>.domains` | Full-resolution angle/bias extrema covering every method. The original pair retains shared extrema. |
@@ -273,6 +311,16 @@ truth, gyro interval truth, estimates with initial covariance, gyro/acceleromete
 read all endpoint P entries and the paired `innovations.csv` scalar records. These
 filenames and source hashes are included in the JSON; machine paths and generation
 wall-clock times are absent. Hashes identify bytes, not authenticity.
+
+Repeated scores come from each source's `validation.trials`, in its declared
+`validation.seeds` order. The adapter checks unique nonnegative safe-integer seeds,
+matching trial counts/order, all four finite nonnegative RMSE arrays, and agreement
+with the recorded mean/worst aggregates (`1e-10` absolute/relative tolerance).
+The source summary bytes used for extraction match their exported SHA-256 hashes.
+The browser requires the same seed order within each source. If a custom selected
+seed belongs to its repeat cohort, its scores must agree and the panel states that
+it is included. Repeat metrics are checked for record coherence, not reconstructed
+from trajectories that are absent from those summaries.
 
 The controlled-source checks require the declared scenario definitions and fixed
 shared settings, aligned 0–30 s endpoints, sinusoidal roll and the declared bias law,
@@ -362,12 +410,14 @@ not arbitrary logs or delayed-measurement compensation.
 | Location | Responsibility |
 | --- | --- |
 | `src/meridian/web_export.py` | Preserve the original paired simulation adapter. |
-| `src/meridian/web_scenarios.py` | Combine two checked sources, retain timing/metrics and export deterministic schema-4 JSON. |
+| `src/meridian/web_scenarios.py` | Combine two checked sources, retain timing/metrics and export deterministic schema-5 JSON. |
 | `src/meridian/web_diagnostics.py` | Read complete endpoint covariance and pre-correction innovations, check covariance/NIS and attach diagnostics. |
+| `src/meridian/web_trials.py` | Read repeated scores from source summaries and check trial order, values and aggregates. |
 | `web/src/data.js` | Browser contract checks, interpolation/held biases, correction navigation and playback arithmetic. |
 | `web/src/diagnostics.js` | Diagnostic validation, held endpoint selection, errors and timestamped latest innovations. |
 | `web/src/diagnostic-window.js` | Checked time bounds, presets, causal state-boundary holds and selection of actual corrections. |
 | `web/src/diagnostic-chart.js` | Error/model bands as steps, discrete innovation/NIS markers and synchronized cursor. |
+| `web/src/trials.js`, `web/src/trial-chart.js` | Validate repeat cohorts, calculate observed summaries and plot separate trial scores with the selected-run reference. |
 | `web/src/chart.js` | D3 scales, paths, shared cursor and pointer inspection. |
 | `web/src/main.js` | Load data and connect scenario selection, playback, legends and readings. |
 | `web/src/style.css`, `web/index.html` | Appearance, semantic structure and responsive layout. |
@@ -379,7 +429,7 @@ Fonts are packaged with the application. Runtime dependency notices are included
 in `web/public/third-party-notices.txt` and copied into the build.
 
 ```sh
-python -m pytest -q tests/test_web_export.py tests/test_web_scenarios.py
+python -m pytest -q tests/test_web_export.py tests/test_web_scenarios.py tests/test_web_trials.py
 npm --prefix web test
 npm --prefix web run build
 ```
@@ -395,7 +445,10 @@ and playback boundaries. Diagnostic checks cover held full endpoints, absent
 dropout innovations, model uncertainty versus actual error, unavailable baseline
 diagnostics and malformed records. Window tests cover boundary holds, presets,
 source immutability, local extents and correction navigation on uniform, irregular
-and delayed schedules. These tests run without a browser.
+and delayed schedules. Repeat tests check seed pairing, aggregates, malformed
+scores, reference inclusion, constant/single-trial domains, source immutability
+and exact linkage of all 720 shipped scores to the public summaries.
+These tests run without a browser.
 
 Window controls were additionally checked in local headless Chromium at desktop
 and mobile viewport sizes, including Replay on a fractional interval, view changes,
@@ -413,7 +466,16 @@ main interactions after starting the development server:
 - Switch to Trajectories, move the cursor outside the saved window, then return
   to Diagnostics. The saved bounds return and the cursor clamps into them.
 
-Only the nine selected Python simulation runs are displayed. There is no live
+The repeated-trial panel was also checked in local headless Chromium: nine
+scenarios × four methods, table values and all plotted scores, reference visibility
+outside the observed range, shared selectors, keyboard/tap inspection and a 390 px
+viewport without horizontal overflow. Scores stay fixed when moving the cursor,
+changing weighting or choosing a diagnostic window. This has the same browser
+coverage limits stated above. A manual check is **Nominal → Vector EKF**: seed 42
+sits above the twenty dots; **Translation disturbance** puts it below them.
+
+Trajectories remain limited to the nine selected Python simulations; repeated
+trials provide full-run scores only. There is no live
 hardware connection, real-log browser replay, parameter tuning, C++ execution in
 the browser, or formal statistical-consistency evaluation. The similar nominal KF/EKF RMSE
 does not imply superiority; the translation case demonstrates a shared physical

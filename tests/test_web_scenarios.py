@@ -24,7 +24,7 @@ def sources(tmp_path_factory):
 def test_selection_units_metrics_and_preserved_corrections(sources):
     data = build_scenarios(*sources, stride=37)
     summary = json.loads((sources[1]/"summary.json").read_text())
-    assert data["schema_version"] == 4
+    assert data["schema_version"] == 5
     assert list(data["scenarios"]) == ["nominal", "translation_pulse", "initial_offset", "accel_dropout", "bias_ramp",
                                        "initial_overconfident", "accel_noise_mismatch", "timing_jitter", "accel_delay"]
     for name, case in data["scenarios"].items():
@@ -54,6 +54,11 @@ def test_selection_units_metrics_and_preserved_corrections(sources):
     assert {1199, 1200, 1699, 1700} <= {round(row[0]*100) for row in loss["rows"]}
     assert data["sources"]["paired"]["source_sha256"]["summary.json"] != data["sources"]["controlled"]["source_sha256"]["summary.json"]
     assert all(isinstance(value, str) for values in data["sources"]["controlled"]["stream_seeds"].values() for value in values.values())
+    repeated = data["scenarios"]["timing_jitter"]["repeated_trials"]
+    assert repeated["seeds"] == [0]
+    assert repeated["rmse_deg"] == {
+        method: [summary["validation"]["trials"][0]["scenarios"]["timing_jitter"]["metrics"][method]["angle_rmse_deg"]]
+        for method in ("gyro", "complementary", "kalman", "ekf")}
 
 
 def test_bias_ramp_truth_interval_means_and_shared_noise(sources):
@@ -88,6 +93,25 @@ def test_export_is_deterministic_and_refuses_overwrite(sources, tmp_path):
     with pytest.raises(FileExistsError):
         export_scenarios(*sources, first)
     assert first.read_bytes() == second.read_bytes()
+
+
+def test_reject_changed_paired_summary_before_repeated_trial_export(sources, tmp_path, monkeypatch):
+    import meridian.web_scenarios as exporter
+
+    paired = Path(shutil.copytree(sources[0], tmp_path/"paired"))
+    original = exporter.build_comparison
+
+    def changed_summary(source, *, stride):
+        data = original(source, stride=stride)
+        path = source/"summary.json"
+        summary = json.loads(path.read_text())
+        summary["validation"]["trials"][0]["nominal"]["ekf_angle_rmse_deg"] += .1
+        path.write_text(json.dumps(summary))
+        return data
+
+    monkeypatch.setattr(exporter, "build_comparison", changed_summary)
+    with pytest.raises(ValueError, match="paired summary changed"):
+        exporter.build_scenarios(paired, sources[1])
 
 
 def test_recorded_irregular_endpoints_and_delayed_acquisition(sources):

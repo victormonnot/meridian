@@ -12,6 +12,7 @@ import numpy as np
 from meridian.stress_scenarios import SCENARIOS
 from meridian.web_export import _read_columns, build_comparison
 from meridian.web_diagnostics import build_diagnostics
+from meridian.web_trials import build_repeated_trials
 
 
 METHODS = ("gyro", "complementary", "kalman", "ekf")
@@ -82,13 +83,17 @@ def build_scenarios(paired_source: Path, controlled_source: Path, *, stride: int
                        "accel_noise_std_m_s2": .2, "observation_every": 10, "complementary_tau_s": 1}
     if any(config.get(key) != value for key, value in expected_config.items()):
         raise ValueError("paired configuration does not match the selected controlled suite")
-    data.update(schema_version=4, experiment="roll_scenario_explorer", config=expected_config,
+    data.update(schema_version=5, experiment="roll_scenario_explorer", config=expected_config,
                 display_stride=stride)
     paired_provenance = data.pop("provenance")
     initial = paired_provenance["initialization"]
     _equal([initial["angle_rad"], initial["angle_std_rad"], initial["bias_rad_s"], initial["bias_std_rad_s"]],
            [0, 0, 0, np.deg2rad(1)], "paired initialization")
     data["sources"] = {"paired": {"experiment": "vector_ekf_comparison", **paired_provenance}}
+    paired_summary_bytes = (paired_source/"summary.json").read_bytes()
+    if hashlib.sha256(paired_summary_bytes).hexdigest() != paired_provenance["source_sha256"]["summary.json"]:
+        raise ValueError("paired summary changed before repeated-trial export")
+    paired_summary = json.loads(paired_summary_bytes)
     for name, case in data["scenarios"].items():
         corrections_path = paired_source/name/"ekf_innovations.csv"
         arrivals = _read_columns(corrections_path, ["time_s"])[:, 0]
@@ -118,7 +123,8 @@ def build_scenarios(paired_source: Path, controlled_source: Path, *, stride: int
             method: _time_weighted_rmse(errors[:, column], raw_truth[:, 0]) for column, method in enumerate(METHODS)}
 
     summary_path = controlled_source/"summary.json"
-    summary = json.loads(summary_path.read_text(encoding="utf-8"))
+    summary_bytes = summary_path.read_bytes()
+    summary = json.loads(summary_bytes)
     if (summary.get("schema_version") != 1 or summary.get("experiment") != "controlled_scenarios"
             or summary.get("data_source") != "simulation" or summary.get("seed") != data["seed"]):
         raise ValueError("expected controlled simulation with the same selected seed")
@@ -133,7 +139,7 @@ def build_scenarios(paired_source: Path, controlled_source: Path, *, stride: int
     expected_definitions = {item.name: asdict(item) for item in SCENARIOS if item.name in CONTROLLED_CASES}
     if any(definitions.get(name) != definition for name, definition in expected_definitions.items()):
         raise ValueError("unsupported controlled scenario definition")
-    hashes = {"summary.json": hashlib.sha256(summary_path.read_bytes()).hexdigest()}
+    hashes = {"summary.json": hashlib.sha256(summary_bytes).hexdigest()}
     streams = {}
     paired_inputs = {}
     for name in CONTROLLED_CASES:
@@ -265,6 +271,8 @@ def build_scenarios(paired_source: Path, controlled_source: Path, *, stride: int
             "trapezoidal squared endpoint errors over duration, from original unrounded CSVs; "
             + ("computed by display adapter" if source == "paired" else "checked against controlled summary"))
     for name, case in data["scenarios"].items():
+        case["repeated_trials"] = build_repeated_trials(
+            paired_summary if case["source"] == "paired" else summary, name, source=case["source"])
         case["diagnostics"], diagnostic_hashes = build_diagnostics(
             paired_source if case["source"] == "paired" else controlled_source, name, case)
         data["sources"][case["source"]]["source_sha256"].update(diagnostic_hashes)
