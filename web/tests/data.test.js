@@ -1,28 +1,66 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import test from 'node:test';
-import { SERIES, advanceTime, clampTime, formatValue, sampleAt, validateComparison } from '../src/data.js';
+import { SERIES, advanceTime, clampTime, formatValue, latestCorrection, sampleAt, validateComparison } from '../src/data.js';
 
 const artifact = JSON.parse(readFileSync(new URL('../public/data/roll-comparison.json', import.meta.url)));
 const summary = JSON.parse(readFileSync(new URL('../../results/ekf-comparison/summary.json', import.meta.url)));
+const controlled = JSON.parse(readFileSync(new URL('../../results/controlled-scenarios/summary.json', import.meta.url)));
 
 test('shipped display artifact matches the public experiment summary', () => {
   validateComparison(artifact);
   assert.equal(artifact.seed, summary.seed);
-  assert.deepEqual(artifact.config, summary.config);
+  for (const [key, value] of Object.entries(artifact.config)) assert.equal(value, summary.config[key]);
+  assert.equal(artifact.seed, controlled.seed);
   for (const [name, scenario] of Object.entries(artifact.scenarios)) {
     assert.equal(scenario.source_sample_count, 3001);
-    assert.equal(scenario.rows.length, 601);
+    assert.equal(scenario.rows.length, name === 'accel_dropout' ? 852 : 901);
     for (const boundary of [0, 12, 17, 30]) assert.ok(scenario.rows.some(row => row[0] === boundary));
     for (const method of SERIES.slice(1)) {
-      const expected = method.id === 'ekf' ? summary.scenarios[name].vector_ekf
-        : summary.scenarios[name].baselines[method.id];
-      assert.equal(scenario.metrics.rmse_deg[method.id], expected.rmse_deg);
+      const expected = scenario.source === 'controlled' ? controlled.scenarios[name].metrics[method.id].angle_rmse_deg
+        : method.id === 'ekf' ? summary.scenarios[name].vector_ekf.rmse_deg
+          : summary.scenarios[name].baselines[method.id].rmse_deg;
+      assert.equal(scenario.metrics.rmse_deg[method.id], expected);
     }
   }
-  assert.deepEqual(artifact.provenance.stream_seeds, {
+  assert.deepEqual(artifact.sources.paired.stream_seeds, {
     gyro: '16138347438539916964', accelerometer: '134183728835869882',
   });
+  for (const [source, folder] of [['paired', 'ekf-comparison'], ['controlled', 'controlled-scenarios']]) {
+    const bytes = readFileSync(new URL(`../../results/${folder}/summary.json`, import.meta.url));
+    assert.equal(artifact.sources[source].source_sha256['summary.json'], createHash('sha256').update(bytes).digest('hex'));
+  }
+});
+
+test('wrong initialization remains distinct from simulation truth', () => {
+  const scenario = artifact.scenarios.initial_offset;
+  assert.equal(scenario.initialization.angle_std_deg, 30);
+  assert.equal(sampleAt(scenario.rows, 0)[1], 0);
+  assert.deepEqual(sampleAt(scenario.rows, 0).slice(2, 6), [60, 60, 60, 60]);
+  assert.equal(latestCorrection(scenario, .099), null);
+  assert.equal(latestCorrection(scenario, .1), .1);
+});
+
+test('dropout retains predictions and applies bias recovery only at 17 seconds', () => {
+  const scenario = artifact.scenarios.accel_dropout;
+  assert.equal(scenario.correction_times_s.length, 250);
+  assert.ok(!scenario.correction_times_s.some(time => time >= 12 && time < 17));
+  assert.ok(Math.abs(latestCorrection(scenario, 16.999) - 11.9) < 1e-10);
+  assert.equal(latestCorrection(scenario, 17), 17);
+  const before = sampleAt(scenario.rows, 11.9);
+  assert.deepEqual(sampleAt(scenario.rows, 16.999).slice(7), before.slice(7));
+  assert.notEqual(sampleAt(scenario.rows, 16).at(5), sampleAt(scenario.rows, 14).at(5));
+  const recovery = scenario.rows.find(row => row[0] === 17);
+  assert.deepEqual(sampleAt(scenario.rows, 17), recovery);
+  assert.notDeepEqual(recovery.slice(7), before.slice(7));
+});
+
+test('decimal slider time resolves a correction at the same physical instant', () => {
+  const rows = [[.29, 1, 1, 1, 1, 1, .5, 0, 0], [.30000000000000004, 2, 2, 2, 2, 2, .5, 1, 1], [.4, 3, 3, 3, 3, 3, .5, 2, 2]];
+  assert.deepEqual(sampleAt(rows, .3).slice(7), [1, 1]);
+  assert.equal(latestCorrection({ correction_times_s: [.1, .2, .30000000000000004] }, .3), .30000000000000004);
+  assert.deepEqual(sampleAt(rows, .29999).slice(7), [0, 0]);
 });
 
 test('cursor interpolation uses actual time intervals and clamps endpoints', () => {
@@ -49,14 +87,21 @@ test('playback applies speed and stops exactly at the run end', () => {
 
 const mutations = {
   'missing configuration': data => { delete data.config.amplitude_deg; },
-  'unknown schema': data => { data.schema_version = 2; },
+  'unknown schema': data => { data.schema_version = 99; },
   'incorrect units': data => { data.columns[1] = 'truth_roll_rad'; },
   'empty scenario': data => { data.scenarios.nominal.rows = []; },
   'non-finite sample': data => { data.scenarios.nominal.rows[10][3] = NaN; },
   'duplicate timestamp': data => { data.scenarios.nominal.rows[10][0] = data.scenarios.nominal.rows[9][0]; },
   'missing endpoint': data => { data.scenarios.nominal.rows.pop(); },
   'missing metric': data => { delete data.scenarios.nominal.metrics.rmse_deg.ekf; },
-  'invalid disturbance': data => { data.scenarios.translation_pulse.disturbance.end_s = 31; },
+  'invalid disturbance': data => { data.scenarios.translation_pulse.event.end_s = 31; },
+  'incorrect initial covariance': data => { data.scenarios.initial_offset.initialization.angle_std_deg = 0; },
+  'invented missing correction': data => { data.scenarios.accel_dropout.correction_times_s.push(16); },
+  'wrong recovery': data => { data.scenarios.accel_dropout.event.first_correction_after_s = 16.9; },
+  'domain hiding initial error': data => { data.scenarios.initial_offset.domains.roll_deg = [-20, 20]; },
+  'bias moving before correction': data => { data.scenarios.accel_dropout.rows[1][8] += 1; },
+  'incorrect source': data => { data.scenarios.initial_offset.source = 'paired'; },
+  'missing correction predecessor': data => { data.scenarios.accel_dropout.rows = data.scenarios.accel_dropout.rows.filter(row => Math.abs(row[0] - 16.99) > 1e-10); },
 };
 for (const [name, mutate] of Object.entries(mutations)) {
   test(`reject ${name} instead of displaying misleading records`, () => {

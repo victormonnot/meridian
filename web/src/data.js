@@ -18,51 +18,98 @@ function require(condition, message) {
 }
 
 export function validateComparison(data) {
-  require(data?.schema_version === 1 && data.experiment === 'vector_ekf_comparison'
+  require(data?.schema_version === 2 && data.experiment === 'roll_scenario_explorer'
     && data.data_source === 'simulation', 'unsupported format');
   require(JSON.stringify(data.columns) === JSON.stringify(COLUMNS), 'columns or units');
   const config = data.config;
-  const configFields = ['duration_s', 'sample_rate_hz', 'amplitude_deg', 'frequency_hz',
-    'bias_deg_s', 'gyro_noise_std_deg_s', 'accel_noise_std_m_s2', 'observation_every',
-    'complementary_tau_s', 'pulse_start_s', 'pulse_end_s', 'pulse_y_m_s2'];
-  require(config && configFields.every(field => Number.isFinite(config[field])), 'configuration');
-  require(config.duration_s > 0 && config.sample_rate_hz > 0
-    && config.observation_every > 0, 'measurement schedule');
+  const fields = ['duration_s', 'sample_rate_hz', 'amplitude_deg', 'frequency_hz',
+    'bias_deg_s', 'gyro_noise_std_deg_s', 'accel_noise_std_m_s2', 'observation_every', 'complementary_tau_s'];
+  require(config && fields.every(field => Number.isFinite(config[field])), 'configuration');
+  require(config.duration_s === 30 && config.sample_rate_hz === 100
+    && config.observation_every === 10, 'measurement schedule');
   require(Number.isSafeInteger(data.seed) && data.seed >= 0, 'seed');
   require(Number.isInteger(data.display_stride) && data.display_stride > 0, 'display stride');
-  require(Number.isFinite(data.provenance?.initialization?.angle_rad)
-    && Number.isFinite(data.provenance?.initialization?.bias_rad_s), 'initialization');
-  for (const kind of ['roll_deg', 'bias_deg_s']) {
-    const domain = data.domains?.[kind];
-    require(domain?.length === 2 && domain.every(Number.isFinite) && domain[1] >= domain[0], 'domains');
+  const names = ['nominal', 'translation_pulse', 'initial_offset', 'accel_dropout'];
+  require(JSON.stringify(Object.keys(data.scenarios ?? {}).sort()) === JSON.stringify([...names].sort()), 'scenario selection');
+  for (const [source, experiment] of [['paired', 'vector_ekf_comparison'], ['controlled', 'controlled_scenarios']]) {
+    const provenance = data.sources?.[source];
+    require(provenance?.experiment === experiment && provenance.source_sha256
+      && Object.keys(provenance.source_sha256).length > 0, 'source provenance');
+    for (const [path, hash] of Object.entries(provenance.source_sha256)) {
+      require(!path.startsWith('/') && !path.includes('..') && !path.includes('\\')
+        && /^[a-f0-9]{64}$/.test(hash), 'source fingerprint');
+    }
   }
-  for (const name of ['nominal', 'translation_pulse']) {
-    const scenario = data.scenarios?.[name];
+  for (const name of names) {
+    const scenario = data.scenarios[name];
     require(scenario && Array.isArray(scenario.rows) && scenario.rows.length >= 2, `${name} is empty`);
-    require(Number.isInteger(scenario.source_sample_count)
-      && scenario.source_sample_count >= scenario.rows.length, 'sample count');
+    require(scenario.source === (names.indexOf(name) < 2 ? 'paired' : 'controlled'), 'scenario source');
+    require(scenario.source_sample_count === 3001 && scenario.rows.length <= 3001, 'sample count');
+    const initial = scenario.initialization;
+    require(initial && ['roll_deg', 'angle_std_deg', 'bias_deg_s', 'bias_std_deg_s'].every(field => Number.isFinite(initial[field])), 'initialization');
+    require(initial.roll_deg === (name === 'initial_offset' ? 60 : 0)
+      && initial.angle_std_deg === (name === 'initial_offset' ? 30 : 0)
+      && initial.bias_deg_s === 0 && initial.bias_std_deg_s === 1, 'initialization contract');
+    const rowTimes = new Set();
     let previous = -Infinity;
     for (const row of scenario.rows) {
-      require(row.length === COLUMNS.length && row.every(Number.isFinite), 'non-finite or incomplete row');
+      require(Array.isArray(row) && row.length === COLUMNS.length && row.every(Number.isFinite), 'non-finite or incomplete row');
       require(row[0] > previous, 'timestamps must increase');
+      require(Math.abs(row[0] * 100 - Math.round(row[0] * 100)) < 1e-7, 'endpoint grid');
       previous = row[0];
+      rowTimes.add(Math.round(row[0] * 100));
     }
-    require(scenario.rows[0][0] === 0
-      && Math.abs(previous - config.duration_s) < 1e-9, 'time extent');
+    require(scenario.rows[0][0] === 0 && Math.abs(previous - config.duration_s) < 1e-9, 'time extent');
+    require(scenario.rows[0].slice(2, 6).every(value => value === initial.roll_deg)
+      && scenario.rows[0].slice(7).every(value => value === initial.bias_deg_s), 'initial row');
+    for (const [kind, columns] of [['roll_deg', [1, 2, 3, 4, 5]], ['bias_deg_s', [6, 7, 8]]]) {
+      const domain = scenario.domains?.[kind];
+      require(Array.isArray(domain) && domain.length === 2 && domain.every(Number.isFinite) && domain[1] >= domain[0], 'domains');
+      require(scenario.rows.every(row => columns.every(column => row[column] >= domain[0] - 1e-6
+        && row[column] <= domain[1] + 1e-6)), 'domain excludes data');
+    }
     for (const { id } of SERIES.slice(1)) {
       const rmse = scenario.metrics?.rmse_deg?.[id];
       require(Number.isFinite(rmse) && rmse >= 0, 'full-run metrics');
     }
-    if (name === 'nominal') require(scenario.disturbance === null, 'nominal disturbance');
-    else {
-      const pulse = scenario.disturbance;
-      require(pulse?.axis === 'body_y' && Number.isFinite(pulse.value_m_s2)
-        && Number.isFinite(pulse.start_s) && Number.isFinite(pulse.end_s)
-        && pulse.start_s >= 0 && pulse.end_s > pulse.start_s
-        && pulse.end_s <= config.duration_s, 'disturbance interval');
+    for (const id of ['kalman', 'ekf']) require(Number.isFinite(scenario.metrics?.final_bias_error_deg_s?.[id]), 'bias metrics');
+    const expectedTimes = Array.from({ length: 300 }, (_, i) => (i + 1) / 10)
+      .filter(time => name !== 'accel_dropout' || time < 12 || time >= 17);
+    require(scenario.scheduled_accel_count === 300 && Array.isArray(scenario.correction_times_s)
+      && scenario.correction_times_s.length === expectedTimes.length, 'correction schedule');
+    require(scenario.correction_times_s.every((time, i) => Number.isFinite(time)
+      && Math.abs(time - expectedTimes[i]) < 1e-10 && rowTimes.has(Math.round(time * 100))
+      && rowTimes.has(Math.round(time * 100) - 1)), 'corrections must retain exact endpoints and predecessors');
+    const correctionTicks = new Set(scenario.correction_times_s.map(time => Math.round(time * 100)));
+    require(scenario.rows.every((row, i, rows) => i === 0 || correctionTicks.has(Math.round(row[0] * 100))
+      || (row[7] === rows[i - 1][7] && row[8] === rows[i - 1][8])), 'bias changes without correction');
+    const event = scenario.event;
+    if (name === 'translation_pulse') {
+      require(event?.kind === 'translation' && event.axis === 'body_y' && Number.isFinite(event.value_m_s2)
+        && Number.isFinite(event.start_s) && Number.isFinite(event.end_s)
+        && event.start_s >= 0 && event.end_s > event.start_s && event.end_s <= config.duration_s, 'disturbance interval');
+    } else if (name === 'accel_dropout') {
+      require(event?.kind === 'accel_dropout' && event.start_s === 12 && event.end_s === 17
+        && event.omitted_count === 50 && Math.abs(event.last_correction_before_s - 11.9) < 1e-10
+        && event.first_correction_after_s === 17, 'dropout interval');
+    } else require(event === null, 'unexpected interval');
+    if (event) for (const time of [event.start_s, event.end_s]) {
+      require(rowTimes.has(Math.round(time * 100)), 'event boundary missing');
     }
   }
   return data;
+}
+
+export function latestCorrection(scenario, time) {
+  const times = scenario.correction_times_s;
+  let lo = 0;
+  let hi = times.length;
+  while (lo < hi) {
+    const mid = (lo + hi) >>> 1;
+    if (times[mid] <= time + 1e-10) lo = mid + 1;
+    else hi = mid;
+  }
+  return lo === 0 ? null : times[lo - 1];
 }
 
 export function clampTime(time, duration) {
@@ -70,7 +117,7 @@ export function clampTime(time, duration) {
 }
 
 export function sampleAt(rows, time) {
-  // Binary search works for retained pulse boundaries and irregular final spacing.
+  // All correction endpoints are retained. Hold bias until its next recorded update.
   if (time <= rows[0][0]) return rows[0].slice();
   if (time >= rows.at(-1)[0]) return rows.at(-1).slice();
   let lo = 0;
@@ -80,9 +127,11 @@ export function sampleAt(rows, time) {
     if (rows[mid][0] <= time) lo = mid;
     else hi = mid;
   }
+  // Decimal slider times and binary source times can differ by roundoff.
+  if (Math.abs(rows[hi][0] - time) < 1e-10) return [time, ...rows[hi].slice(1)];
   const weight = (time - rows[lo][0]) / (rows[hi][0] - rows[lo][0]);
   return rows[lo].map((value, column) => column === 0 ? time
-    : value + weight * (rows[hi][column] - value));
+    : column >= 6 ? value : value + weight * (rows[hi][column] - value));
 }
 
 export function advanceTime(time, elapsedSeconds, speed, duration) {

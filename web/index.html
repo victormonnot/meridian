@@ -23,8 +23,10 @@
         <nav class="scenarios" aria-label="Simulation scenario">
           <button type="button" data-scenario="nominal" aria-pressed="true">Nominal</button>
           <button type="button" data-scenario="translation_pulse" aria-pressed="false">Translation disturbance</button>
+          <button type="button" data-scenario="initial_offset" aria-pressed="false">Wrong initial angle</button>
+          <button type="button" data-scenario="accel_dropout" aria-pressed="false">Accelerometer loss</button>
         </nav>
-        <div class="context"><p id="scenario-description"></p><button type="button" id="jump" hidden>Inspect disturbance</button></div>
+        <div class="context"><p id="scenario-description"></p><div class="inspection-links"><button type="button" id="jump" hidden>Inspect disturbance</button><button type="button" id="recovery" hidden>Inspect recovery</button></div></div>
         <div class="player" aria-label="Playback controls">
           <button type="button" id="play" class="primary">Play</button>
           <div class="timeline">
@@ -61,6 +63,7 @@
               <h2 class="accent-heading">Full-run error</h2>
               <p class="metadata">Angle RMSE · lower is better</p>
               <table><caption class="sr-only">Full-run angle root mean square error in degrees</caption><thead><tr><th scope="col">Method</th><th scope="col">RMSE (°)</th></tr></thead><tbody id="metrics"></tbody></table>
+              <p id="metric-note" class="metadata"></p>
             </section>
           </aside>
           <div class="plots">
@@ -68,7 +71,8 @@
               <div class="panel-heading"><h2 id="roll-heading">Roll angle</h2><span id="chart-time" class="metadata mono"></span></div>
               <div id="roll-legend" class="legend" aria-label="Visible roll curves"></div>
               <div id="roll-chart" class="chart"></div>
-              <p class="metadata chart-note">Move across a plot or use the time slider to inspect both signals.</p>
+              <p id="correction-status" class="metadata chart-note"></p>
+              <p class="metadata chart-note">Move across a plot or use the time slider. Scales adapt to the selected scenario.</p>
             </section>
             <section class="bias-panel" aria-labelledby="bias-heading">
               <div class="panel-heading"><h2 id="bias-heading" class="accent-heading">Gyroscope bias</h2><span class="metadata">Two Kalman estimates</span></div>
@@ -86,9 +90,9 @@
           <summary>Experiment settings and limitations</summary>
           <dl id="settings" class="settings"></dl>
           <p id="display-note"></p>
-          <p>Playback reads recorded Python results. It does not rerun or retune the filters. Both scenarios share the same sensor-noise realizations. Plot scales stay fixed between scenarios.</p>
+          <p>Playback reads recorded Python results. It does not rerun or retune the filters. The nominal/translation pair shares sensor-noise realizations. The two controlled cases share gyro measurements and available accelerometer samples. Scales cover all methods, including hidden curves; they may change when selecting another scenario.</p>
           <p>Accelerometer tilt assumes gravity dominates the measurement. Translation can violate that assumption. This single-axis simulation does not establish accuracy on a physical drone, or embedded or flight performance.</p>
-          <p>Source: <code>meridian.ekf_experiment</code>, nominal and translation-pulse exports. The download includes full-run metrics and source-file SHA-256 fingerprints.</p>
+          <p id="source-note"></p>
           <a id="download" download="roll-comparison.json">Download displayed data and metrics</a>
         </details>
         <footer><span>Recorded simulation · No hardware connection</span><span class="signature">Meridian / Roll and bias study</span></footer>

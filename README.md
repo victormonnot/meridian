@@ -17,7 +17,8 @@ and angle KF estimates on an explicitly selected log segment with declared
 sampling and tuning assumptions. The vector EKF has been evaluated in simulation
 only. A C++17 port of the vector EKF now provides a separate numerical core and
 event replay executable, checked against Python after every operation.
-A static web explorer now replays the two selected simulation runs. A new
+A static web explorer replays the nominal and translation runs, plus wrong
+initialization and accelerometer loss from the controlled suite. A new
 documented bench acquisition remains planned.
 
 ![Vector EKF and baseline comparison on shared simulated measurements](results/ekf-comparison/overview.png)
@@ -157,12 +158,14 @@ Historical recordings do not establish current acquisition conditions.
 | `src/meridian/replay.py` | Causal roll/bias replay of contiguous snapshots, independent of file formats. |
 | `src/meridian/imu_replay.py` | Explicit DataFlash segment selection, replay diagnostics and exports. |
 | `src/meridian/web_export.py` | Checked display export from existing paired simulation records. |
+| `src/meridian/web_scenarios.py` | Combine the paired runs with selected controlled cases, preserving corrections and provenance. |
 | `web/` | Static JavaScript/D3 explorer, selected display data, and presentation tests. |
 | `tests/` | Numerical contracts, analytical drift, reproducibility, and export checks. |
 | `results/` | Selected results and reproduction reports. |
 
-The web explorer reads existing nominal and translation-disturbed results, with
-synchronized roll/bias plots and a roll indicator. Its JavaScript/Vite/D3
+The web explorer reads four existing simulation runs, with synchronized roll/bias
+plots, a roll indicator, and direct inspection of initialization and observation
+loss/recovery. Bias remains held between recorded corrections. Its JavaScript/Vite/D3
 presentation works independently of the numerical core. Interactive retuning and
 real-log browser replay are not implemented. A new documented bench acquisition
 and evaluation of known static poses and slow manual roll remain required.

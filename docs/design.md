@@ -18,8 +18,9 @@ checks recorded units, and reports timing discontinuities and selected metadata.
 with shared initialization and a previous-snapshot gyro hold. The
 vector EKF has only been evaluated in simulation. Its real-log replay and new
 documented bench acquisition are pending; historical replay is not a completed
-bench validation. A [static web explorer](web-explorer.md) replays the two selected
-nominal/translation simulations with full-run metrics and source provenance.
+bench validation. A [static web explorer](web-explorer.md) replays the selected
+nominal/translation simulations and controlled initial-offset/accelerometer-loss
+cases, with full-run metrics and source provenance.
 
 ## Scope
 
@@ -182,8 +183,12 @@ must account for unequal sensor rates and observed log semantics; the initial CS
 are an experiment format, not a general sensor interchange specification.
 
 The web interface uses JavaScript ES modules, Vite and D3. A small Python adapter
-validates existing paired experiment CSVs against their summary, then exports a
-versioned JSON display artifact. The browser reads that artifact and synchronizes
+validates existing experiment CSVs against their summaries, then exports a
+versioned JSON display artifact. The four-case adapter keeps per-scenario
+initialization, domains and correction schedules, with source fingerprints grouped
+by experiment. Every correction endpoint and its predecessor survive display
+reduction; bias is held until a recorded correction, while roll is interpolated.
+The browser reads that artifact and synchronizes
 roll/bias plots, playback and a rear-view roll indicator. Display decimation and
 interpolation never replace full-resolution metrics. Neither the estimator core
 nor raw sensor logs enter the browser. No backend or hosting provider is configured.
@@ -196,7 +201,7 @@ Read back the installed flight-controller configuration and acquire a short
 stationary and manual-roll bench recording with documented poses and conditions.
 Use the implemented audit and replay to inspect those measurements, with explicit
 angle-reference uncertainty and noise assumptions. Historical logs do not replace
-that acquisition. The first web interface now explores two reproducible simulated
-runs; its next evaluation is browser interaction and responsive use. Real angle reference,
+that acquisition. The web interface now explores four reproducible simulated
+runs; browser interaction and responsive use remain to be evaluated. Real angle reference,
 sensor noise, and broader validation criteria remain open. Current parameters have
 not been fitted to a physical IMU.

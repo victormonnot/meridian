@@ -1,14 +1,12 @@
-import { axisBottom, axisLeft, line, pointer, scaleLinear, select } from 'd3';
+import { axisBottom, axisLeft, curveLinear, curveStepAfter, line, pointer, scaleLinear, select } from 'd3';
 import { SERIES, formatValue } from './data.js';
 
 // Charts consume display records only; estimates and metrics come from Python.
-export function createChart(container, kind, domain, duration, onInspect, tooltip) {
+export function createChart(container, kind, duration, onInspect, tooltip) {
   const height = kind === 'roll' ? 288 : 196;
   const margin = { top: 26, right: 14, bottom: 42, left: 60 };
   const unit = kind === 'roll' ? '°' : '°/s';
-  const spread = Math.max(domain[1] - domain[0], kind === 'roll' ? 1 : 0.1);
-  const y = scaleLinear().domain([domain[0] - spread * .08, domain[1] + spread * .08])
-    .nice().range([height - margin.bottom - 4, margin.top + 4]);
+  const y = scaleLinear().range([height - margin.bottom - 4, margin.top + 4]);
   const x = scaleLinear().domain([0, duration]);
   const svg = select(container).append('svg').attr('role', 'img')
     .attr('aria-label', `${kind === 'roll' ? 'Roll angle' : 'Gyroscope bias'} over time. Use the time slider for numeric readings.`);
@@ -30,16 +28,16 @@ export function createChart(container, kind, domain, duration, onInspect, toolti
       .call(axisLeft(y).ticks(5).tickSize(-(width - margin.left - margin.right)).tickFormat(''));
     grid.select('.domain').remove();
     grid.selectAll('line').attr('opacity', .45);
-    const pulse = scenario.disturbance;
+    const pulse = scenario.event;
     if (pulse) {
       svg.append('rect').attr('x', x(pulse.start_s)).attr('y', margin.top)
         .attr('width', x(pulse.end_s) - x(pulse.start_s))
         .attr('height', height - margin.top - margin.bottom)
         .attr('fill', 'var(--line)').attr('opacity', .3);
       if (kind === 'roll') svg.append('text').attr('x', (x(pulse.start_s) + x(pulse.end_s)) / 2)
-        .attr('y', 16).attr('text-anchor', 'middle').text('Translation');
+        .attr('y', 16).attr('text-anchor', 'middle').text(pulse.kind === 'translation' ? 'Translation' : 'Accel. loss');
     }
-    const path = line().x(row => x(row[0]));
+    const path = line().x(row => x(row[0])).curve(kind === 'bias' ? curveStepAfter : curveLinear);
     for (const item of series.filter(item => visible.has(item.id))) {
       svg.append('path').datum(scenario.rows).attr('fill', 'none')
         .attr('stroke', item.color).attr('stroke-width', item.id === 'ekf' ? 1.8 : 1.3)
@@ -82,7 +80,7 @@ export function createChart(container, kind, domain, duration, onInspect, toolti
     if (!row) { tooltip.hidden = true; return; }
     tooltip.replaceChildren();
     const title = document.createElement('p');
-    title.textContent = `${formatValue(row[0])} s · display interpolation`;
+    title.textContent = `${formatValue(row[0])} s · ${kind === 'bias' ? 'bias held between corrections' : 'display interpolation'}`;
     tooltip.append(title);
     for (const item of series.filter(item => visible.has(item.id))) {
       const entry = document.createElement('div');
@@ -113,7 +111,14 @@ export function createChart(container, kind, domain, duration, onInspect, toolti
   observer.observe(container);
   document.fonts?.ready.then(draw);
   return {
-    setData(nextScenario, nextVisible) { scenario = nextScenario; visible = nextVisible; draw(); },
+    setData(nextScenario, nextVisible) {
+      scenario = nextScenario;
+      visible = nextVisible;
+      const domain = scenario.domains[kind === 'roll' ? 'roll_deg' : 'bias_deg_s'];
+      const spread = Math.max(domain[1] - domain[0], kind === 'roll' ? 1 : 0.1);
+      y.domain([domain[0] - spread * .08, domain[1] + spread * .08]).nice();
+      draw();
+    },
     setCursor,
     destroy() { observer.disconnect(); svg.remove(); },
   };
