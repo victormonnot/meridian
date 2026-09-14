@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import test from 'node:test';
-import { SERIES, advanceTime, clampTime, formatValue, latestCorrection, sampleAt, validateComparison } from '../src/data.js';
+import { SERIES, adjacentCorrection, advanceTime, clampTime, correctionDetails, formatValue, latestCorrection, sampleAt, validateComparison } from '../src/data.js';
 
 const artifact = JSON.parse(readFileSync(new URL('../public/data/roll-comparison.json', import.meta.url)));
 const summary = JSON.parse(readFileSync(new URL('../../results/ekf-comparison/summary.json', import.meta.url)));
@@ -16,12 +16,14 @@ test('shipped display artifact matches the public experiment summary', () => {
   for (const [name, scenario] of Object.entries(artifact.scenarios)) {
     assert.equal(scenario.source_sample_count, 3001);
     assert.equal(scenario.rows.length, name === 'accel_dropout' ? 852 : 901);
-    for (const boundary of [0, 12, 17, 30]) assert.ok(scenario.rows.some(row => row[0] === boundary));
+    for (const boundary of name === 'timing_jitter' ? [0, 30] : [0, 12, 17, 30]) assert.ok(scenario.rows.some(row => row[0] === boundary));
     for (const method of SERIES.slice(1)) {
       const expected = scenario.source === 'controlled' ? controlled.scenarios[name].metrics[method.id].angle_rmse_deg
         : method.id === 'ekf' ? summary.scenarios[name].vector_ekf.rmse_deg
           : summary.scenarios[name].baselines[method.id].rmse_deg;
       assert.equal(scenario.metrics.rmse_deg[method.id], expected);
+      if (scenario.source === 'controlled') assert.equal(scenario.metrics.time_weighted_rmse_deg[method.id],
+        controlled.scenarios[name].metrics[method.id].angle_time_weighted_rmse_deg);
     }
   }
   assert.deepEqual(artifact.sources.paired.stream_seeds, {
@@ -104,6 +106,38 @@ test('decimal slider time resolves a correction at the same physical instant', (
   assert.deepEqual(sampleAt(rows, .29999).slice(7), [0, 0]);
 });
 
+test('irregular corrections use original times, predecessors and held bias', () => {
+  const scenario = artifact.scenarios.timing_jitter;
+  for (let i = 0; i < scenario.correction_times_s.length; i += 1) {
+    const time = scenario.correction_times_s[i];
+    const predecessor = scenario.timing.correction_predecessor_times_s[i];
+    const row = scenario.rows.find(row => row[0] === time);
+    assert.ok(scenario.rows.some(row => row[0] === predecessor));
+    assert.deepEqual(sampleAt(scenario.rows, (time + predecessor) / 2).slice(7), sampleAt(scenario.rows, predecessor).slice(7));
+    assert.deepEqual(sampleAt(scenario.rows, time).slice(7), row.slice(7));
+    assert.equal(adjacentCorrection(scenario, predecessor, 1), time);
+    assert.equal(adjacentCorrection(scenario, time, -1), i === 0 ? null : scenario.correction_times_s[i - 1]);
+  }
+  assert.equal(adjacentCorrection(scenario, 0, -1), null);
+  assert.equal(adjacentCorrection(scenario, 30, 1), null);
+  assert.equal(latestCorrection(scenario, .09), null);
+  assert.equal(latestCorrection(scenario, .095), .09331262108751584);
+  assert.equal(correctionDetails(scenario, 0), null);
+  const detail = correctionDetails(scenario, .2);
+  assert.equal(detail.sample, detail.arrival);
+  assert.equal(detail.previousArrival, scenario.correction_times_s[0]);
+});
+
+test('delayed acquisition is exposed without moving its correction earlier', () => {
+  const scenario = artifact.scenarios.accel_delay;
+  assert.equal(correctionDetails(scenario, 0), null);
+  assert.deepEqual(correctionDetails(scenario, .1), { arrival: .1, sample: 0, previousArrival: null });
+  assert.equal(adjacentCorrection(scenario, .099, 1), .1);
+  const end = correctionDetails(scenario, 30);
+  assert.equal(end.sample, 29.9);
+  assert.equal(end.arrival, 30);
+});
+
 test('cursor interpolation uses actual time intervals and clamps endpoints', () => {
   const rows = [[0, 2, -5], [.1, 4, -1], [.7, 10, 11]];
   assert.deepEqual(sampleAt(rows, -.1), rows[0]);
@@ -129,12 +163,21 @@ test('playback applies speed and stops exactly at the run end', () => {
 const mutations = {
   'missing configuration': data => { delete data.config.amplitude_deg; },
   'unknown schema': data => { data.schema_version = 99; },
+  'obsolete fixed-grid schema': data => { data.schema_version = 2; },
   'incorrect units': data => { data.columns[1] = 'truth_roll_rad'; },
   'empty scenario': data => { data.scenarios.nominal.rows = []; },
   'non-finite sample': data => { data.scenarios.nominal.rows[10][3] = NaN; },
   'duplicate timestamp': data => { data.scenarios.nominal.rows[10][0] = data.scenarios.nominal.rows[9][0]; },
   'missing endpoint': data => { data.scenarios.nominal.rows.pop(); },
   'missing metric': data => { delete data.scenarios.nominal.metrics.rmse_deg.ekf; },
+  'missing weighted metric': data => { delete data.scenarios.nominal.metrics.time_weighted_rmse_deg.ekf; },
+  'rounded irregular arrival': data => { data.scenarios.timing_jitter.correction_times_s[0] = .09; },
+  'invented uniform predecessor': data => { data.scenarios.timing_jitter.timing.correction_predecessor_times_s[0] = data.scenarios.timing_jitter.correction_times_s[0] - .01; },
+  'missing actual predecessor': data => { data.scenarios.timing_jitter.rows.splice(2, 1); },
+  'hidden acquisition delay': data => { data.scenarios.accel_delay.timing.correction_sample_times_s[0] = .1; },
+  'correction shifted to acquisition': data => { data.scenarios.accel_delay.correction_times_s[0] = 0; },
+  'invented negative acquisition': data => { data.scenarios.accel_delay.timing.correction_sample_times_s[0] = -.1; },
+  'irregular range labeled uniform': data => { data.scenarios.timing_jitter.timing.kind = 'uniform'; },
   'invalid disturbance': data => { data.scenarios.translation_pulse.event.end_s = 31; },
   'incorrect initial covariance': data => { data.scenarios.initial_offset.initialization.angle_std_deg = 0; },
   'overconfident start mislabeled as uncertain': data => { data.scenarios.initial_overconfident.initialization.angle_std_deg = 30; },

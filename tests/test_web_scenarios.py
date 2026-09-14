@@ -24,22 +24,23 @@ def sources(tmp_path_factory):
 def test_selection_units_metrics_and_preserved_corrections(sources):
     data = build_scenarios(*sources, stride=37)
     summary = json.loads((sources[1]/"summary.json").read_text())
-    assert data["schema_version"] == 2
+    assert data["schema_version"] == 3
     assert list(data["scenarios"]) == ["nominal", "translation_pulse", "initial_offset", "accel_dropout", "bias_ramp",
-                                       "initial_overconfident", "accel_noise_mismatch"]
+                                       "initial_overconfident", "accel_noise_mismatch", "timing_jitter", "accel_delay"]
     for name, case in data["scenarios"].items():
         rows = np.array(case["rows"])
-        ticks = set(np.rint(rows[:, 0]*100).astype(int))
-        assert 0 in ticks and 3000 in ticks
-        for time in case["correction_times_s"]:
-            assert round(time*100) in ticks and round(time*100)-1 in ticks
+        assert rows[0, 0] == 0 and rows[-1, 0] == 30
+        for time, previous in zip(case["correction_times_s"], case["timing"]["correction_predecessor_times_s"]):
+            index = int(np.argmin(abs(rows[:, 0]-time)))
+            assert rows[index, 0] == pytest.approx(time, abs=1e-12)
+            assert rows[index-1, 0] == previous
         assert case["source_sample_count"] == 3001
         if case["source"] == "controlled":
             for method, metric in case["metrics"]["rmse_deg"].items():
                 assert metric == summary["scenarios"][name]["metrics"][method]["angle_rmse_deg"]
             source = np.genfromtxt(sources[1]/name/"estimates.csv", names=True, delimiter=",")
             for row in rows:
-                index = int(round(row[0]*100))
+                index = int(np.argmin(abs(source["time_s"]-row[0])))
                 assert row[5] == pytest.approx(np.rad2deg(source["ekf_roll_rad"][index]), abs=5.01e-7)
                 assert row[8] == pytest.approx(np.rad2deg(source["ekf_bias_rad_s"][index]), abs=5.01e-7)
     initial = data["scenarios"]["initial_offset"]
@@ -87,6 +88,79 @@ def test_export_is_deterministic_and_refuses_overwrite(sources, tmp_path):
     with pytest.raises(FileExistsError):
         export_scenarios(*sources, first)
     assert first.read_bytes() == second.read_bytes()
+
+
+def test_recorded_irregular_endpoints_and_delayed_acquisition(sources):
+    cases = build_scenarios(*sources, stride=37)["scenarios"]
+    jitter = cases["timing_jitter"]
+    truth = np.loadtxt(sources[1]/"timing_jitter/truth.csv", skiprows=1, delimiter=",")
+    np.testing.assert_array_equal(jitter["correction_times_s"], truth[10::10, 0])
+    np.testing.assert_array_equal(jitter["timing"]["correction_predecessor_times_s"], truth[9::10, 0])
+    assert jitter["correction_times_s"][0] == pytest.approx(.09331262108751584, abs=1e-15)
+    assert jitter["timing"]["gyro_interval_min_s"] == np.diff(truth[:, 0]).min()
+    assert jitter["timing"]["gyro_interval_max_s"] == np.diff(truth[:, 0]).max()
+    assert jitter["event"] is None
+    delay = cases["accel_delay"]
+    samples = np.asarray(delay["timing"]["correction_sample_times_s"])
+    np.testing.assert_allclose(samples, np.asarray(delay["correction_times_s"])-.1, atol=1e-15, rtol=0)
+    assert samples[0] == 0 and samples[-1] == 29.9
+    assert delay["event"] is None
+    # Noise is paired by draw order even when physical acquisition times differ.
+    for name in ("timing_jitter", "accel_delay"):
+        force = np.loadtxt(sources[1]/name/"accel_measurements.csv", skiprows=1, delimiter=",")[:, 1:]
+        times = np.asarray(cases[name]["timing"]["correction_sample_times_s"])
+        reference = np.loadtxt(sources[1]/"initial_offset/accel_measurements.csv", skiprows=1, delimiter=",")
+        theta = np.deg2rad(20)*np.sin(2*np.pi*.1*times)
+        theta_ref = np.deg2rad(20)*np.sin(2*np.pi*.1*reference[:, 0])
+        expected_difference = -9.80665*np.column_stack([np.sin(theta)-np.sin(theta_ref), np.cos(theta)-np.cos(theta_ref)])
+        np.testing.assert_allclose(force-reference[:, 1:], expected_difference, atol=1e-12, rtol=0)
+
+
+def test_duration_weighting_uses_original_unrounded_endpoints(sources):
+    cases = build_scenarios(*sources, stride=37)["scenarios"]
+    summary = json.loads((sources[1]/"summary.json").read_text())
+    for name, case in cases.items():
+        folder = sources[0 if case["source"] == "paired" else 1]/name
+        truth = np.genfromtxt(folder/"truth.csv", names=True, delimiter=",")
+        estimates = np.genfromtxt(folder/"estimates.csv", names=True, delimiter=",")
+        for method, actual in case["metrics"]["time_weighted_rmse_deg"].items():
+            table = np.genfromtxt(folder/"ekf_estimates.csv", names=True, delimiter=",") if method == "ekf" and case["source"] == "paired" else estimates
+            errors = np.rad2deg(table[f"{method}_roll_rad"]-truth["roll_rad"])
+            # Explicit trapezoid areas, independently of the adapter's np.trapezoid.
+            area = sum((left*left+right*right)*(end-start)/2 for left, right, start, end
+                       in zip(errors[:-1], errors[1:], truth["time_s"][:-1], truth["time_s"][1:]))
+            assert actual == pytest.approx(np.sqrt(area/30), abs=1e-12, rel=0)
+            if case["source"] == "controlled":
+                assert actual == summary["scenarios"][name]["metrics"][method]["angle_time_weighted_rmse_deg"]
+
+
+@pytest.mark.parametrize("mutation", ["rounded_arrival", "rounded_clock", "delay_as_arrival",
+                                      "missing_delay", "arrival_force", "weighted_metric", "timing_seed"])
+def test_reject_misrepresented_timing(sources, tmp_path, mutation):
+    controlled = Path(shutil.copytree(sources[1], tmp_path/"controlled"))
+    if mutation in ("weighted_metric", "timing_seed"):
+        path = controlled/"summary.json"
+        summary = json.loads(path.read_text())
+        record = summary["scenarios"]["timing_jitter"]
+        if mutation == "weighted_metric": record["metrics"]["ekf"]["angle_time_weighted_rmse_deg"] += .1
+        else: record["stream_seeds"]["timing"] += 1
+        path.write_text(json.dumps(summary))
+    else:
+        name = "timing_jitter" if mutation.startswith("rounded") else "accel_delay"
+        filename = "truth.csv" if mutation == "rounded_clock" else "accel_measurements.csv" if mutation == "arrival_force" else "observation_schedule_truth.csv"
+        path = controlled/name/filename
+        header = path.read_text().splitlines()[0]
+        values = np.loadtxt(path, delimiter=",", skiprows=1)
+        if mutation.startswith("rounded"): values[:, 0] = np.round(values[:, 0], 2)
+        elif mutation == "delay_as_arrival": values[:, 0] = values[:, 1]
+        elif mutation == "missing_delay": values[:, 1] = values[:, 0]
+        else:
+            theta = np.deg2rad(20)*np.sin(2*np.pi*.1*values[:, 0])
+            old_theta = np.deg2rad(20)*np.sin(2*np.pi*.1*(values[:, 0]-.1))
+            values[:, 1:] += -9.80665*np.column_stack([np.sin(theta)-np.sin(old_theta), np.cos(theta)-np.cos(old_theta)])
+        np.savetxt(path, values, delimiter=",", header=header, comments="", fmt="%.17g")
+    with pytest.raises(ValueError):
+        build_scenarios(sources[0], controlled)
 
 
 def test_initial_confidence_changes_only_kalman_references(sources):
@@ -202,6 +276,8 @@ def test_reject_self_consistent_but_unpaired_ramp_gyro(sources, tmp_path):
     summary = json.loads(summary_path.read_text())
     summary["scenarios"]["bias_ramp"]["metrics"]["gyro"]["angle_rmse_deg"] = float(
         np.sqrt(np.mean(np.rad2deg(estimates[:, 1]-truth[:, 1])**2)))
+    summary["scenarios"]["bias_ramp"]["metrics"]["gyro"]["angle_time_weighted_rmse_deg"] = float(
+        np.sqrt(np.trapezoid(np.rad2deg(estimates[:, 1]-truth[:, 1])**2, truth[:, 0])/30))
     summary_path.write_text(json.dumps(summary))
     with pytest.raises(ValueError, match="paired gyro noise"):
         build_scenarios(sources[0], controlled)

@@ -1,4 +1,4 @@
-"""Export seven selected simulation cases for the static results explorer."""
+"""Export nine simulation cases with their recorded timing for the results explorer."""
 
 import argparse
 from dataclasses import asdict
@@ -15,7 +15,7 @@ from meridian.web_export import _read_columns, build_comparison
 
 METHODS = ("gyro", "complementary", "kalman", "ekf")
 CONTROLLED_CASES = ("initial_offset", "accel_dropout", "bias_ramp",
-                    "initial_overconfident", "accel_noise_mismatch")
+                    "initial_overconfident", "accel_noise_mismatch", "timing_jitter", "accel_delay")
 ESTIMATE_FIELDS = ["time_s", *[f"{method}_roll_rad" for method in METHODS],
                    "kalman_bias_rad_s", "ekf_bias_rad_s"]
 INITIAL_COVARIANCE_FIELDS = [f"{method}_{field}" for method in ("kalman", "ekf")
@@ -53,11 +53,23 @@ def _domains(rows):
             "bias_deg_s": [float(rows[:, 6:9].min()), float(rows[:, 6:9].max())]}
 
 
+def _timing(times, indices, sample_times, *, irregular=False, delay_s=0.):
+    intervals = np.diff(times)
+    return {"kind": "irregular" if irregular else "uniform", "accel_delay_s": delay_s,
+            "gyro_interval_min_s": float(intervals.min()), "gyro_interval_max_s": float(intervals.max()),
+            "correction_predecessor_times_s": times[indices-1].tolist(),
+            "correction_sample_times_s": sample_times.tolist()}
+
+
+def _time_weighted_rmse(errors, times):
+    return float(np.sqrt(np.trapezoid(errors**2, times)/(times[-1]-times[0])))
+
+
 def build_scenarios(paired_source: Path, controlled_source: Path, *, stride: int = 5) -> dict:
     """Validate two experiment schemas; no simulation or estimator is executed.
 
-    This selection supports fixed, uniform-time initialization, dropout, bias-ramp
-    and noise-mismatch cases. Irregular timing and delay are not included.
+    Source timestamps and acquisition times are retained, including irregular
+    intervals and deliberately uncompensated accelerometer delay.
     """
     if isinstance(stride, bool) or not isinstance(stride, int) or stride < 1:
         raise ValueError("stride must be a positive integer")
@@ -69,7 +81,7 @@ def build_scenarios(paired_source: Path, controlled_source: Path, *, stride: int
                        "accel_noise_std_m_s2": .2, "observation_every": 10, "complementary_tau_s": 1}
     if any(config.get(key) != value for key, value in expected_config.items()):
         raise ValueError("paired configuration does not match the selected controlled suite")
-    data.update(schema_version=2, experiment="roll_scenario_explorer", config=expected_config,
+    data.update(schema_version=3, experiment="roll_scenario_explorer", config=expected_config,
                 display_stride=stride)
     paired_provenance = data.pop("provenance")
     initial = paired_provenance["initialization"]
@@ -91,8 +103,18 @@ def build_scenarios(paired_source: Path, controlled_source: Path, *, stride: int
                     initialization={"roll_deg": 0., "angle_std_deg": 0., "bias_deg_s": 0., "bias_std_deg_s": 1.},
                     accelerometer_noise={"actual_std_m_s2": .2, "assumed_std_m_s2": .2},
                     scheduled_accel_count=300, correction_times_s=arrivals.tolist(),
+                    timing=_timing(full[:, 0], np.arange(10, 3001, 10), arrivals),
                     rows=_display(full, arrivals, boundaries, stride))
         # The pair's full-resolution metrics and shared domains are retained.
+        # Additional duration weighting must use the original, unrounded CSVs.
+        raw_truth = _read_columns(paired_source/name/"truth.csv", ["time_s", "roll_rad"])
+        raw_angles = _read_columns(paired_source/name/"estimates.csv", ["time_s", *[f"{method}_roll_rad" for method in METHODS[:3]]])
+        raw_ekf = _read_columns(paired_source/name/"ekf_estimates.csv", ["time_s", "ekf_roll_rad"])
+        _equal(raw_angles[:, 0], raw_truth[:, 0], f"{name} weighted metric timing")
+        _equal(raw_ekf[:, 0], raw_truth[:, 0], f"{name} weighted EKF timing")
+        errors = np.rad2deg(np.column_stack([raw_angles[:, 1:], raw_ekf[:, 1]])-raw_truth[:, 1, None])
+        case["metrics"]["time_weighted_rmse_deg"] = {
+            method: _time_weighted_rmse(errors[:, column], raw_truth[:, 0]) for column, method in enumerate(METHODS)}
 
     summary_path = controlled_source/"summary.json"
     summary = json.loads(summary_path.read_text(encoding="utf-8"))
@@ -122,21 +144,32 @@ def build_scenarios(paired_source: Path, controlled_source: Path, *, stride: int
         truth = read("truth.csv", ["time_s", "roll_rad", "bias_rad_s"])
         estimates = read("estimates.csv", ESTIMATE_FIELDS+INITIAL_COVARIANCE_FIELDS)
         times = truth[:, 0]
-        _equal(times, np.arange(3001)/100, f"{name} endpoints")
+        definition = definitions[name]
+        if definition["timing_jitter"]:
+            # Bounds implied by 3000 positive U(0.5, 1.5) weights normalized to 30 s.
+            dt = np.diff(times)
+            if (len(times) != 3001 or times[0] != 0 or times[-1] != 30
+                    or dt.min() < 30/(3*3000) or dt.max() > 3*30/3000
+                    or dt.max()/dt.min() > 3 or np.allclose(dt, .01, atol=1e-12, rtol=0)):
+                raise ValueError("inconsistent timing_jitter endpoints")
+        else:
+            _equal(times, np.arange(3001)/100, f"{name} endpoints")
         _equal(estimates[:, 0], times, f"{name} aligned estimates")
         _equal(truth[:, 1], np.deg2rad(20)*np.sin(2*np.pi*.1*times), f"{name} roll truth")
         expected_bias = np.full(len(times), .5)
         if name == "bias_ramp":
             expected_bias += .1*np.clip(times-10, 0, 10)
         _equal(truth[:, 2], np.deg2rad(expected_bias), f"{name} bias truth")
-        definition = definitions[name]
         _equal(estimates[0, 1:5], np.full(4, np.deg2rad(definition["initial_angle_deg"])), f"{name} initial roll")
         _equal(estimates[0, 5:7], [0, 0], f"{name} initial bias")
         _equal(estimates[0, 7:], [np.deg2rad(definition["initial_angle_std_deg"])**2, 0, np.deg2rad(1)**2]*2,
                f"{name} initial covariance")
         schedule = read("observation_schedule_truth.csv", ["arrival_time_s", "sample_time_s", "available"])
-        _equal(schedule[:, 0], np.arange(1, 301)/10, f"{name} scheduled arrivals")
-        _equal(schedule[:, 1], schedule[:, 0], f"{name} sample times")
+        scheduled_indices = np.arange(10, 3001, 10)
+        _equal(schedule[:, 0], times[scheduled_indices], f"{name} scheduled arrivals")
+        _equal(schedule[:, 1], schedule[:, 0]-definition["accel_delay_s"], f"{name} sample times")
+        if np.any(schedule[:, 1] < 0):
+            raise ValueError(f"inconsistent {name} negative sample time")
         available = np.ones(300, dtype=bool)
         if name == "accel_dropout":
             available = ~((schedule[:, 0] >= 12) & (schedule[:, 0] < 17))
@@ -144,9 +177,9 @@ def build_scenarios(paired_source: Path, controlled_source: Path, *, stride: int
         arrivals = schedule[available, 0]
         accel = read("accel_measurements.csv", ["arrival_time_s", "force_y_m_s2", "force_z_m_s2"])
         _equal(accel[:, 0], arrivals, f"{name} available measurements")
-        # Source/sample times coincide in this selection. Remove the checked
-        # gravity signal before comparing the same noise draw at different scales.
-        angle = truth[np.rint(arrivals*100).astype(int), 1]
+        # Acquisition time is provenance only: delayed measurements were fused
+        # at arrival. Noise draws pair by scheduled order, even when times differ.
+        angle = np.deg2rad(20)*np.sin(2*np.pi*.1*schedule[available, 1])
         gravity = -shared["gravity_m_s2"]*np.column_stack([np.sin(angle), np.cos(angle)])
         accel_noise = (accel[:, 1:]-gravity)/definition["accel_noise_std_m_s2"]
         for filename in ("kalman_innovations.csv", "ekf_innovations.csv"):
@@ -156,25 +189,32 @@ def build_scenarios(paired_source: Path, controlled_source: Path, *, stride: int
         interval_truth = read("gyro_interval_truth.csv", ["t_start_s", "t_end_s", "mean_rate_rad_s", "mean_bias_rad_s"])
         _equal(interval_truth[:, :2], gyro[:, :2], f"{name} interval truth times")
         _equal(interval_truth[:, 2], np.diff(truth[:, 1])/np.diff(times), f"{name} interval rate truth")
-        # Every knot is on this fixed grid: trapezoid means are exact for the
-        # piecewise-linear bias, independently of the simulator's integral code.
+        # Ramp knots lie on its uniform grid; other cases have constant bias.
+        # Trapezoid means are exact, independently of the simulator's integral code.
         mean_bias = np.deg2rad((expected_bias[:-1]+expected_bias[1:])/2)
         _equal(interval_truth[:, 3], mean_bias, f"{name} interval bias truth")
         expected_gyro = np.deg2rad(definition["initial_angle_deg"])+np.r_[0, np.cumsum(gyro[:, 2]*np.diff(times))]
         _equal(estimates[:, 1], expected_gyro, f"{name} gyro integration", tolerance=1e-10)
         record = summary["scenarios"][name]
+        _equal([record["gyro_dt_min_s"], record["gyro_dt_max_s"]],
+               [np.diff(times).min(), np.diff(times).max()], f"{name} gyro interval range")
         if record["used_accel_count"] != len(arrivals) or not math.isclose(
                 record["maximum_correction_gap_s"], float(np.diff(np.r_[0, arrivals]).max()), abs_tol=1e-10, rel_tol=0):
             raise ValueError(f"inconsistent {name} correction count or gap")
         rows = np.column_stack([times, np.rad2deg(truth[:, 1]), np.rad2deg(estimates[:, 1:5]),
                                 np.rad2deg(truth[:, 2]), np.rad2deg(estimates[:, 5:7])])
-        metrics = {"rmse_deg": {}, "final_bias_error_deg_s": {}}
+        metrics = {"rmse_deg": {}, "final_bias_error_deg_s": {}, "time_weighted_rmse_deg": {}}
         for column, method in enumerate(METHODS, start=2):
             rmse = record["metrics"][method]["angle_rmse_deg"]
             computed = float(np.sqrt(np.mean((rows[:, column]-rows[:, 1])**2)))
             if not math.isclose(rmse, computed, abs_tol=1e-10, rel_tol=1e-10):
                 raise ValueError(f"inconsistent {name}/{method} RMSE")
             metrics["rmse_deg"][method] = rmse
+            weighted = record["metrics"][method]["angle_time_weighted_rmse_deg"]
+            if not math.isclose(weighted, _time_weighted_rmse(rows[:, column]-rows[:, 1], times),
+                                abs_tol=1e-10, rel_tol=1e-10):
+                raise ValueError(f"inconsistent {name}/{method} weighted RMSE")
+            metrics["time_weighted_rmse_deg"][method] = weighted
         for column, method in ((7, "kalman"), (8, "ekf")):
             error = record["metrics"][method]["final_bias_error_deg_s"]
             if not math.isclose(error, rows[-1, column]-rows[-1, 6], abs_tol=1e-10, rel_tol=1e-10):
@@ -198,24 +238,31 @@ def build_scenarios(paired_source: Path, controlled_source: Path, *, stride: int
             "accelerometer_noise": {"actual_std_m_s2": definition["accel_noise_std_m_s2"],
                                     "assumed_std_m_s2": shared["assumed_accel_noise_std_m_s2"]},
             "scheduled_accel_count": 300, "correction_times_s": arrivals.tolist(),
+            "timing": _timing(times, scheduled_indices[available], schedule[available, 1],
+                              irregular=definition["timing_jitter"], delay_s=definition["accel_delay_s"]),
             "metrics": metrics, "domains": _domains(rows),
             "rows": _display(rows, arrivals, boundaries, stride),
         }
         streams[name] = {key: str(value) for key, value in record["stream_seeds"].items()}
-        paired_inputs[name] = (truth, gyro, accel, gyro[:, 2]-interval_truth[:, 2]-mean_bias, accel_noise)
-    reference_truth, reference_gyro, reference_accel, reference_noise, reference_accel_noise = paired_inputs["initial_offset"]
+        paired_inputs[name] = (truth, gyro, gyro[:, 2]-interval_truth[:, 2]-mean_bias, accel_noise, available)
+    reference_truth, reference_gyro, reference_noise, reference_accel_noise, _ = paired_inputs["initial_offset"]
     for name in CONTROLLED_CASES[1:]:
-        truth, gyro, accel, gyro_noise, accel_noise = paired_inputs[name]
-        _equal(reference_truth[:, :2], truth[:, :2], f"{name} paired motion truth")
-        _equal(reference_gyro[:, :2], gyro[:, :2], f"{name} paired gyro timing")
+        truth, gyro, gyro_noise, accel_noise, available = paired_inputs[name]
+        if name != "timing_jitter":
+            _equal(reference_truth[:, :2], truth[:, :2], f"{name} paired motion truth")
+            _equal(reference_gyro[:, :2], gyro[:, :2], f"{name} paired gyro timing")
+        if streams[name] != streams["initial_offset"]:
+            raise ValueError(f"inconsistent {name} paired stream seeds")
         _equal(reference_noise, gyro_noise, f"{name} paired gyro noise")
-        subset = np.isin(reference_accel[:, 0], accel[:, 0])
-        _equal(reference_accel[subset, 0], accel[:, 0], f"{name} paired accelerometer times")
-        _equal(reference_accel_noise[subset], accel_noise, f"{name} paired accelerometer noise")
+        _equal(reference_accel_noise[available], accel_noise, f"{name} paired accelerometer noise")
     data["sources"]["controlled"] = {
         "experiment": "controlled_scenarios", "source_sha256": hashes, "stream_seeds": streams,
         "metric_basis": "all original endpoints, including initialization; unwrapped angle error",
     }
+    for source, provenance in data["sources"].items():
+        provenance["time_weighted_metric_basis"] = (
+            "trapezoidal squared endpoint errors over duration, from original unrounded CSVs; "
+            + ("computed by display adapter" if source == "paired" else "checked against controlled summary"))
     data.pop("domains")
     return data
 

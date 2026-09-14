@@ -82,7 +82,7 @@ export function createChart(container, kind, duration, onInspect, tooltip) {
     if (!row) { tooltip.hidden = true; return; }
     tooltip.replaceChildren();
     const title = document.createElement('p');
-    title.textContent = `${formatValue(row[0])} s · ${kind === 'bias' ? 'truth interpolated; estimates held' : 'display interpolation'}`;
+    title.textContent = `${formatValue(row[0], 3)} s · ${kind === 'bias' ? 'truth interpolated; estimates held' : 'display interpolation'}`;
     tooltip.append(title);
     for (const item of series.filter(item => visible.has(item.id))) {
       const entry = document.createElement('div');

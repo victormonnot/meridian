@@ -19,7 +19,7 @@ only. A C++17 port of the vector EKF now provides a separate numerical core and
 event replay executable, checked against Python after every operation.
 A static web explorer replays the nominal and translation runs, plus wrong
 initialization at two confidence levels, accelerometer loss, changing gyro bias
-and underestimated noise from the controlled suite. A new documented bench
+and underestimated noise, irregular timing and unmodeled delay from the controlled suite. A new documented bench
 acquisition remains planned.
 
 ![Vector EKF and baseline comparison on shared simulated measurements](results/ekf-comparison/overview.png)
@@ -164,9 +164,11 @@ Historical recordings do not establish current acquisition conditions.
 | `tests/` | Numerical contracts, analytical drift, reproducibility, and export checks. |
 | `results/` | Selected results and reproduction reports. |
 
-The web explorer reads seven existing simulation runs, with synchronized roll/bias
+The web explorer reads nine existing simulation runs, with synchronized roll/bias
 plots, a roll indicator, and inspection of initial confidence, observation
-loss/recovery, bias changes and assumed versus simulated noise. Estimated biases remain held between recorded
+loss/recovery, bias changes, noise mismatch and sensor timing. It distinguishes
+acquisition from arrival time and offers sample-count or elapsed-time RMSE weighting.
+Estimated biases remain held between recorded
 corrections; true bias is interpolated along its continuous ramp. Its JavaScript/Vite/D3
 presentation works independently of the numerical core. Interactive retuning and
 real-log browser replay are not implemented. A new documented bench acquisition

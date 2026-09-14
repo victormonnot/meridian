@@ -18,7 +18,7 @@ function require(condition, message) {
 }
 
 export function validateComparison(data) {
-  require(data?.schema_version === 2 && data.experiment === 'roll_scenario_explorer'
+  require(data?.schema_version === 3 && data.experiment === 'roll_scenario_explorer'
     && data.data_source === 'simulation', 'unsupported format');
   require(JSON.stringify(data.columns) === JSON.stringify(COLUMNS), 'columns or units');
   const config = data.config;
@@ -30,7 +30,7 @@ export function validateComparison(data) {
   require(Number.isSafeInteger(data.seed) && data.seed >= 0, 'seed');
   require(Number.isInteger(data.display_stride) && data.display_stride > 0, 'display stride');
   const names = ['nominal', 'translation_pulse', 'initial_offset', 'accel_dropout', 'bias_ramp',
-    'initial_overconfident', 'accel_noise_mismatch'];
+    'initial_overconfident', 'accel_noise_mismatch', 'timing_jitter', 'accel_delay'];
   require(JSON.stringify(Object.keys(data.scenarios ?? {}).sort()) === JSON.stringify([...names].sort()), 'scenario selection');
   for (const [source, experiment] of [['paired', 'vector_ekf_comparison'], ['controlled', 'controlled_scenarios']]) {
     const provenance = data.sources?.[source];
@@ -54,14 +54,23 @@ export function validateComparison(data) {
     const noise = scenario.accelerometer_noise;
     require(noise?.actual_std_m_s2 === (name === 'accel_noise_mismatch' ? .6 : .2)
       && noise.assumed_std_m_s2 === .2 && config.accel_noise_std_m_s2 === .2, 'accelerometer noise contract');
-    const rowTimes = new Set();
+    const irregular = name === 'timing_jitter';
+    const timing = scenario.timing;
+    require(timing?.kind === (irregular ? 'irregular' : 'uniform')
+      && timing.accel_delay_s === (name === 'accel_delay' ? .1 : 0), 'timing contract');
+    const dtMin = timing.gyro_interval_min_s;
+    const dtMax = timing.gyro_interval_max_s;
+    require(Number.isFinite(dtMin) && Number.isFinite(dtMax) && dtMin > 0 && dtMax >= dtMin, 'interval range');
+    require(irregular ? dtMin >= 30 / 9000 && dtMax <= .03 && dtMax / dtMin <= 3 && dtMax - dtMin > 1e-6
+      : Math.abs(dtMin - .01) < 1e-10 && Math.abs(dtMax - .01) < 1e-10, 'interval model');
+    const rowTimes = [];
     let previous = -Infinity;
     for (const row of scenario.rows) {
       require(Array.isArray(row) && row.length === COLUMNS.length && row.every(Number.isFinite), 'non-finite or incomplete row');
       require(row[0] > previous, 'timestamps must increase');
-      require(Math.abs(row[0] * 100 - Math.round(row[0] * 100)) < 1e-7, 'endpoint grid');
+      if (!irregular) require(Math.abs(row[0] * 100 - Math.round(row[0] * 100)) < 1e-7, 'endpoint grid');
       previous = row[0];
-      rowTimes.add(Math.round(row[0] * 100));
+      rowTimes.push(row[0]);
     }
     require(scenario.rows[0][0] === 0 && Math.abs(previous - config.duration_s) < 1e-9, 'time extent');
     require(scenario.rows[0].slice(2, 6).every(value => value === initial.roll_deg)
@@ -73,19 +82,40 @@ export function validateComparison(data) {
         && row[column] <= domain[1] + 1e-6)), 'domain excludes data');
     }
     for (const { id } of SERIES.slice(1)) {
-      const rmse = scenario.metrics?.rmse_deg?.[id];
-      require(Number.isFinite(rmse) && rmse >= 0, 'full-run metrics');
+      for (const basis of ['rmse_deg', 'time_weighted_rmse_deg']) {
+        const rmse = scenario.metrics?.[basis]?.[id];
+        require(Number.isFinite(rmse) && rmse >= 0, 'full-run metrics');
+      }
     }
     for (const id of ['kalman', 'ekf']) require(Number.isFinite(scenario.metrics?.final_bias_error_deg_s?.[id]), 'bias metrics');
     const expectedTimes = Array.from({ length: 300 }, (_, i) => (i + 1) / 10)
       .filter(time => name !== 'accel_dropout' || time < 12 || time >= 17);
     require(scenario.scheduled_accel_count === 300 && Array.isArray(scenario.correction_times_s)
       && scenario.correction_times_s.length === expectedTimes.length, 'correction schedule');
-    require(scenario.correction_times_s.every((time, i) => Number.isFinite(time)
-      && Math.abs(time - expectedTimes[i]) < 1e-10 && rowTimes.has(Math.round(time * 100))
-      && rowTimes.has(Math.round(time * 100) - 1)), 'corrections must retain exact endpoints and predecessors');
-    const correctionTicks = new Set(scenario.correction_times_s.map(time => Math.round(time * 100)));
-    require(scenario.rows.every((row, i, rows) => i === 0 || correctionTicks.has(Math.round(row[0] * 100))
+    const arrivals = scenario.correction_times_s;
+    for (const field of ['correction_predecessor_times_s', 'correction_sample_times_s']) {
+      require(Array.isArray(timing[field]) && timing[field].length === arrivals.length
+        && timing[field].every(Number.isFinite), 'correction timing metadata');
+    }
+    const correctionRows = new Set();
+    arrivals.forEach((time, i) => {
+      const previous = i === 0 ? 0 : arrivals[i - 1];
+      require(Number.isFinite(time) && time > previous && time <= config.duration_s, 'correction order');
+      if (!irregular) require(Math.abs(time - expectedTimes[i]) < 1e-10, 'uniform correction schedule');
+      else require(time - previous >= 10 * dtMin - 1e-10 && time - previous <= 10 * dtMax + 1e-10, 'irregular correction gap');
+      const index = firstAfter(rowTimes, time) - 1;
+      const predecessor = timing.correction_predecessor_times_s[i];
+      const sample = timing.correction_sample_times_s[i];
+      require(index > 0 && Math.abs(rowTimes[index] - time) < 1e-10
+        && Math.abs(rowTimes[index - 1] - predecessor) < 1e-10
+        && time - predecessor >= dtMin - 1e-10 && time - predecessor <= dtMax + 1e-10,
+      'corrections must retain exact endpoints and predecessors');
+      require(sample >= 0 && Math.abs(time - sample - timing.accel_delay_s) < 1e-10, 'acquisition time');
+      correctionRows.add(index);
+    });
+    require(Math.abs(arrivals.at(-1) - config.duration_s) < 1e-10, 'final correction');
+    if (irregular) require(arrivals.some(time => Math.abs(time * 100 - Math.round(time * 100)) > 1e-7), 'irregular times resampled');
+    require(scenario.rows.every((row, i, rows) => i === 0 || correctionRows.has(i)
       || (row[7] === rows[i - 1][7] && row[8] === rows[i - 1][8])), 'bias changes without correction');
     const event = scenario.event;
     if (name === 'translation_pulse') {
@@ -104,14 +134,13 @@ export function validateComparison(data) {
     require(scenario.rows.every(row => Math.abs(row[6] - (name === 'bias_ramp'
       ? .5 + .1 * Math.max(0, Math.min(10, row[0] - 10)) : config.bias_deg_s)) <= 1e-6), 'bias truth');
     if (event) for (const time of [event.start_s, event.end_s]) {
-      require(rowTimes.has(Math.round(time * 100)), 'event boundary missing');
+      require(rowTimes.some(value => Math.abs(value - time) < 1e-10), 'event boundary missing');
     }
   }
   return data;
 }
 
-export function latestCorrection(scenario, time) {
-  const times = scenario.correction_times_s;
+function firstAfter(times, time) {
   let lo = 0;
   let hi = times.length;
   while (lo < hi) {
@@ -119,7 +148,30 @@ export function latestCorrection(scenario, time) {
     if (times[mid] <= time + 1e-10) lo = mid + 1;
     else hi = mid;
   }
-  return lo === 0 ? null : times[lo - 1];
+  return lo;
+}
+
+export function latestCorrection(scenario, time) {
+  const times = scenario.correction_times_s;
+  const index = firstAfter(times, time) - 1;
+  return index < 0 ? null : times[index];
+}
+
+export function correctionDetails(scenario, time) {
+  const times = scenario.correction_times_s;
+  const index = firstAfter(times, time) - 1;
+  return index < 0 ? null : {
+    arrival: times[index], sample: scenario.timing.correction_sample_times_s[index],
+    previousArrival: index > 0 ? times[index - 1] : null,
+  };
+}
+
+export function adjacentCorrection(scenario, time, direction) {
+  const times = scenario.correction_times_s;
+  let index = firstAfter(times, time);
+  if (direction > 0) return times[index] ?? null;
+  if (index > 0 && Math.abs(times[index - 1] - time) < 1e-10) index -= 1;
+  return times[index - 1] ?? null;
 }
 
 export function clampTime(time, duration) {
