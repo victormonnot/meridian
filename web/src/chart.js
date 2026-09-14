@@ -109,7 +109,15 @@ export function createChart(container, kind, duration, onInspect, tooltip) {
       .attr('stroke-width', 1.5);
   }
 
-  const observer = new ResizeObserver(draw);
+  let observedWidth;
+  let resizeFrame;
+  const observer = new ResizeObserver(([entry]) => {
+    if (entry.contentRect.width === observedWidth) return;
+    observedWidth = entry.contentRect.width;
+    // Drawing changes SVG height; defer it outside the resize notification.
+    cancelAnimationFrame(resizeFrame);
+    resizeFrame = requestAnimationFrame(draw);
+  });
   observer.observe(container);
   document.fonts?.ready.then(draw);
   return {
@@ -122,6 +130,6 @@ export function createChart(container, kind, duration, onInspect, tooltip) {
       draw();
     },
     setCursor,
-    destroy() { observer.disconnect(); svg.remove(); },
+    destroy() { observer.disconnect(); cancelAnimationFrame(resizeFrame); svg.remove(); },
   };
 }

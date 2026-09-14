@@ -94,6 +94,15 @@ select { padding: 6px; max-width: 100%; border: 1px solid var(--line); border-ra
 .view-switch button[aria-pressed=true] { color: var(--text); border-color: var(--accent); }
 .diagnostic-section { margin-top: 18px; padding-bottom: 18px; border-bottom: 1px solid var(--line); }
 .diagnostic-section .mono { font-size: .75rem; }
+.window-controls { border-left: 2px solid var(--accent); padding: 0 0 2px 12px; margin-bottom: 16px; }
+.window-form, .window-presets { display: flex; flex-wrap: wrap; align-items: end; gap: 8px 12px; }
+.window-form label { display: grid; gap: 4px; font-size: .8125rem; color: var(--muted); }
+.window-form input { width: 108px; max-width: 100%; padding: 7px; border: 1px solid var(--line); border-radius: 0; background: var(--surface); color: var(--text); font: .8125rem var(--mono); }
+.window-form button { padding: 8px 12px; border: 1px solid var(--line); background: var(--surface); font-size: .8125rem; min-height: 36px; }
+.window-presets { margin-top: 6px; }
+.window-presets button { padding: 6px 0; min-height: 36px; border: 0; background: transparent; color: var(--muted); font-size: .8125rem; text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: 4px; }
+.window-presets button:hover { color: var(--text); }
+#window-error { margin-top: 6px; color: var(--text); }
 table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: .875rem; }
 th { font-weight: 400; color: var(--muted); }
 th, td { padding: 8px 0; text-align: left; border-bottom: 1px solid var(--line); }

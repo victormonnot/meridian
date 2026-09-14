@@ -171,6 +171,8 @@ loss/recovery, bias changes, noise mismatch and sensor timing. It distinguishes
 acquisition from arrival time and offers sample-count or elapsed-time RMSE weighting.
 Its Diagnostics view plots signed roll/bias errors with model uncertainty and
 discrete scalar/vector innovations or NIS. Model uncertainty is not an accuracy guarantee.
+Select a diagnostic time window to inspect startup or later behavior with local
+plot scales; RMSE and mean NIS remain full-run statistics.
 In Trajectories, estimated biases remain held between recorded
 corrections; true bias is interpolated along its continuous ramp. Its JavaScript/Vite/D3
 presentation works independently of the numerical core. Interactive retuning and

@@ -1,5 +1,6 @@
 import { area, axisBottom, axisLeft, curveStepAfter, line, pointer, scaleLinear, select } from 'd3';
 import { diagnosticStateAt, lastInnovation, stateDiagnostic } from './diagnostics.js';
+import { clampToWindow, innovationsInWindow, inWindow, statesInWindow } from './diagnostic-window.js';
 
 // Endpoints are held; innovation dots exist only at recorded corrections.
 export function createDiagnosticChart(container, kind, duration, onInspect) {
@@ -15,25 +16,26 @@ export function createDiagnosticChart(container, kind, duration, onInspect) {
   let currentTime = 0;
   let holding = false;
   let points = [];
+  let bounds = [0, duration];
 
   function draw() {
     if (!scenario) return;
     const width = container.getBoundingClientRect().width;
     if (width < margin.left + margin.right + 10) return;
-    x.range([margin.left, width - margin.right]);
+    x.domain(bounds).range([margin.left, width - margin.right]);
     svg.attr('viewBox', `0 0 ${width} ${height}`);
     svg.selectAll('*').remove();
     let values = [0];
     let label;
     if (kind === 'state') {
-      const samples = scenario.diagnostics.states.map(row => stateDiagnostic(row, method.id, component)).filter(Boolean);
+      const samples = statesInWindow(scenario, method.id, component, bounds);
       points = samples;
       label = `${component === 'roll' ? 'Roll error (°)' : 'Bias error (°/s)'}`;
       for (const sample of samples) values.push(sample.error, -2 * (sample.sigma ?? 0), 2 * (sample.sigma ?? 0));
     } else {
       const record = scenario.diagnostics[method.id];
       points = [];
-      if (record) for (const row of record.rows) {
+      if (record) for (const row of innovationsInWindow(scenario, method.id, bounds)) {
         if (mode === 'nis') points.push({ time: row[0], value: row.at(-1), component: 0 });
         else {
           points.push({ time: row[0], value: row[1], component: 0 });
@@ -49,14 +51,16 @@ export function createDiagnosticChart(container, kind, duration, onInspect) {
     const hi = Math.max(...values);
     const spread = Math.max(hi - lo, .1);
     y.domain([lo - .08 * spread, hi + .08 * spread]).nice();
-    svg.attr('aria-label', `${method.label}: ${label}. Use the shared time slider for readings.`);
+    svg.attr('aria-label', `${method.label}: ${label}. Window ${bounds[0].toFixed(3)} to ${bounds[1].toFixed(3)} seconds. Use the shared time slider for readings.`);
     const grid = svg.append('g').attr('transform', `translate(${margin.left},0)`)
       .call(axisLeft(y).ticks(5).tickSize(-(width - margin.left - margin.right)).tickFormat(''));
     grid.select('.domain').remove();
     grid.selectAll('line').attr('opacity', .4);
     const event = scenario.event;
-    if (event) svg.append('rect').attr('x', x(event.start_s)).attr('y', margin.top)
-      .attr('width', x(event.end_s) - x(event.start_s)).attr('height', height - margin.bottom - margin.top)
+    const eventStart = event ? Math.max(bounds[0], event.start_s) : 0;
+    const eventEnd = event ? Math.min(bounds[1], event.end_s) : 0;
+    if (eventEnd > eventStart) svg.append('rect').attr('x', x(eventStart)).attr('y', margin.top)
+      .attr('width', x(eventEnd) - x(eventStart)).attr('height', height - margin.bottom - margin.top)
       .attr('fill', 'var(--line)').attr('opacity', .25);
     const reference = kind === 'innovation' && mode === 'nis' ? scenario.diagnostics[method.id]?.dimension ?? 0 : 0;
     svg.append('line').attr('x1', margin.left).attr('x2', width - margin.right)
@@ -97,13 +101,13 @@ export function createDiagnosticChart(container, kind, duration, onInspect) {
   }
 
   function inspect(event, pause) {
-    onInspect(Math.max(0, Math.min(duration, x.invert(pointer(event, svg.node())[0]))), pause);
+    onInspect(clampToWindow(x.invert(pointer(event, svg.node())[0]), bounds), pause);
   }
 
   function setCursor(time) {
     currentTime = time;
     if (!scenario) return;
-    svg.select('.cursor').attr('x1', x(time)).attr('x2', x(time));
+    svg.select('.cursor').attr('x1', x(time)).attr('x2', x(time)).attr('display', inWindow(time, bounds) ? null : 'none');
     let selected = [];
     if (kind === 'state') {
       const sample = stateDiagnostic(diagnosticStateAt(scenario, time), method.id, component);
@@ -113,19 +117,29 @@ export function createDiagnosticChart(container, kind, duration, onInspect) {
       if (row) selected = mode === 'nis' ? [{ time: row[0], value: row.at(-1) }]
         : [{ time: row[0], value: row[1] }, ...(method.id === 'ekf' ? [{ time: row[0], value: row[2] }] : [])];
     }
+    selected = inWindow(time, bounds) ? selected.filter(point => inWindow(point.time, bounds)) : [];
     svg.select('.cursor-points').selectAll('circle').data(selected).join('circle')
       .attr('cx', d => x(d.time)).attr('cy', d => y(d.value)).attr('r', 4)
       .attr('fill', 'none').attr('stroke', method.color).attr('stroke-width', 1.5);
   }
 
-  const observer = new ResizeObserver(draw);
+  let observedWidth;
+  let resizeFrame;
+  const observer = new ResizeObserver(([entry]) => {
+    if (entry.contentRect.width === observedWidth) return;
+    observedWidth = entry.contentRect.width;
+    // Drawing changes SVG height; defer it outside the resize notification.
+    cancelAnimationFrame(resizeFrame);
+    resizeFrame = requestAnimationFrame(draw);
+  });
   observer.observe(container);
   document.fonts?.ready.then(draw);
   return {
-    setData(nextScenario, nextMethod, nextComponent, nextMode) {
-      scenario = nextScenario; method = nextMethod; component = nextComponent; mode = nextMode; draw();
+    setData(nextScenario, nextMethod, nextComponent, nextMode, nextBounds = [0, duration]) {
+      scenario = nextScenario; method = nextMethod; component = nextComponent; mode = nextMode;
+      bounds = nextBounds; draw();
     },
     setCursor,
-    destroy() { observer.disconnect(); svg.remove(); },
+    destroy() { observer.disconnect(); cancelAnimationFrame(resizeFrame); svg.remove(); },
   };
 }

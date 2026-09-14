@@ -2,7 +2,8 @@ import './style.css';
 import { createChart } from './chart.js';
 import { createDiagnosticChart } from './diagnostic-chart.js';
 import { diagnosticStateAt, lastInnovation, stateDiagnostic } from './diagnostics.js';
-import { SERIES, adjacentCorrection, advanceTime, clampTime, correctionDetails, formatValue, sampleAt, validateComparison } from './data.js';
+import { clampToWindow, correctionInWindow, innovationsInWindow, inWindow, validateWindow, windowPreset } from './diagnostic-window.js';
+import { SERIES, advanceTime, correctionDetails, formatValue, sampleAt, validateComparison } from './data.js';
 
 const $ = selector => document.querySelector(selector);
 const dataUrl = `${import.meta.env.BASE_URL}data/roll-comparison.json`;
@@ -37,6 +38,8 @@ function startExplorer(data) {
   let frame = null;
   let speed = 1;
   let view = 'trajectories';
+  let diagnosticWindow = [0, duration];
+  const activeBounds = () => view === 'diagnostics' ? diagnosticWindow : [0, duration];
   const scenario = () => data.scenarios[scenarioId];
   const method = () => SERIES.find(item => item.id === methodId);
   const tooltip = $('#tooltip');
@@ -90,7 +93,7 @@ function startExplorer(data) {
   }
 
   function setTime(next) {
-    time = clampTime(next, duration);
+    time = clampToWindow(next, activeBounds());
     const snapshot = diagnosticStateAt(scenario(), time);
     const row = view === 'diagnostics' ? snapshot : sampleAt(scenario().rows, time);
     $('#state-timestamp').textContent = `Recorded state at ${formatValue(snapshot[0], 3)} s. Held until the next endpoint.`;
@@ -116,15 +119,15 @@ function startExplorer(data) {
       : `Acquired at ${formatValue(correction.sample, 3)} s → applied at ${formatValue(correction.arrival, 3)} s · age at arrival ${formatValue((correction.arrival - correction.sample) * 1000, 1)} ms.`
         + (correction.previousArrival === null ? ' First correction.'
           : ` Previous correction ${formatValue((correction.arrival - correction.previousArrival) * 1000, 3)} ms earlier.`);
-    $('#previous-correction').disabled = adjacentCorrection(scenario(), time, -1) === null;
-    $('#next-correction').disabled = adjacentCorrection(scenario(), time, 1) === null;
+    $('#previous-correction').disabled = correctionInWindow(scenario(), time, -1, activeBounds()) === null;
+    $('#next-correction').disabled = correctionInWindow(scenario(), time, 1, activeBounds()) === null;
     // Forward-right-down, looking forward from behind: positive roll lowers right.
     $('#truth-pose').setAttribute('transform', `rotate(${row[1]})`);
     $('#estimate-pose').setAttribute('transform', `rotate(${row[method().roll]})`);
     charts.forEach(chart => chart.setCursor(row));
     diagnosticCharts.forEach(chart => chart.setCursor(time));
     renderDiagnosticReadings(snapshot);
-    $('#play').textContent = playing ? 'Pause' : time >= duration ? 'Replay' : 'Play';
+    $('#play').textContent = playing ? 'Pause' : time >= activeBounds()[1] ? 'Replay' : 'Play';
     return row;
   }
 
@@ -141,6 +144,15 @@ function startExplorer(data) {
     $('#trajectory-panels').hidden = active;
     $('#diagnostic-panels').hidden = !active;
     $('#state-timestamp').hidden = !active;
+    $('#time').min = activeBounds()[0];
+    $('#time').max = activeBounds()[1];
+    $('#duration').textContent = `${formatValue(activeBounds()[1], active ? 3 : 0)} s`;
+    $('#window-start').max = duration;
+    $('#window-end').max = duration;
+    $('#window-start').value = diagnosticWindow[0];
+    $('#window-end').value = diagnosticWindow[1];
+    const correctionCount = innovationsInWindow(scenario(), 'kalman', diagnosticWindow).length;
+    $('#window-summary').textContent = `Viewing ${formatValue(diagnosticWindow[0], 3)}–${formatValue(diagnosticWindow[1], 3)} s · ${correctionCount} corrections. Playback and axes follow this window; RMSE and mean NIS remain full-run values.`;
     $('#correction-navigation').hidden = !active && scenarioId !== 'timing_jitter' && scenarioId !== 'accel_delay';
     document.querySelectorAll('[data-view]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.view === view)));
     const component = $('#diagnostic-component').value;
@@ -158,8 +170,9 @@ function startExplorer(data) {
       : (mode === 'nis' ? `Dots: joint NIS. Dashed line: ideal-model mean ${record.dimension}, not a test threshold. `
         : methodId === 'kalman' ? 'Dots: measured tilt − predicted roll, before correction (°). '
           : 'Dots: body-y innovation; crosses: body-z innovation, before correction (m/s²). ')
-        + `Run mean NIS ${formatValue(record.mean_nis, 3)} · ${record.dimension} measurement ${record.dimension === 1 ? 'dimension' : 'dimensions'}. Includes startup; KF and EKF NIS have different dimensions. No statistical consistency is established by this view.`;
-    diagnosticCharts.forEach(chart => chart.setData(scenario(), method(), component, mode));
+        + `Full-run mean NIS ${formatValue(record.mean_nis, 3)} · ${record.dimension} measurement ${record.dimension === 1 ? 'dimension' : 'dimensions'}. Includes startup; KF and EKF NIS have different dimensions. No statistical consistency is established by this view.`
+        + (correctionCount === 0 ? ' No corrections in this window.' : '');
+    diagnosticCharts.forEach(chart => chart.setData(scenario(), method(), component, mode, diagnosticWindow));
   }
 
   function renderDiagnosticReadings(snapshot) {
@@ -173,7 +186,7 @@ function startExplorer(data) {
     const correction = correctionDetails(scenario(), time);
     $('#innovation-readout').textContent = !scenario().diagnostics[methodId] ? ''
       : innovation === null ? 'No innovation yet: the first measurement has not arrived.'
-        : `Latest innovation at arrival ${formatValue(innovation[0], 3)} s, acquired at ${formatValue(correction.sample, 3)} s (${formatValue((time - innovation[0]) * 1000, 1)} ms since arrival): `
+        : `Latest innovation${inWindow(innovation[0], diagnosticWindow) ? '' : ' (before this window; not plotted)'} at arrival ${formatValue(innovation[0], 3)} s, acquired at ${formatValue(correction.sample, 3)} s (${formatValue((time - innovation[0]) * 1000, 1)} ms since arrival): `
           + (methodId === 'kalman' ? `${formatValue(innovation[1], 3)}°`
             : `y ${formatValue(innovation[1], 3)}, z ${formatValue(innovation[2], 3)} m/s²`)
           + ` · NIS ${formatValue(innovation.at(-1), 3)}. No new value between corrections.`;
@@ -293,19 +306,34 @@ function startExplorer(data) {
       : scenario().initialization.roll_deg !== 0 ? 0 : Math.min(8, duration);
   }
 
+  function applyWindow(bounds) {
+    stop();
+    diagnosticWindow = bounds;
+    $('#window-error').hidden = true;
+    redraw();
+    $('#announcement').textContent = `Diagnostic window ${formatValue(bounds[0], 3)} to ${formatValue(bounds[1], 3)} seconds.`;
+  }
+
+  function inspectTime(target) {
+    // Named inspection actions must reach their actual event, even after zooming.
+    if (view === 'diagnostics' && !inWindow(target, diagnosticWindow)) applyWindow([0, duration]);
+    setTime(target);
+  }
+
   function tick(timestamp) {
     if (!playing) return;
     const elapsed = lastFrame === null ? 0 : (timestamp - lastFrame) / 1000;
     lastFrame = timestamp;
-    const next = advanceTime(time, elapsed, speed, duration);
-    setTime(next.time);
+    const [start, end] = activeBounds();
+    const next = advanceTime(time - start, elapsed, speed, end - start);
+    setTime(next.ended ? end : start + next.time);
     if (next.ended) stop();
     else frame = requestAnimationFrame(tick);
   }
 
   $('#play').addEventListener('click', () => {
     if (playing) { stop(); return; }
-    if (time >= duration) setTime(0);
+    if (time >= activeBounds()[1]) setTime(activeBounds()[0]);
     playing = true;
     lastFrame = null;
     tooltip.hidden = true;
@@ -325,6 +353,18 @@ function startExplorer(data) {
     redraw();
   });
   $('#rmse-weight').addEventListener('change', renderMetrics);
+  $('#diagnostic-window').addEventListener('submit', event => {
+    event.preventDefault();
+    try {
+      applyWindow(validateWindow($('#window-start').valueAsNumber, $('#window-end').valueAsNumber, duration));
+    } catch (error) {
+      $('#window-error').textContent = error.message;
+      $('#window-error').hidden = false;
+    }
+  });
+  document.querySelectorAll('[data-window]').forEach(button => button.addEventListener('click', () => {
+    applyWindow(windowPreset(button.dataset.window, time, duration));
+  }));
   document.querySelectorAll('[data-view]').forEach(button => button.addEventListener('click', () => {
     stop();
     view = button.dataset.view;
@@ -338,22 +378,24 @@ function startExplorer(data) {
   for (const [id, direction] of [['previous-correction', -1], ['next-correction', 1]]) {
     $(`#${id}`).addEventListener('click', () => {
       stop();
-      const target = adjacentCorrection(scenario(), time, direction);
+      const target = correctionInWindow(scenario(), time, direction, activeBounds());
       if (target !== null) setTime(target);
     });
   }
   $('#jump').addEventListener('click', () => {
     stop();
-    setTime(eventInspectionTime());
+    inspectTime(eventInspectionTime());
   });
   $('#recovery').addEventListener('click', () => {
     stop();
     const event = scenario().event;
-    setTime(event ? (event.kind === 'bias_ramp' ? event.end_s : event.first_correction_after_s) : duration);
+    inspectTime(event ? (event.kind === 'bias_ramp' ? event.end_s : event.first_correction_after_s) : duration);
   });
   document.querySelectorAll('[data-scenario]').forEach(button => button.addEventListener('click', () => {
     stop();
     scenarioId = button.dataset.scenario;
+    diagnosticWindow = [0, duration];
+    $('#window-error').hidden = true;
     time = eventInspectionTime();
     renderScenario();
     $('#announcement').textContent = `${button.textContent} selected.`;

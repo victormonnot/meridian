@@ -72,9 +72,10 @@ backend or database is configured.
   29.9 s, applied at 30 s. Source times describe the injected delay but are
   never supplied to the filters. This case evaluates ignored delay; it does
   not implement compensation. Neither timing case has a localized event band.
-- Use **Play**, **Pause**, the time slider, or the speed selector. Playback starts
-  paused at 8 s, stops at 30 s, and pauses when the document becomes hidden.
-  **Replay** starts again at zero. Selecting a scenario pauses playback and moves
+- Use **Play**, **Pause**, the time slider, or the speed selector. The full-run
+  view starts paused at 8 s, stops at 30 s, and Replay starts again at zero.
+  A diagnostic window uses its own bounds instead. Playback pauses when the
+  document becomes hidden. Selecting a scenario pauses playback and moves
   to 8 s for nominal, underestimated noise and both timing cases, zero for either
   initialization case, or inside the event for translation
   and loss (14 s in the selected data). **Inspect start**, **Inspect loss** and
@@ -129,12 +130,13 @@ Select **Diagnostics** beside **Trajectories**. It follows the method selected i
 the left inspector, independently of trajectory legend visibility. The shared
 time slider, playback and previous/next correction controls work in both views;
 correction controls appear for every scenario in Diagnostics. Switching views
-pauses playback and retains time, method and scenario.
+pauses playback and retains method and scenario; time is clamped to the active
+view's interval when necessary.
 
 **Error and model uncertainty** selects roll or gyro bias. The solid line is
 `estimate - truth`, using the unwrapped angle convention. The shaded band and
 dotted bounds are ±2 model standard deviations about zero, not an empirical
-accuracy guarantee. All 3,001 original endpoints are plotted as steps. The
+accuracy guarantee. Original endpoints in the selected interval are plotted as steps. The
 inspector uses the latest endpoint at or before the cursor and shows that
 endpoint's timestamp; it does not interpolate uncertainty toward a future update.
 State/P values are recorded after prediction and any available correction.
@@ -152,18 +154,54 @@ complementary filter provide angle error only, with no invented covariance or bi
   The dashed line is the ideal-model mean (1 or 2), not a rejection threshold.
   Neither individual spikes nor this one-run mean constitute a consistency test.
 
-All innovations are plotted as isolated markers at their actual arrival times;
+Innovations inside the selected interval are plotted as isolated markers at their actual arrival times;
 there is no line or fabricated value through the dropout. The highlighted last
-innovation stays at its original plotted time. The readout explicitly names its
+innovation stays at its original plotted time when inside the window. The readout explicitly names its
 arrival, acquisition and elapsed time since arrival, and reports the prior
 innovation standard deviation(s) from S. Before the first correction it reports
 no innovation. These are pre-correction diagnostics; the state at the same time
 is post-correction. The gyro and complementary baselines do not expose S or NIS.
 
-Scales include every diagnostic sample and adapt to method/component/scenario.
-Large initialization transients can compress later detail; there is no time-window
-zoom or outlier clipping. All displayed diagnostic samples are available in the
-download; complete covariance entries remain in the source CSVs.
+### Select a time window
+
+Enter **From (s)** and **To (s)**, then use **Apply window** or press Enter.
+Bounds must be finite, within 0–30 s, and at least 1 ms apart. Invalid entries
+leave the applied interval unchanged. **Full run**, **First 5 s**, **Last 5 s**
+and **Around cursor · 5 s** provide shortcuts; the last shifts near the run's
+edges to keep five seconds. Changing the window pauses playback and clamps the
+cursor to it. Play resumes from the cursor and stops at the right bound; Replay
+restarts at the left bound. Previous/next
+correction buttons reach only actual arrivals inside the inclusive bounds.
+
+Both diagnostic plots fit their axes to this interval and include all its
+values, with zero and the model bands or NIS reference retained. The state curve
+starts with the last known endpoint at or before the left edge, includes each
+endpoint inside, and extends the last hold to the right edge. Boundary vertices
+are display geometry, not new filter outputs. The readout retains the original
+state timestamp; no future endpoint is interpolated into either boundary.
+
+Innovation plots never carry a prior correction into the window. An interval
+entirely inside the accelerometer dropout contains no innovation markers; the
+readout may describe the latest earlier innovation, explicitly marked **before
+this window; not plotted**. Event shading is limited to its intersection with
+the window. There is no amplitude-based outlier removal or local statistic.
+
+The window is retained when changing method, component, innovation mode or view.
+**Trajectories** always covers the full run; returning to Diagnostics restores
+its window. Choosing a scenario resets the window to the full run. Named actions
+such as **Inspect start** and **Inspect recovery** restore the full run if their
+target would otherwise be outside the window.
+
+The visible range and correction count are explicit. **Full-run error** and
+**Full-run mean NIS** still cover all 30 seconds, including startup; zooming does
+not recalculate them. A visually quiet final window does not establish convergence
+or statistical consistency. For example, compare **Wrong initial angle → Last
+5 s** with **Overconfident start → Last 5 s**. The latter still has substantial
+error, which its local axis continues to include. Use **Full run** to restore
+the context and compare axis labels when changing windows.
+
+The download retains all diagnostic samples for all nine runs, independently of
+the selected window; complete covariance entries remain in the source CSVs.
 
 Two examples in the selected seed 42 make the limits visible:
 
@@ -328,6 +366,7 @@ not arbitrary logs or delayed-measurement compensation.
 | `src/meridian/web_diagnostics.py` | Read complete endpoint covariance and pre-correction innovations, check covariance/NIS and attach diagnostics. |
 | `web/src/data.js` | Browser contract checks, interpolation/held biases, correction navigation and playback arithmetic. |
 | `web/src/diagnostics.js` | Diagnostic validation, held endpoint selection, errors and timestamped latest innovations. |
+| `web/src/diagnostic-window.js` | Checked time bounds, presets, causal state-boundary holds and selection of actual corrections. |
 | `web/src/diagnostic-chart.js` | Error/model bands as steps, discrete innovation/NIS markers and synchronized cursor. |
 | `web/src/chart.js` | D3 scales, paths, shared cursor and pointer inspection. |
 | `web/src/main.js` | Load data and connect scenario selection, playback, legends and readings. |
@@ -354,9 +393,25 @@ fingerprints, and verify malformed-record rejection, initial confidence, actual/
 through loss/recovery, irregular correction navigation, delay provenance, decimal-time roundoff
 and playback boundaries. Diagnostic checks cover held full endpoints, absent
 dropout innovations, model uncertainty versus actual error, unavailable baseline
-diagnostics and malformed records. Source review and local HTTP checks
-complement these tests. They do not constitute automated browser interaction,
-cross-device rendering or accessibility validation.
+diagnostics and malformed records. Window tests cover boundary holds, presets,
+source immutability, local extents and correction navigation on uniform, irregular
+and delayed schedules. These tests run without a browser.
+
+Window controls were additionally checked in local headless Chromium at desktop
+and mobile viewport sizes, including Replay on a fractional interval, view changes,
+invalid bounds and an empty dropout window. This is limited browser coverage,
+not cross-browser, physical-device or accessibility validation. To check the
+main interactions after starting the development server:
+
+- Choose **Wrong initial angle → Diagnostics → Last 5 s**. The time slider
+  covers 25–30 s, axes show the later behavior and full-run metrics stay unchanged.
+- Choose **Accelerometer loss** and apply 12.05–16.95 s. Innovations are empty,
+  correction navigation is disabled, and **Inspect recovery** reaches 17 s by
+  restoring the full interval.
+- Apply 0.012–0.052 s, play to the end, then use Replay. It must restart at
+  0.012 s and stop exactly at 0.052 s.
+- Switch to Trajectories, move the cursor outside the saved window, then return
+  to Diagnostics. The saved bounds return and the cursor clamps into them.
 
 Only the nine selected Python simulation runs are displayed. There is no live
 hardware connection, real-log browser replay, parameter tuning, C++ execution in

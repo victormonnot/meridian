@@ -102,13 +102,23 @@
             </section>
             </div>
             <div id="diagnostic-panels" hidden>
+              <div class="window-controls">
+                <form id="diagnostic-window" class="window-form" novalidate aria-label="Diagnostic time window">
+                  <label for="window-start">From (s)<input id="window-start" name="start" type="number" min="0" max="30" step="0.001" value="0" required></label>
+                  <label for="window-end">To (s)<input id="window-end" name="end" type="number" min="0" max="30" step="0.001" value="30" required></label>
+                  <button type="submit">Apply window</button>
+                </form>
+                <div class="window-presets" role="group" aria-label="Time window shortcuts"><button type="button" data-window="full">Full run</button><button type="button" data-window="first">First 5 s</button><button type="button" data-window="last">Last 5 s</button><button type="button" data-window="around">Around cursor · 5 s</button></div>
+                <p id="window-error" class="metadata" role="alert" hidden></p>
+                <p id="window-summary" class="metadata chart-note"></p>
+              </div>
               <p id="diagnostic-method" class="metadata"></p>
               <section class="diagnostic-section" aria-labelledby="error-heading">
                 <div class="panel-heading"><h2 id="error-heading" class="accent-heading">Error and model uncertainty</h2><label class="metadata" for="diagnostic-component">State <select id="diagnostic-component"><option value="roll">Roll</option><option value="bias">Gyro bias</option></select></label></div>
                 <p id="uncertainty-note" class="metadata chart-note"></p>
                 <div id="error-chart" class="chart"></div>
                 <p id="error-readout" class="metadata mono chart-note"></p>
-                <p class="metadata chart-note">All original endpoints are shown as steps. Values are held until the next recorded endpoint, after its prediction and any correction. The band describes the filter's model; it does not guarantee accuracy.</p>
+                <p class="metadata chart-note">Original endpoints in the window are shown as steps, with held values at its edges. Values change after the next recorded prediction and any correction. The band describes the filter's model; it does not guarantee accuracy.</p>
               </section>
               <section class="diagnostic-section" aria-labelledby="innovation-heading">
                 <div class="panel-heading"><h2 id="innovation-heading" class="accent-heading">Measurement corrections</h2><label class="metadata" for="innovation-mode">Show <select id="innovation-mode"><option value="raw">Innovation</option><option value="nis">NIS</option></select></label></div>
@@ -117,7 +127,7 @@
                 <p id="innovation-readout" class="metadata chart-note"></p>
                 <p id="innovation-scale" class="metadata chart-note"></p>
               </section>
-              <p class="metadata chart-note">Use the same time slider, move across a plot, or step between corrections. Scales include the full run and adapt to the selected method. State uncertainty is recorded after correction; innovations describe the prior before correction.</p>
+              <p class="metadata chart-note">Use the same time slider, move across a plot, or step between corrections within the window. Scales fit the selected interval, including all its values. RMSE and mean NIS still describe the full run. State uncertainty is recorded after prediction and any correction; innovations describe the prior before correction.</p>
             </div>
           </div>
         </div>

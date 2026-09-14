@@ -217,6 +217,9 @@ recorded after prediction and any correction; innovation and S belong to the pri
 before correction. Scalar KF and vector EKF innovations/NIS are discrete samples
 at actual arrivals, with no invented observations during loss. NIS uses the full
 innovation covariance and explicitly retains measurement dimension (one or two).
+Diagnostic time windows restrict playback and fit plot scales to the selected
+interval. State holds extend to its edges; innovations appear only at arrivals
+inside it. Full-run RMSE, mean NIS and the downloaded artifact remain unchanged.
 Model bands, individual NIS values and their means do not establish statistical
 consistency or physical accuracy. No uncertainty or NIS is invented for the gyro
 and complementary baselines. Neither the estimator core
@@ -231,6 +234,7 @@ stationary and manual-roll bench recording with documented poses and conditions.
 Use the implemented audit and replay to inspect those measurements, with explicit
 angle-reference uncertainty and noise assumptions. Historical logs do not replace
 that acquisition. The web interface now explores nine reproducible simulated
-runs; browser interaction and responsive use remain to be evaluated. Real angle reference,
+runs; limited Chromium interaction and desktop/mobile viewport checks cover
+diagnostic windows, with broader browser and device testing still pending. Real angle reference,
 sensor noise, and broader validation criteria remain open. Current parameters have
 not been fitted to a physical IMU.
