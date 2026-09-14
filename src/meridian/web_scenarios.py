@@ -1,4 +1,4 @@
-"""Export four selected simulation cases for the static results explorer."""
+"""Export five selected simulation cases for the static results explorer."""
 
 import argparse
 from dataclasses import asdict
@@ -14,7 +14,7 @@ from meridian.web_export import _read_columns, build_comparison
 
 
 METHODS = ("gyro", "complementary", "kalman", "ekf")
-CONTROLLED_CASES = ("initial_offset", "accel_dropout")
+CONTROLLED_CASES = ("initial_offset", "accel_dropout", "bias_ramp")
 ESTIMATE_FIELDS = ["time_s", *[f"{method}_roll_rad" for method in METHODS],
                    "kalman_bias_rad_s", "ekf_bias_rad_s"]
 INITIAL_COVARIANCE_FIELDS = [f"{method}_{field}" for method in ("kalman", "ekf")
@@ -55,8 +55,8 @@ def _domains(rows):
 def build_scenarios(paired_source: Path, controlled_source: Path, *, stride: int = 5) -> dict:
     """Validate two experiment schemas; no simulation or estimator is executed.
 
-    This selection supports the fixed, uniform-time initial-offset and dropout
-    cases only. It does not silently generalize to the other controlled cases.
+    This selection supports the fixed, uniform-time initial-offset, dropout and
+    bias-ramp cases. It does not silently generalize to the other controlled cases.
     """
     if isinstance(stride, bool) or not isinstance(stride, int) or stride < 1:
         raise ValueError("stride must be a positive integer")
@@ -110,7 +110,7 @@ def build_scenarios(paired_source: Path, controlled_source: Path, *, stride: int
         raise ValueError("unsupported controlled scenario definition")
     hashes = {"summary.json": hashlib.sha256(summary_path.read_bytes()).hexdigest()}
     streams = {}
-    paired_inputs = []
+    paired_inputs = {}
     for name in CONTROLLED_CASES:
         def read(filename, fields):
             path = controlled_source/name/filename
@@ -123,7 +123,10 @@ def build_scenarios(paired_source: Path, controlled_source: Path, *, stride: int
         _equal(times, np.arange(3001)/100, f"{name} endpoints")
         _equal(estimates[:, 0], times, f"{name} aligned estimates")
         _equal(truth[:, 1], np.deg2rad(20)*np.sin(2*np.pi*.1*times), f"{name} roll truth")
-        _equal(truth[:, 2], np.full(len(times), np.deg2rad(.5)), f"{name} bias truth")
+        expected_bias = np.full(len(times), .5)
+        if name == "bias_ramp":
+            expected_bias += .1*np.clip(times-10, 0, 10)
+        _equal(truth[:, 2], np.deg2rad(expected_bias), f"{name} bias truth")
         definition = definitions[name]
         _equal(estimates[0, 1:5], np.full(4, np.deg2rad(definition["initial_angle_deg"])), f"{name} initial roll")
         _equal(estimates[0, 5:7], [0, 0], f"{name} initial bias")
@@ -143,6 +146,13 @@ def build_scenarios(paired_source: Path, controlled_source: Path, *, stride: int
             _equal(read(filename, ["arrival_time_s"])[:, 0], arrivals, f"{name} actual corrections")
         gyro = read("gyro_measurements.csv", ["t_start_s", "t_end_s", "rate_rad_s"])
         _equal(gyro[:, :2], np.column_stack([times[:-1], times[1:]]), f"{name} gyro intervals")
+        interval_truth = read("gyro_interval_truth.csv", ["t_start_s", "t_end_s", "mean_rate_rad_s", "mean_bias_rad_s"])
+        _equal(interval_truth[:, :2], gyro[:, :2], f"{name} interval truth times")
+        _equal(interval_truth[:, 2], np.diff(truth[:, 1])/np.diff(times), f"{name} interval rate truth")
+        # Every knot is on this fixed grid: trapezoid means are exact for the
+        # piecewise-linear bias, independently of the simulator's integral code.
+        mean_bias = np.deg2rad((expected_bias[:-1]+expected_bias[1:])/2)
+        _equal(interval_truth[:, 3], mean_bias, f"{name} interval bias truth")
         expected_gyro = np.deg2rad(definition["initial_angle_deg"])+np.r_[0, np.cumsum(gyro[:, 2]*np.diff(times))]
         _equal(estimates[:, 1], expected_gyro, f"{name} gyro integration", tolerance=1e-10)
         record = summary["scenarios"][name]
@@ -163,12 +173,17 @@ def build_scenarios(paired_source: Path, controlled_source: Path, *, stride: int
             if not math.isclose(error, rows[-1, column]-rows[-1, 6], abs_tol=1e-10, rel_tol=1e-10):
                 raise ValueError(f"inconsistent {name}/{method} final bias")
             metrics["final_bias_error_deg_s"][method] = error
-        event = None if name == "initial_offset" else {
-            "kind": "accel_dropout", "start_s": 12., "end_s": 17., "omitted_count": 50,
-            "last_correction_before_s": float(arrivals[arrivals < 12][-1]),
-            "first_correction_after_s": float(arrivals[arrivals >= 17][0]),
-        }
-        boundaries = [] if event is None else [12., 17.]
+        event = None
+        if name == "accel_dropout":
+            event = {
+                "kind": "accel_dropout", "start_s": 12., "end_s": 17., "omitted_count": 50,
+                "last_correction_before_s": float(arrivals[arrivals < 12][-1]),
+                "first_correction_after_s": float(arrivals[arrivals >= 17][0]),
+            }
+        elif name == "bias_ramp":
+            event = {"kind": "bias_ramp", "start_s": 10., "end_s": 20.,
+                     "initial_bias_deg_s": .5, "final_bias_deg_s": 1.5, "slope_deg_s2": .1}
+        boundaries = [] if event is None else [event["start_s"], event["end_s"]]
         data["scenarios"][name] = {
             "source": "controlled", "source_sample_count": len(times), "event": event,
             "initialization": {"roll_deg": definition["initial_angle_deg"], "angle_std_deg": definition["initial_angle_std_deg"],
@@ -178,11 +193,15 @@ def build_scenarios(paired_source: Path, controlled_source: Path, *, stride: int
             "rows": _display(rows, arrivals, boundaries, stride),
         }
         streams[name] = {key: str(value) for key, value in record["stream_seeds"].items()}
-        paired_inputs.append((truth, gyro, accel))
-    _equal(paired_inputs[0][0], paired_inputs[1][0], "controlled paired truth")
-    _equal(paired_inputs[0][1], paired_inputs[1][1], "controlled paired gyro")
-    subset = np.isin(paired_inputs[0][2][:, 0], paired_inputs[1][2][:, 0])
-    _equal(paired_inputs[0][2][subset], paired_inputs[1][2], "controlled paired accelerometer subset")
+        paired_inputs[name] = (truth, gyro, accel, gyro[:, 2]-interval_truth[:, 2]-mean_bias)
+    reference_truth, reference_gyro, reference_accel, reference_noise = paired_inputs["initial_offset"]
+    for name in CONTROLLED_CASES[1:]:
+        truth, gyro, accel, gyro_noise = paired_inputs[name]
+        _equal(reference_truth[:, :2], truth[:, :2], f"{name} paired motion truth")
+        _equal(reference_gyro[:, :2], gyro[:, :2], f"{name} paired gyro timing")
+        _equal(reference_noise, gyro_noise, f"{name} paired gyro noise")
+        subset = np.isin(reference_accel[:, 0], accel[:, 0])
+        _equal(reference_accel[subset], accel, f"{name} paired accelerometer subset")
     data["sources"]["controlled"] = {
         "experiment": "controlled_scenarios", "source_sha256": hashes, "stream_seeds": streams,
         "metric_basis": "all original endpoints, including initialization; unwrapped angle error",

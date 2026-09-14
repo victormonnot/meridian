@@ -56,6 +56,23 @@ test('dropout retains predictions and applies bias recovery only at 17 seconds',
   assert.notDeepEqual(recovery.slice(7), before.slice(7));
 });
 
+test('bias ramp interpolates truth continuously while holding estimated biases', () => {
+  const scenario = artifact.scenarios.bias_ramp;
+  assert.equal(scenario.correction_times_s.length, 300);
+  for (const time of [9.995, 10, 10.025, 15, 15.025, 19.995, 20, 20.025, 30]) {
+    const row = sampleAt(scenario.rows, time);
+    const expected = .5 + .1 * Math.max(0, Math.min(10, time - 10));
+    assert.ok(Math.abs(row[6] - expected) < 1e-9, `truth at ${time}`);
+    if (time === 15.025) assert.deepEqual(row.slice(7), sampleAt(scenario.rows, 15).slice(7));
+  }
+  assert.equal(latestCorrection(scenario, 15), 15);
+  assert.ok(Math.abs(sampleAt(scenario.rows, 30)[8] - .934711) < 1e-6);
+  // The four previous runs retain their constant true bias.
+  for (const [name, other] of Object.entries(artifact.scenarios)) {
+    if (name !== 'bias_ramp') assert.equal(sampleAt(other.rows, 15.025)[6], .5);
+  }
+});
+
 test('decimal slider time resolves a correction at the same physical instant', () => {
   const rows = [[.29, 1, 1, 1, 1, 1, .5, 0, 0], [.30000000000000004, 2, 2, 2, 2, 2, .5, 1, 1], [.4, 3, 3, 3, 3, 3, .5, 2, 2]];
   assert.deepEqual(sampleAt(rows, .3).slice(7), [1, 1]);
@@ -102,6 +119,11 @@ const mutations = {
   'bias moving before correction': data => { data.scenarios.accel_dropout.rows[1][8] += 1; },
   'incorrect source': data => { data.scenarios.initial_offset.source = 'paired'; },
   'missing correction predecessor': data => { data.scenarios.accel_dropout.rows = data.scenarios.accel_dropout.rows.filter(row => Math.abs(row[0] - 16.99) > 1e-10); },
+  'wrong ramp endpoint': data => { data.scenarios.bias_ramp.event.final_bias_deg_s = .5; },
+  'wrong ramp slope': data => { data.scenarios.bias_ramp.event.slope_deg_s2 = .2; },
+  'truth plateau returning to baseline': data => { data.scenarios.bias_ramp.rows.at(-1)[6] = .5; },
+  'ramp mislabeled as dropout': data => { data.scenarios.bias_ramp.event.kind = 'accel_dropout'; },
+  'missing ramp boundary': data => { data.scenarios.bias_ramp.rows = data.scenarios.bias_ramp.rows.filter(row => row[0] !== 20); },
 };
 for (const [name, mutate] of Object.entries(mutations)) {
   test(`reject ${name} instead of displaying misleading records`, () => {

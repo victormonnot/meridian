@@ -137,4 +137,5 @@ footer { display: flex; justify-content: space-between; gap: 10px 16px; flex-wra
   .metrics { border-top: 1px solid var(--line); padding-top: 18px; }
   .settings { grid-template-columns: minmax(0, 1fr); }
   .scenarios { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 18px; }
+  .scenarios button:last-child:nth-child(odd) { grid-column:1 / -1; }
 }

@@ -29,7 +29,7 @@ export function validateComparison(data) {
     && config.observation_every === 10, 'measurement schedule');
   require(Number.isSafeInteger(data.seed) && data.seed >= 0, 'seed');
   require(Number.isInteger(data.display_stride) && data.display_stride > 0, 'display stride');
-  const names = ['nominal', 'translation_pulse', 'initial_offset', 'accel_dropout'];
+  const names = ['nominal', 'translation_pulse', 'initial_offset', 'accel_dropout', 'bias_ramp'];
   require(JSON.stringify(Object.keys(data.scenarios ?? {}).sort()) === JSON.stringify([...names].sort()), 'scenario selection');
   for (const [source, experiment] of [['paired', 'vector_ekf_comparison'], ['controlled', 'controlled_scenarios']]) {
     const provenance = data.sources?.[source];
@@ -92,7 +92,13 @@ export function validateComparison(data) {
       require(event?.kind === 'accel_dropout' && event.start_s === 12 && event.end_s === 17
         && event.omitted_count === 50 && Math.abs(event.last_correction_before_s - 11.9) < 1e-10
         && event.first_correction_after_s === 17, 'dropout interval');
+    } else if (name === 'bias_ramp') {
+      require(event?.kind === 'bias_ramp' && event.start_s === 10 && event.end_s === 20
+        && event.initial_bias_deg_s === .5 && event.final_bias_deg_s === 1.5
+        && event.slope_deg_s2 === .1, 'bias ramp');
     } else require(event === null, 'unexpected interval');
+    require(scenario.rows.every(row => Math.abs(row[6] - (name === 'bias_ramp'
+      ? .5 + .1 * Math.max(0, Math.min(10, row[0] - 10)) : config.bias_deg_s)) <= 1e-6), 'bias truth');
     if (event) for (const time of [event.start_s, event.end_s]) {
       require(rowTimes.has(Math.round(time * 100)), 'event boundary missing');
     }
@@ -117,7 +123,7 @@ export function clampTime(time, duration) {
 }
 
 export function sampleAt(rows, time) {
-  // All correction endpoints are retained. Hold bias until its next recorded update.
+  // Truth evolves continuously; only estimated biases wait for a correction.
   if (time <= rows[0][0]) return rows[0].slice();
   if (time >= rows.at(-1)[0]) return rows.at(-1).slice();
   let lo = 0;
@@ -131,7 +137,7 @@ export function sampleAt(rows, time) {
   if (Math.abs(rows[hi][0] - time) < 1e-10) return [time, ...rows[hi].slice(1)];
   const weight = (time - rows[lo][0]) / (rows[hi][0] - rows[lo][0]);
   return rows[lo].map((value, column) => column === 0 ? time
-    : column >= 6 ? value : value + weight * (rows[hi][column] - value));
+    : column >= 7 ? value : value + weight * (rows[hi][column] - value));
 }
 
 export function advanceTime(time, elapsedSeconds, speed, duration) {

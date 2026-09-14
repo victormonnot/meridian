@@ -35,10 +35,12 @@ export function createChart(container, kind, duration, onInspect, tooltip) {
         .attr('height', height - margin.top - margin.bottom)
         .attr('fill', 'var(--line)').attr('opacity', .3);
       if (kind === 'roll') svg.append('text').attr('x', (x(pulse.start_s) + x(pulse.end_s)) / 2)
-        .attr('y', 16).attr('text-anchor', 'middle').text(pulse.kind === 'translation' ? 'Translation' : 'Accel. loss');
+        .attr('y', 16).attr('text-anchor', 'middle').text(
+          pulse.kind === 'translation' ? 'Translation' : pulse.kind === 'bias_ramp' ? 'Bias ramp' : 'Accel. loss');
     }
-    const path = line().x(row => x(row[0])).curve(kind === 'bias' ? curveStepAfter : curveLinear);
+    const path = line().x(row => x(row[0]));
     for (const item of series.filter(item => visible.has(item.id))) {
+      path.curve(kind === 'bias' && item.id !== 'truth' ? curveStepAfter : curveLinear);
       svg.append('path').datum(scenario.rows).attr('fill', 'none')
         .attr('stroke', item.color).attr('stroke-width', item.id === 'ekf' ? 1.8 : 1.3)
         .attr('stroke-dasharray', item.dash || null)
@@ -80,7 +82,7 @@ export function createChart(container, kind, duration, onInspect, tooltip) {
     if (!row) { tooltip.hidden = true; return; }
     tooltip.replaceChildren();
     const title = document.createElement('p');
-    title.textContent = `${formatValue(row[0])} s · ${kind === 'bias' ? 'bias held between corrections' : 'display interpolation'}`;
+    title.textContent = `${formatValue(row[0])} s · ${kind === 'bias' ? 'truth interpolated; estimates held' : 'display interpolation'}`;
     tooltip.append(title);
     for (const item of series.filter(item => visible.has(item.id))) {
       const entry = document.createElement('div');

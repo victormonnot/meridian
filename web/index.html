@@ -25,6 +25,7 @@
           <button type="button" data-scenario="translation_pulse" aria-pressed="false">Translation disturbance</button>
           <button type="button" data-scenario="initial_offset" aria-pressed="false">Wrong initial angle</button>
           <button type="button" data-scenario="accel_dropout" aria-pressed="false">Accelerometer loss</button>
+          <button type="button" data-scenario="bias_ramp" aria-pressed="false">Changing gyro bias</button>
         </nav>
         <div class="context"><p id="scenario-description"></p><div class="inspection-links"><button type="button" id="jump" hidden>Inspect disturbance</button><button type="button" id="recovery" hidden>Inspect recovery</button></div></div>
         <div class="player" aria-label="Playback controls">
@@ -90,7 +91,7 @@
           <summary>Experiment settings and limitations</summary>
           <dl id="settings" class="settings"></dl>
           <p id="display-note"></p>
-          <p>Playback reads recorded Python results. It does not rerun or retune the filters. The nominal/translation pair shares sensor-noise realizations. The two controlled cases share gyro measurements and available accelerometer samples. Scales cover all methods, including hidden curves; they may change when selecting another scenario.</p>
+          <p>Playback reads recorded Python results. It does not rerun or retune the filters. The nominal/translation pair shares sensor-noise realizations. The controlled cases share gyro noise and available accelerometer samples; the changing bias alters the gyro measurements. Scales cover all methods, including hidden curves; they may change when selecting another scenario.</p>
           <p>Accelerometer tilt assumes gravity dominates the measurement. Translation can violate that assumption. This single-axis simulation does not establish accuracy on a physical drone, or embedded or flight performance.</p>
           <p id="source-note"></p>
           <a id="download" download="roll-comparison.json">Download displayed data and metrics</a>

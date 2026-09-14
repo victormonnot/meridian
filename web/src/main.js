@@ -133,18 +133,23 @@ function startExplorer(data) {
     const event = scenario().event;
     const pulse = event?.kind === 'translation' ? event : null;
     const dropout = event?.kind === 'accel_dropout' ? event : null;
+    const ramp = event?.kind === 'bias_ramp' ? event : null;
     const initial = scenario().initialization;
     $('#scenario-description').textContent = scenarioId === 'initial_offset'
       ? `All estimates start at ${initial.roll_deg}°, while true roll is 0°. The Kalman filters declare an initial angle standard deviation of ${initial.angle_std_deg}°.`
-      : dropout ? `${dropout.omitted_count} accelerometer observations are omitted from 12 to 17 s. Gyro predictions continue; corrections resume at 17 s.`
+      : ramp ? `True gyro bias rises from ${ramp.initial_bias_deg_s} to ${ramp.final_bias_deg_s}°/s between ${ramp.start_s} and ${ramp.end_s} s, then stays at ${ramp.final_bias_deg_s}°/s. All accelerometer corrections remain available.`
+        : dropout ? `${dropout.omitted_count} accelerometer observations are omitted from 12 to 17 s. Gyro predictions continue; corrections resume at 17 s.`
         : pulse ? `Added body-y acceleration: +${pulse.value_m_s2} m/s² from ${pulse.start_s} to ${pulse.end_s} s. The gravity model is disturbed.`
           : 'Smooth roll with constant gyro bias. Accelerometer measurements follow the gravity model.';
     $('#jump').hidden = scenarioId === 'nominal';
-    $('#jump').textContent = scenarioId === 'initial_offset' ? 'Inspect start' : dropout ? 'Inspect loss' : 'Inspect disturbance';
-    $('#recovery').hidden = !dropout;
+    $('#jump').textContent = scenarioId === 'initial_offset' ? 'Inspect start'
+      : ramp ? 'Inspect ramp' : dropout ? 'Inspect loss' : 'Inspect disturbance';
+    $('#recovery').hidden = !dropout && !ramp;
+    $('#recovery').textContent = ramp ? 'Inspect plateau' : 'Inspect recovery';
     $('#metric-note').textContent = scenarioId === 'initial_offset'
       ? 'Includes the initial 60° error and the recovery transient. This is one noise realization.'
-      : dropout ? 'A lower error on this seed does not mean losing observations improves estimation.'
+      : ramp ? 'The filters keep their constant-bias model. This run evaluates a model mismatch, not retuned filters.'
+        : dropout ? 'A lower error on this seed does not mean losing observations improves estimation.'
         : 'Computed from every original endpoint, including initialization.';
     document.querySelectorAll('[data-scenario]').forEach(button => {
       button.setAttribute('aria-pressed', String(button.dataset.scenario === scenarioId));
@@ -152,7 +157,10 @@ function startExplorer(data) {
     const settings = [
       ['Roll motion', `${config.amplitude_deg}° amplitude · ${config.frequency_hz} Hz · ${duration} s`],
       ['Measurement schedule', `Gyro ${config.sample_rate_hz} Hz · accelerometer ${config.sample_rate_hz / config.observation_every} Hz scheduled; ${scenario().correction_times_s.length}/${scenario().scheduled_accel_count} corrections received`],
-      ['True gyro bias', `${config.bias_deg_s}°/s, constant`],
+      ['True gyro bias', ramp
+        ? `${ramp.initial_bias_deg_s} → ${ramp.final_bias_deg_s}°/s over ${ramp.start_s}–${ramp.end_s} s (${ramp.slope_deg_s2}°/s²), then constant`
+        : `${config.bias_deg_s}°/s, constant`],
+      ['Kalman bias model', 'Constant in prediction; updated at corrections. No bias random walk.'],
       ['Gyro noise', `${config.gyro_noise_std_deg_s}°/s per interval-mean sample`],
       ['Accelerometer noise', `${config.accel_noise_std_m_s2} m/s² per component`],
       ['Initialization', `Estimated roll ${initial.roll_deg}° (truth 0°) · angle std ${initial.angle_std_deg}° · estimated bias ${initial.bias_deg_s}°/s, std ${initial.bias_std_deg_s}°/s`],
@@ -171,8 +179,8 @@ function startExplorer(data) {
       pair.append(term, definition);
       $('#settings').append(pair);
     }
-    $('#display-note').textContent = `${scenario().rows.length.toLocaleString('en-US')} display samples: every ${data.display_stride}th endpoint plus all correction endpoints, their predecessors and event boundaries. Roll is linearly interpolated; bias is held until the next correction. RMSE uses all ${scenario().source_sample_count.toLocaleString('en-US')} original endpoints; display reduction can still hide short transients.`;
-    $('#source-note').textContent = `Source for this scenario: meridian.${scenario().source === 'paired' ? 'ekf_experiment' : 'stress_experiment'}. The download contains all four selected runs, full-run metrics and source-file SHA-256 fingerprints grouped by experiment.`;
+    $('#display-note').textContent = `${scenario().rows.length.toLocaleString('en-US')} display samples: every ${data.display_stride}th endpoint plus all correction endpoints, their predecessors and event boundaries. Roll and true bias are linearly interpolated; estimated biases are held until the next correction. RMSE uses all ${scenario().source_sample_count.toLocaleString('en-US')} original endpoints; display reduction can still hide short transients.`;
+    $('#source-note').textContent = `Source for this scenario: meridian.${scenario().source === 'paired' ? 'ekf_experiment' : 'stress_experiment'}. The download contains all ${Object.keys(data.scenarios).length} selected runs, full-run metrics and source-file SHA-256 fingerprints grouped by experiment.`;
     renderMetrics();
     redraw();
   }
@@ -184,6 +192,11 @@ function startExplorer(data) {
     lastFrame = null;
     tooltip.hidden = true;
     setTime(time);
+  }
+
+  function eventInspectionTime() {
+    const event = scenario().event;
+    return event ? event.start_s + (event.kind === 'bias_ramp' ? .5 : .4) * (event.end_s - event.start_s) : 0;
   }
 
   function tick(timestamp) {
@@ -219,15 +232,17 @@ function startExplorer(data) {
   });
   $('#jump').addEventListener('click', () => {
     stop();
-    const event = scenario().event;
-    setTime(event ? event.start_s + .4 * (event.end_s - event.start_s) : 0);
+    setTime(eventInspectionTime());
   });
-  $('#recovery').addEventListener('click', () => { stop(); setTime(scenario().event.first_correction_after_s); });
+  $('#recovery').addEventListener('click', () => {
+    stop();
+    const event = scenario().event;
+    setTime(event.kind === 'bias_ramp' ? event.end_s : event.first_correction_after_s);
+  });
   document.querySelectorAll('[data-scenario]').forEach(button => button.addEventListener('click', () => {
     stop();
     scenarioId = button.dataset.scenario;
-    time = scenarioId === 'initial_offset' ? 0 : scenario().event
-      ? scenario().event.start_s + .4 * (scenario().event.end_s - scenario().event.start_s) : Math.min(8, duration);
+    time = scenarioId === 'nominal' ? Math.min(8, duration) : eventInspectionTime();
     renderScenario();
     $('#announcement').textContent = `${button.textContent} selected.`;
   }));

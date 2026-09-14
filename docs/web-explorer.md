@@ -1,8 +1,8 @@
 # Simulation results explorer
 
-The explorer replays four runs at seed 42: nominal and translation-disturbed
+The explorer replays five runs at seed 42: nominal and translation-disturbed
 from the [vector EKF comparison](../results/ekf-comparison/README.md), plus
-`initial_offset` and `accel_dropout` from the
+`initial_offset`, `accel_dropout` and `bias_ramp` from the
 [controlled suite](../results/controlled-scenarios/README.md). It compares
 gyro integration, complementary fusion, angle KF and vector EKF against simulation
 truth. Playback reads recorded results; it does not execute an estimator.
@@ -46,12 +46,19 @@ backend or database is configured.
   continue. The last correction before loss is at 11.9 s and the next at 17 s;
   the 5.1 s gap is not filled with invented measurements. The shaded interval
   means no accelerometer corrections, not a translation or missing estimates.
+- **Changing gyro bias** raises true bias from 0.5 to 1.5°/s over 10–20 s,
+  then keeps it at 1.5°/s. All 300 corrections remain available. The shaded
+  interval marks the ramp, not a loss of measurements. The filters retain their
+  constant-bias prediction model and zero bias process noise; corrections can
+  still change the bias estimates, which lag behind the reference in this run.
 - Use **Play**, **Pause**, the time slider, or the speed selector. Playback starts
   paused at 8 s, stops at 30 s, and pauses when the document becomes hidden.
   **Replay** starts again at zero. Selecting a scenario pauses playback and moves
   to 8 s for nominal, zero for initialization, or inside the event for translation
   and loss (14 s in the selected data). **Inspect start**, **Inspect loss** and
   **Inspect disturbance** revisit those points. **Inspect recovery** moves to 17 s.
+  The bias-ramp selection and **Inspect ramp** move to 15 s; **Inspect plateau**
+  moves to 20 s, where the true bias stops increasing.
   Method selection and curve visibility are preserved between scenarios.
 - Select an estimate to inspect its roll and signed error at the cursor. The
   solid neutral drone follows that estimate; the dashed outline follows truth.
@@ -71,9 +78,10 @@ backend or database is configured.
   initialization transient. A lower RMSE for the dropout case on this seed does
   not establish that losing observations improves estimation.
 
-Bias curves use steps and the cursor holds bias until the next recorded correction.
-Roll remains linearly interpolated between displayed endpoints. The nominal and
-translation runs retain their shared scales; the two added cases have their own
+Estimated bias curves use steps and the cursor holds these estimates until the
+next recorded correction. Roll and true bias are linearly interpolated between
+displayed endpoints; the true bias ramp is continuous. The nominal and
+translation runs retain their shared scales; the three controlled cases have their own
 full-resolution domains. Scales can change on scenario selection, as stated beside
 the plot, and always include hidden methods.
 
@@ -106,39 +114,52 @@ selected-data checks and descriptions.
 | Field | Meaning |
 | --- | --- |
 | `schema_version`, `experiment`, `data_source` | Version 2, `roll_scenario_explorer`, `simulation`. |
-| `config`, `seed` | Shared motion/noise/schedule settings and selected seed. The adapter requires the fixed controlled-suite settings. |
+| `config`, `seed` | Shared motion/noise/schedule settings and selected seed. `bias_deg_s` is the baseline/initial true bias; the ramp event specifies its later change. The adapter requires the fixed controlled-suite settings. |
 | `columns` | The same nine ordered fields: time in seconds, roll in degrees, bias in degrees/second. |
 | `display_stride`, `display_decimal_places` | Every fifth endpoint by default, augmented with required event/correction points; six-decimal angle/bias rounding. |
 | `sources.paired`, `sources.controlled` | Experiment names, relative input filenames and SHA-256 fingerprints, with separate namespaces for the two `summary.json` files. Large stream seeds remain decimal strings. |
 | `scenarios.<name>.source` | Key into `sources`; metrics and provenance belong to that experiment. |
-| `scenarios.<name>.initialization` | Initial estimated roll/bias and their model standard deviations. True initial roll is zero for these four cases. |
+| `scenarios.<name>.initialization` | Initial estimated roll/bias and their model standard deviations. True initial roll is zero for these five cases. |
 | `scenarios.<name>.domains` | Full-resolution angle/bias extrema covering every method. The original pair retains shared extrema. |
 | `scenarios.<name>.source_sample_count` | 3,001 original endpoints, including initialization. |
 | `scenarios.<name>.scheduled_accel_count` | 300 scheduled arrivals. |
 | `scenarios.<name>.correction_times_s` | All received correction times: 300 normally, 250 during the loss case. |
-| `scenarios.<name>.event` | Null, a typed translation interval, or a typed accelerometer-loss interval; end time exclusive. Loss also records omitted count and corrections before/after the gap. |
+| `scenarios.<name>.event` | Null or a typed translation, accelerometer-loss or bias-ramp event. Translation/loss end times are exclusive. The ramp records start/end bias and slope; after its end the bias stays at its final level. Loss records omitted count and corrections before/after the gap. |
 | `scenarios.<name>.metrics` | Full-run endpoint angle RMSE and signed final bias errors, retained from the source summary. |
-| `scenarios.<name>.rows` | 901 retained endpoints for nominal, translation and initial offset; 852 for accelerometer loss at stride 5. |
+| `scenarios.<name>.rows` | 901 retained endpoints for nominal, translation, initial offset and bias ramp; 852 for accelerometer loss at stride 5. |
 
 For the paired source, the adapter reuses the existing checks on `truth.csv`,
 `estimates.csv`, `ekf_estimates.csv` and the summary, and also reads correction
 timestamps from `ekf_innovations.csv`. For each selected controlled case it reads
-truth, estimates with initial covariance, gyro/accelerometer measurements,
+truth, gyro interval truth, estimates with initial covariance, gyro/accelerometer measurements,
 `observation_schedule_truth.csv` and both innovation timestamp columns. These
 filenames and source hashes are included in the JSON; machine paths and generation
 wall-clock times are absent. Hashes identify bytes, not authenticity.
 
 The controlled-source checks require the declared scenario definitions and fixed
-shared settings, aligned 0–30 s endpoints, sinusoidal truth and constant true bias,
+shared settings, aligned 0–30 s endpoints, sinusoidal roll and the declared bias law,
 correct initial states/covariances, available measurements and actual correction
 schedules. They verify gyro integration, shared controlled-case inputs, summary
 correction counts/gaps, RMSE and final bias errors. Metrics are recomputed from
 full-resolution records before rounding, with `1e-10` absolute/relative metric
 tolerance. The initial-offset case uses its erroneous initial estimate, not truth.
 
+For the ramp, endpoint truth is `b(t) = 0.5 + 0.1 * clip(t - 10, 0, 10)` in
+degrees/second. Gyro measurements use the mean bias over each interval. For
+example, the mean over 14.99–15 s is 0.9995°/s, while the endpoint bias is 1°/s.
+The adapter checks interval means against this piecewise-linear law; every knot
+lies on the fixed endpoint grid. Controlled cases share gyro noise after removal
+of true mean rate and mean bias, rather than sharing raw gyro values when the
+bias changes. Available accelerometer samples remain shared.
+
+At 30 s the recorded EKF bias estimate is about 0.934711°/s against 1.5°/s truth,
+a signed error of −0.565289°/s. Its full-run angle RMSE is 1.523883°. These
+describe the selected mismatch case; the filter has not been retuned and no
+nominal accuracy threshold or general superiority claim applies to this run.
+
 Every correction endpoint and its immediately preceding endpoint is retained,
 including at a nondefault display stride. Event boundaries and initial/final
-endpoints are also retained. Bias changes outside recorded corrections are rejected.
+endpoints are also retained. Estimated bias changes outside recorded corrections are rejected.
 This allows step curves and held bias readings without an apparent correction
 before the observation arrives; for example the dropout bias stays constant
 through 16.99 s and changes at 17 s. Time lookup tolerates `1e-10` s roundoff
@@ -157,7 +178,7 @@ not arbitrary logs, irregular-time scenarios or delayed-measurement compensation
 | --- | --- |
 | `src/meridian/web_export.py` | Preserve the original paired simulation adapter. |
 | `src/meridian/web_scenarios.py` | Combine two checked source schemas, retain correction timing and export deterministic schema-2 JSON. |
-| `web/src/data.js` | Browser contract checks, interpolated roll/held bias, latest correction and playback arithmetic. |
+| `web/src/data.js` | Browser contract checks, interpolated roll/true bias, held estimated biases, latest correction and playback arithmetic. |
 | `web/src/chart.js` | D3 scales, paths, shared cursor and pointer inspection. |
 | `web/src/main.js` | Load data and connect scenario selection, playback, legends and readings. |
 | `web/src/style.css`, `web/index.html` | Appearance, semantic structure and responsive layout. |
@@ -175,14 +196,15 @@ npm --prefix web run build
 ```
 
 Python checks cover both source adapters, input rejection, units, initialization,
-availability, retained correction points, source metrics and deterministic output.
+availability, bias truth and interval means, shared noise, retained correction
+points, source metrics and deterministic output.
 JavaScript checks compare the shipped artifact with both public summaries and
 fingerprints, and verify malformed-record rejection, initial error, held bias
 through loss/recovery, decimal-time roundoff and playback boundaries. Source review and local HTTP checks
 complement these tests. They do not constitute automated browser interaction,
 cross-device rendering or accessibility validation.
 
-Only the four selected Python simulation runs are displayed. There is no live
+Only the five selected Python simulation runs are displayed. There is no live
 hardware connection, real-log browser replay, parameter tuning, C++ execution in
 the browser, or statistical-consistency view. The similar nominal KF/EKF RMSE
 does not imply superiority; the translation case demonstrates a shared physical
