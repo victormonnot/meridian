@@ -1,5 +1,7 @@
 import './style.css';
 import { createChart } from './chart.js';
+import { createDiagnosticChart } from './diagnostic-chart.js';
+import { diagnosticStateAt, lastInnovation, stateDiagnostic } from './diagnostics.js';
 import { SERIES, adjacentCorrection, advanceTime, clampTime, correctionDetails, formatValue, sampleAt, validateComparison } from './data.js';
 
 const $ = selector => document.querySelector(selector);
@@ -34,6 +36,7 @@ function startExplorer(data) {
   let lastFrame = null;
   let frame = null;
   let speed = 1;
+  let view = 'trajectories';
   const scenario = () => data.scenarios[scenarioId];
   const method = () => SERIES.find(item => item.id === methodId);
   const tooltip = $('#tooltip');
@@ -44,6 +47,12 @@ function startExplorer(data) {
       if (playing) return null;
       return setTime(next);
     }, tooltip,
+  ));
+  const diagnosticCharts = ['state', 'innovation'].map((kind, index) => createDiagnosticChart(
+    $(index === 0 ? '#error-chart' : '#innovation-chart'), kind, duration, (next, pause) => {
+      if (pause) stop();
+      if (!playing) setTime(next);
+    },
   ));
 
   $('#download').href = dataUrl;
@@ -82,7 +91,9 @@ function startExplorer(data) {
 
   function setTime(next) {
     time = clampTime(next, duration);
-    const row = sampleAt(scenario().rows, time);
+    const snapshot = diagnosticStateAt(scenario(), time);
+    const row = view === 'diagnostics' ? snapshot : sampleAt(scenario().rows, time);
+    $('#state-timestamp').textContent = `Recorded state at ${formatValue(snapshot[0], 3)} s. Held until the next endpoint.`;
     $('#time').value = time;
     $('#time').setAttribute('aria-valuetext', `${formatValue(time, 3)} seconds`);
     $('#time-value').textContent = `${formatValue(time, 3)} s`;
@@ -111,6 +122,8 @@ function startExplorer(data) {
     $('#truth-pose').setAttribute('transform', `rotate(${row[1]})`);
     $('#estimate-pose').setAttribute('transform', `rotate(${row[method().roll]})`);
     charts.forEach(chart => chart.setCursor(row));
+    diagnosticCharts.forEach(chart => chart.setCursor(time));
+    renderDiagnosticReadings(snapshot);
     $('#play').textContent = playing ? 'Pause' : time >= duration ? 'Replay' : 'Play';
     return row;
   }
@@ -119,7 +132,54 @@ function startExplorer(data) {
     tooltip.hidden = true;
     for (const button of legendButtons) button.setAttribute('aria-pressed', String(visible.has(button.dataset.series)));
     charts.forEach(chart => chart.setData(scenario(), visible));
+    renderDiagnostics();
     setTime(time);
+  }
+
+  function renderDiagnostics() {
+    const active = view === 'diagnostics';
+    $('#trajectory-panels').hidden = active;
+    $('#diagnostic-panels').hidden = !active;
+    $('#state-timestamp').hidden = !active;
+    $('#correction-navigation').hidden = !active && scenarioId !== 'timing_jitter' && scenarioId !== 'accel_delay';
+    document.querySelectorAll('[data-view]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.view === view)));
+    const component = $('#diagnostic-component').value;
+    const mode = $('#innovation-mode').value;
+    const current = stateDiagnostic(scenario().diagnostics.states[0], methodId, component);
+    const record = scenario().diagnostics[methodId];
+    $('#diagnostic-method').textContent = `${method().label} · follows the inspected estimate`;
+    $('#error-chart').hidden = current === null;
+    $('#uncertainty-note').textContent = current === null ? 'This method does not estimate gyro bias.'
+      : current.sigma === null ? 'Solid line: estimate − truth. This baseline does not report model covariance.'
+        : 'Solid line: estimate − truth. Shaded band and dotted bounds: ±2 model standard deviations about zero.';
+    $('#innovation-chart').hidden = !record;
+    $('#innovation-mode').disabled = !record;
+    $('#innovation-note').textContent = !record ? 'Innovation covariance and NIS are available for the angle KF and vector EKF.'
+      : (mode === 'nis' ? `Dots: joint NIS. Dashed line: ideal-model mean ${record.dimension}, not a test threshold. `
+        : methodId === 'kalman' ? 'Dots: measured tilt − predicted roll, before correction (°). '
+          : 'Dots: body-y innovation; crosses: body-z innovation, before correction (m/s²). ')
+        + `Run mean NIS ${formatValue(record.mean_nis, 3)} · ${record.dimension} measurement ${record.dimension === 1 ? 'dimension' : 'dimensions'}. Includes startup; KF and EKF NIS have different dimensions. No statistical consistency is established by this view.`;
+    diagnosticCharts.forEach(chart => chart.setData(scenario(), method(), component, mode));
+  }
+
+  function renderDiagnosticReadings(snapshot) {
+    const component = $('#diagnostic-component').value;
+    const value = stateDiagnostic(snapshot, methodId, component);
+    const unit = component === 'roll' ? '°' : '°/s';
+    $('#error-readout').textContent = value === null ? ''
+      : `State at ${formatValue(value.time, 3)} s · error ${formatValue(value.error, 3)}${unit}`
+        + (value.sigma === null ? '' : ` · model σ ${formatValue(value.sigma, 6)}${unit}`);
+    const innovation = lastInnovation(scenario(), methodId, time);
+    const correction = correctionDetails(scenario(), time);
+    $('#innovation-readout').textContent = !scenario().diagnostics[methodId] ? ''
+      : innovation === null ? 'No innovation yet: the first measurement has not arrived.'
+        : `Latest innovation at arrival ${formatValue(innovation[0], 3)} s, acquired at ${formatValue(correction.sample, 3)} s (${formatValue((time - innovation[0]) * 1000, 1)} ms since arrival): `
+          + (methodId === 'kalman' ? `${formatValue(innovation[1], 3)}°`
+            : `y ${formatValue(innovation[1], 3)}, z ${formatValue(innovation[2], 3)} m/s²`)
+          + ` · NIS ${formatValue(innovation.at(-1), 3)}. No new value between corrections.`;
+    $('#innovation-scale').textContent = !innovation ? '' : methodId === 'kalman'
+      ? `Prior innovation standard deviation √S: ${formatValue(Math.sqrt(innovation[2]), 3)}°.`
+      : `Prior innovation standard deviations: y ${formatValue(Math.sqrt(innovation[3]), 3)}, z ${formatValue(Math.sqrt(innovation[5]), 3)} m/s². Joint NIS uses the full S, including its cross term.`;
   }
 
   function renderMetrics() {
@@ -212,7 +272,7 @@ function startExplorer(data) {
       pair.append(term, definition);
       $('#settings').append(pair);
     }
-    $('#display-note').textContent = `${scenario().rows.length.toLocaleString('en-US')} display samples: every ${data.display_stride}th endpoint plus all correction endpoints, their actual predecessors and event boundaries. Source times are retained; labels round to milliseconds. Previous/next correction uses exact arrival times. Roll and true bias are linearly interpolated; estimated biases are held until the next correction. Both RMSE metrics use all ${scenario().source_sample_count.toLocaleString('en-US')} original endpoints; display reduction can still hide short transients.`;
+    $('#display-note').textContent = `Trajectories: ${scenario().rows.length.toLocaleString('en-US')} display samples, every ${data.display_stride}th endpoint plus corrections, their predecessors and event boundaries. Roll and true bias are interpolated; estimated biases are held until correction. Diagnostics: all ${scenario().source_sample_count.toLocaleString('en-US')} original endpoints, held until the next endpoint; innovations are discrete correction samples. Source times are retained; labels round to milliseconds. Both RMSE metrics use every original endpoint. Trajectory reduction can hide short transients; neither view reconstructs the continuous path between recorded operations.`;
     $('#source-note').textContent = `Source for this scenario: meridian.${scenario().source === 'paired' ? 'ekf_experiment' : 'stress_experiment'}. The download contains all ${Object.keys(data.scenarios).length} selected runs, full-run metrics and source-file SHA-256 fingerprints grouped by experiment.`;
     renderMetrics();
     redraw();
@@ -265,6 +325,16 @@ function startExplorer(data) {
     redraw();
   });
   $('#rmse-weight').addEventListener('change', renderMetrics);
+  document.querySelectorAll('[data-view]').forEach(button => button.addEventListener('click', () => {
+    stop();
+    view = button.dataset.view;
+    redraw();
+    $('#announcement').textContent = `${button.textContent} view selected.`;
+  }));
+  for (const id of ['diagnostic-component', 'innovation-mode']) $(`#${id}`).addEventListener('change', () => {
+    renderDiagnostics();
+    setTime(time);
+  });
   for (const [id, direction] of [['previous-correction', -1], ['next-correction', 1]]) {
     $(`#${id}`).addEventListener('click', () => {
       stop();

@@ -11,6 +11,7 @@ import numpy as np
 
 from meridian.stress_scenarios import SCENARIOS
 from meridian.web_export import _read_columns, build_comparison
+from meridian.web_diagnostics import build_diagnostics
 
 
 METHODS = ("gyro", "complementary", "kalman", "ekf")
@@ -81,7 +82,7 @@ def build_scenarios(paired_source: Path, controlled_source: Path, *, stride: int
                        "accel_noise_std_m_s2": .2, "observation_every": 10, "complementary_tau_s": 1}
     if any(config.get(key) != value for key, value in expected_config.items()):
         raise ValueError("paired configuration does not match the selected controlled suite")
-    data.update(schema_version=3, experiment="roll_scenario_explorer", config=expected_config,
+    data.update(schema_version=4, experiment="roll_scenario_explorer", config=expected_config,
                 display_stride=stride)
     paired_provenance = data.pop("provenance")
     initial = paired_provenance["initialization"]
@@ -263,6 +264,10 @@ def build_scenarios(paired_source: Path, controlled_source: Path, *, stride: int
         provenance["time_weighted_metric_basis"] = (
             "trapezoidal squared endpoint errors over duration, from original unrounded CSVs; "
             + ("computed by display adapter" if source == "paired" else "checked against controlled summary"))
+    for name, case in data["scenarios"].items():
+        case["diagnostics"], diagnostic_hashes = build_diagnostics(
+            paired_source if case["source"] == "paired" else controlled_source, name, case)
+        data["sources"][case["source"]]["source_sha256"].update(diagnostic_hashes)
     data.pop("domains")
     return data
 

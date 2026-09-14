@@ -186,7 +186,7 @@ are an experiment format, not a general sensor interchange specification.
 
 The web interface uses JavaScript ES modules, Vite and D3. A small Python adapter
 validates existing experiment CSVs against their summaries, then exports a
-versioned JSON display artifact. Schema 3 keeps per-scenario initialization,
+versioned JSON display artifact. Schema 4 keeps per-scenario initialization,
 simulated/assumed accelerometer noise, domains, acquisition times and correction
 schedules, with source fingerprints grouped by experiment. Every correction
 endpoint and its actual predecessor survive display
@@ -208,7 +208,18 @@ roll/bias plots, playback and a rear-view roll indicator. Display decimation and
 interpolation never replace full-resolution metrics. The UI can weight squared
 errors by sample count or elapsed time. The latter uses trapezoidal endpoint
 integration, an approximation across correction jumps, from original unrounded
-CSVs; controlled values are also checked against their summaries. Neither the estimator core
+CSVs; controlled values are also checked against their summaries.
+
+A separate Diagnostics view retains every original endpoint, with held state
+readings and step plots of error against ±2 model standard deviations. The adapter
+reads full source covariance before converting radians to display units. Covariance is
+recorded after prediction and any correction; innovation and S belong to the prior
+before correction. Scalar KF and vector EKF innovations/NIS are discrete samples
+at actual arrivals, with no invented observations during loss. NIS uses the full
+innovation covariance and explicitly retains measurement dimension (one or two).
+Model bands, individual NIS values and their means do not establish statistical
+consistency or physical accuracy. No uncertainty or NIS is invented for the gyro
+and complementary baselines. Neither the estimator core
 nor raw sensor logs enter the browser. No backend or hosting provider is configured.
 Later interactive settings, if implemented, should invoke the same simulation and
 estimator core rather than duplicate algorithms in the presentation layer.

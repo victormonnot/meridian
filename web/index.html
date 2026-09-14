@@ -63,6 +63,7 @@
                 <div><dt><i class="swatch drone-swatch" aria-hidden="true"></i><span id="method-name">Vector EKF</span></dt><dd id="estimate-angle"></dd></div>
                 <div class="current-error"><dt>Angle error</dt><dd id="angle-error"></dd></div>
               </dl>
+              <p id="state-timestamp" class="metadata chart-note" hidden></p>
             </section>
             <section class="metrics">
               <h2 class="accent-heading">Full-run error</h2>
@@ -74,6 +75,11 @@
             </section>
           </aside>
           <div class="plots">
+            <div class="plot-toolbar">
+              <div class="view-switch" role="group" aria-label="Plot view"><button type="button" data-view="trajectories" aria-pressed="true" aria-controls="trajectory-panels">Trajectories</button><button type="button" data-view="diagnostics" aria-pressed="false" aria-controls="diagnostic-panels">Diagnostics</button></div>
+              <div id="correction-navigation" class="inspection-links" hidden><button type="button" id="previous-correction">Previous correction</button><button type="button" id="next-correction">Next correction</button></div>
+            </div>
+            <div id="trajectory-panels">
             <section aria-labelledby="roll-heading">
               <div class="panel-heading"><h2 id="roll-heading">Roll angle</h2><span id="chart-time" class="metadata mono"></span></div>
               <div id="roll-legend" class="legend" aria-label="Visible roll curves"></div>
@@ -81,7 +87,6 @@
               <p id="correction-status" class="metadata chart-note"></p>
               <div id="timing-inspector" hidden>
                 <p id="timing-readout" class="metadata chart-note"></p>
-                <div class="inspection-links"><button type="button" id="previous-correction">Previous correction</button><button type="button" id="next-correction">Next correction</button></div>
               </div>
               <p class="metadata chart-note">Move across a plot or use the time slider. Scales adapt to the selected scenario.</p>
             </section>
@@ -95,6 +100,25 @@
                 <div><dt>Vector EKF</dt><dd id="bias-ekf"></dd></div>
               </dl>
             </section>
+            </div>
+            <div id="diagnostic-panels" hidden>
+              <p id="diagnostic-method" class="metadata"></p>
+              <section class="diagnostic-section" aria-labelledby="error-heading">
+                <div class="panel-heading"><h2 id="error-heading" class="accent-heading">Error and model uncertainty</h2><label class="metadata" for="diagnostic-component">State <select id="diagnostic-component"><option value="roll">Roll</option><option value="bias">Gyro bias</option></select></label></div>
+                <p id="uncertainty-note" class="metadata chart-note"></p>
+                <div id="error-chart" class="chart"></div>
+                <p id="error-readout" class="metadata mono chart-note"></p>
+                <p class="metadata chart-note">All original endpoints are shown as steps. Values are held until the next recorded endpoint, after its prediction and any correction. The band describes the filter's model; it does not guarantee accuracy.</p>
+              </section>
+              <section class="diagnostic-section" aria-labelledby="innovation-heading">
+                <div class="panel-heading"><h2 id="innovation-heading" class="accent-heading">Measurement corrections</h2><label class="metadata" for="innovation-mode">Show <select id="innovation-mode"><option value="raw">Innovation</option><option value="nis">NIS</option></select></label></div>
+                <p id="innovation-note" class="metadata chart-note"></p>
+                <div id="innovation-chart" class="chart"></div>
+                <p id="innovation-readout" class="metadata chart-note"></p>
+                <p id="innovation-scale" class="metadata chart-note"></p>
+              </section>
+              <p class="metadata chart-note">Use the same time slider, move across a plot, or step between corrections. Scales include the full run and adapt to the selected method. State uncertainty is recorded after correction; innovations describe the prior before correction.</p>
+            </div>
           </div>
         </div>
         <details class="details">

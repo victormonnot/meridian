@@ -1,3 +1,5 @@
+import { validateDiagnostics } from './diagnostics.js';
+
 // Display units are explicit. These columns never enter an estimator.
 export const COLUMNS = [
   'time_s', 'truth_roll_deg', 'gyro_roll_deg', 'complementary_roll_deg',
@@ -18,7 +20,7 @@ function require(condition, message) {
 }
 
 export function validateComparison(data) {
-  require(data?.schema_version === 3 && data.experiment === 'roll_scenario_explorer'
+  require(data?.schema_version === 4 && data.experiment === 'roll_scenario_explorer'
     && data.data_source === 'simulation', 'unsupported format');
   require(JSON.stringify(data.columns) === JSON.stringify(COLUMNS), 'columns or units');
   const config = data.config;
@@ -136,6 +138,7 @@ export function validateComparison(data) {
     if (event) for (const time of [event.start_s, event.end_s]) {
       require(rowTimes.some(value => Math.abs(value - time) < 1e-10), 'event boundary missing');
     }
+    validateDiagnostics(scenario, COLUMNS);
   }
   return data;
 }

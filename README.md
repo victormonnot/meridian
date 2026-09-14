@@ -160,6 +160,7 @@ Historical recordings do not establish current acquisition conditions.
 | `src/meridian/imu_replay.py` | Explicit DataFlash segment selection, replay diagnostics and exports. |
 | `src/meridian/web_export.py` | Checked display export from existing paired simulation records. |
 | `src/meridian/web_scenarios.py` | Combine the paired runs with selected controlled cases, preserving corrections and provenance. |
+| `src/meridian/web_diagnostics.py` | Check endpoint covariance and pre-correction innovations, then export diagnostic states and NIS. |
 | `web/` | Static JavaScript/D3 explorer, selected display data, and presentation tests. |
 | `tests/` | Numerical contracts, analytical drift, reproducibility, and export checks. |
 | `results/` | Selected results and reproduction reports. |
@@ -168,7 +169,9 @@ The web explorer reads nine existing simulation runs, with synchronized roll/bia
 plots, a roll indicator, and inspection of initial confidence, observation
 loss/recovery, bias changes, noise mismatch and sensor timing. It distinguishes
 acquisition from arrival time and offers sample-count or elapsed-time RMSE weighting.
-Estimated biases remain held between recorded
+Its Diagnostics view plots signed roll/bias errors with model uncertainty and
+discrete scalar/vector innovations or NIS. Model uncertainty is not an accuracy guarantee.
+In Trajectories, estimated biases remain held between recorded
 corrections; true bias is interpolated along its continuous ramp. Its JavaScript/Vite/D3
 presentation works independently of the numerical core. Interactive retuning and
 real-log browser replay are not implemented. A new documented bench acquisition

@@ -24,7 +24,7 @@ def sources(tmp_path_factory):
 def test_selection_units_metrics_and_preserved_corrections(sources):
     data = build_scenarios(*sources, stride=37)
     summary = json.loads((sources[1]/"summary.json").read_text())
-    assert data["schema_version"] == 3
+    assert data["schema_version"] == 4
     assert list(data["scenarios"]) == ["nominal", "translation_pulse", "initial_offset", "accel_dropout", "bias_ramp",
                                        "initial_overconfident", "accel_noise_mismatch", "timing_jitter", "accel_delay"]
     for name, case in data["scenarios"].items():
@@ -280,4 +280,77 @@ def test_reject_self_consistent_but_unpaired_ramp_gyro(sources, tmp_path):
         np.sqrt(np.trapezoid(np.rad2deg(estimates[:, 1]-truth[:, 1])**2, truth[:, 0])/30))
     summary_path.write_text(json.dumps(summary))
     with pytest.raises(ValueError, match="paired gyro noise"):
+        build_scenarios(sources[0], controlled)
+
+
+def test_diagnostics_use_full_endpoints_and_si_covariance_before_conversion(sources):
+    data = build_scenarios(*sources, stride=37)
+    for name, case in data["scenarios"].items():
+        diagnostic = case["diagnostics"]
+        states = np.asarray(diagnostic["states"])
+        assert states.shape == (3001, 13)
+        assert len(case["rows"]) < len(states)
+        assert diagnostic["state_phase"] == "endpoint_after_available_correction"
+        assert diagnostic["innovation_phase"] == "prior_before_correction"
+        folder = sources[0 if case["source"] == "paired" else 1]/name
+        for method, angle_column, bias_column in [("kalman", 9, 11), ("ekf", 10, 12)]:
+            filename = "ekf_estimates.csv" if method == "ekf" and case["source"] == "paired" else "estimates.csv"
+            table = np.genfromtxt(folder/filename, names=True, delimiter=",")
+            prefix = "" if case["source"] == "paired" else method+"_"
+            np.testing.assert_array_equal(states[:, 0], table["time_s"])
+            for field, column in [("p_angle_rad2", angle_column), ("p_bias_rad2_s2", bias_column)]:
+                np.testing.assert_allclose(states[:, column], np.sqrt(table[prefix+field])*180/np.pi, atol=5.01e-7, rtol=0)
+            record = diagnostic[method]
+            assert record["dimension"] == (1 if method == "kalman" else 2)
+            np.testing.assert_allclose(np.asarray(record["rows"])[:, 0], case["correction_times_s"], atol=1e-12, rtol=0)
+    zero = data["scenarios"]["initial_overconfident"]["diagnostics"]["states"][0]
+    assert zero[5]-zero[1] == 60 and zero[10] == 0
+    pulse = np.asarray(data["scenarios"]["translation_pulse"]["diagnostics"]["states"])
+    nominal = np.asarray(data["scenarios"]["nominal"]["diagnostics"]["states"])
+    np.testing.assert_array_equal(pulse[:, 9:], nominal[:, 9:])
+    assert abs(pulse[1400, 5]-pulse[1400, 1]) > 6
+    assert pulse[1400, 10] < .23
+
+
+def test_innovation_units_and_full_vector_nis(sources):
+    data = build_scenarios(*sources)
+    kf = np.asarray(data["scenarios"]["nominal"]["diagnostics"]["kalman"]["rows"])
+    source = np.genfromtxt(sources[0]/"nominal/innovations.csv", names=True, delimiter=",")
+    np.testing.assert_allclose(kf[:, 1]*np.pi/180, source["innovation_rad"], atol=1e-14, rtol=0)
+    np.testing.assert_allclose(kf[:, 2]*(np.pi/180)**2, source["innovation_variance_rad2"], atol=1e-14, rtol=0)
+    np.testing.assert_allclose(kf[:, 3], source["innovation_rad"]**2/source["innovation_variance_rad2"], atol=1e-12, rtol=0)
+    vector = np.asarray(data["scenarios"]["initial_offset"]["diagnostics"]["ekf"]["rows"])
+    for row in vector:
+        # Independent closed form; the adapter uses a batched linear solve.
+        _, vy, vz, syy, syz, szz, nis = row
+        expected = (szz*vy*vy-2*syz*vy*vz+syy*vz*vz)/(syy*szz-syz*syz)
+        assert nis == pytest.approx(expected, rel=1e-10, abs=1e-10)
+    loss = data["scenarios"]["accel_dropout"]["diagnostics"]["ekf"]["rows"]
+    assert len(loss) == 250 and not any(12 <= row[0] < 17 for row in loss)
+
+
+@pytest.mark.parametrize("mutation", ["negative_p", "invalid_p_cross", "scalar_s", "vector_s_cross",
+                                      "vector_nis", "scalar_nis", "mean_nis", "innovation_time"])
+def test_reject_inconsistent_diagnostic_sources(sources, tmp_path, mutation):
+    controlled = Path(shutil.copytree(sources[1], tmp_path/"controlled"))
+    if mutation == "mean_nis":
+        path = controlled/"summary.json"
+        summary = json.loads(path.read_text())
+        summary["scenarios"]["initial_offset"]["metrics"]["ekf"]["mean_nis"] += 1
+        path.write_text(json.dumps(summary))
+    else:
+        filename = "estimates.csv" if mutation in ("negative_p", "invalid_p_cross") else "kalman_innovations.csv" if mutation in ("scalar_s", "scalar_nis") else "ekf_innovations.csv"
+        path = controlled/"initial_offset"/filename
+        header = path.read_text().splitlines()[0]
+        columns = header.split(",")
+        rows = np.loadtxt(path, delimiter=",", skiprows=1)
+        field, value = {
+            "negative_p": ("ekf_p_angle_rad2", -.01), "invalid_p_cross": ("ekf_p_angle_bias_rad2_s", 1.),
+            "scalar_s": ("s_rad2", 0.), "vector_s_cross": ("s_yz_m2_s4", 100.),
+            "vector_nis": ("nis", 100.), "scalar_nis": ("nis", 100.),
+            "innovation_time": ("arrival_time_s", .119),
+        }[mutation]
+        rows[10, columns.index(field)] = value
+        np.savetxt(path, rows, delimiter=",", header=header, comments="", fmt="%.17g")
+    with pytest.raises(ValueError):
         build_scenarios(sources[0], controlled)
