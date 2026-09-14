@@ -135,20 +135,27 @@ function startExplorer(data) {
     const dropout = event?.kind === 'accel_dropout' ? event : null;
     const ramp = event?.kind === 'bias_ramp' ? event : null;
     const initial = scenario().initialization;
-    $('#scenario-description').textContent = scenarioId === 'initial_offset'
+    const wrongStart = initial.roll_deg !== 0;
+    const overconfident = scenarioId === 'initial_overconfident';
+    const mismatch = scenarioId === 'accel_noise_mismatch';
+    const noise = scenario().accelerometer_noise;
+    $('#scenario-description').textContent = wrongStart
       ? `All estimates start at ${initial.roll_deg}°, while true roll is 0°. The Kalman filters declare an initial angle standard deviation of ${initial.angle_std_deg}°.`
-      : ramp ? `True gyro bias rises from ${ramp.initial_bias_deg_s} to ${ramp.final_bias_deg_s}°/s between ${ramp.start_s} and ${ramp.end_s} s, then stays at ${ramp.final_bias_deg_s}°/s. All accelerometer corrections remain available.`
+      : mismatch ? `Accelerometer noise standard deviation is ${noise.actual_std_m_s2} m/s² per component; the Kalman filters assume ${noise.assumed_std_m_s2} m/s². The simulated noise has three times the standard deviation and nine times the assumed variance.`
+        : ramp ? `True gyro bias rises from ${ramp.initial_bias_deg_s} to ${ramp.final_bias_deg_s}°/s between ${ramp.start_s} and ${ramp.end_s} s, then stays at ${ramp.final_bias_deg_s}°/s. All accelerometer corrections remain available.`
         : dropout ? `${dropout.omitted_count} accelerometer observations are omitted from 12 to 17 s. Gyro predictions continue; corrections resume at 17 s.`
         : pulse ? `Added body-y acceleration: +${pulse.value_m_s2} m/s² from ${pulse.start_s} to ${pulse.end_s} s. The gravity model is disturbed.`
           : 'Smooth roll with constant gyro bias. Accelerometer measurements follow the gravity model.';
-    $('#jump').hidden = scenarioId === 'nominal';
-    $('#jump').textContent = scenarioId === 'initial_offset' ? 'Inspect start'
+    $('#jump').hidden = !wrongStart && !event;
+    $('#jump').textContent = wrongStart ? 'Inspect start'
       : ramp ? 'Inspect ramp' : dropout ? 'Inspect loss' : 'Inspect disturbance';
-    $('#recovery').hidden = !dropout && !ramp;
-    $('#recovery').textContent = ramp ? 'Inspect plateau' : 'Inspect recovery';
-    $('#metric-note').textContent = scenarioId === 'initial_offset'
-      ? 'Includes the initial 60° error and the recovery transient. This is one noise realization.'
-      : ramp ? 'The filters keep their constant-bias model. This run evaluates a model mismatch, not retuned filters.'
+    $('#recovery').hidden = !dropout && !ramp && !wrongStart;
+    $('#recovery').textContent = wrongStart ? 'Inspect end' : ramp ? 'Inspect plateau' : 'Inspect recovery';
+    $('#metric-note').textContent = overconfident
+      ? 'Zero initial angle variance does not freeze the angle: prediction adds uncertainty. Corrections can attribute the initial error to gyro bias. Inspect the end to see the remaining error.'
+      : wrongStart ? 'Includes the initial 60° error and the recovery transient. Compare with Overconfident start: only the declared initial angle uncertainty changes.'
+        : mismatch ? 'The noise increase applies throughout the run. Filter tuning stays fixed; this is one paired noise realization, not a robustness ranking.'
+        : ramp ? 'The filters keep their constant-bias model. This run evaluates a model mismatch, not retuned filters.'
         : dropout ? 'A lower error on this seed does not mean losing observations improves estimation.'
         : 'Computed from every original endpoint, including initialization.';
     document.querySelectorAll('[data-scenario]').forEach(button => {
@@ -162,7 +169,8 @@ function startExplorer(data) {
         : `${config.bias_deg_s}°/s, constant`],
       ['Kalman bias model', 'Constant in prediction; updated at corrections. No bias random walk.'],
       ['Gyro noise', `${config.gyro_noise_std_deg_s}°/s per interval-mean sample`],
-      ['Accelerometer noise', `${config.accel_noise_std_m_s2} m/s² per component`],
+      ['Simulated accelerometer noise', `Standard deviation ${noise.actual_std_m_s2} m/s² per component`],
+      ['Assumed accelerometer noise', `Standard deviation ${noise.assumed_std_m_s2} m/s² per component; vector EKF uses R = σ² I, angle KF uses the tilt approximation`],
       ['Initialization', `Estimated roll ${initial.roll_deg}° (truth 0°) · angle std ${initial.angle_std_deg}° · estimated bias ${initial.bias_deg_s}°/s, std ${initial.bias_std_deg_s}°/s`],
       ['Seed / reference', `${data.seed} · known simulation truth`],
       ['Injected acceleration', pulse ? `+${pulse.value_m_s2} m/s² in body y; ${pulse.start_s} ≤ t < ${pulse.end_s} s` : 'None'],
@@ -196,7 +204,8 @@ function startExplorer(data) {
 
   function eventInspectionTime() {
     const event = scenario().event;
-    return event ? event.start_s + (event.kind === 'bias_ramp' ? .5 : .4) * (event.end_s - event.start_s) : 0;
+    return event ? event.start_s + (event.kind === 'bias_ramp' ? .5 : .4) * (event.end_s - event.start_s)
+      : scenario().initialization.roll_deg !== 0 ? 0 : Math.min(8, duration);
   }
 
   function tick(timestamp) {
@@ -237,12 +246,12 @@ function startExplorer(data) {
   $('#recovery').addEventListener('click', () => {
     stop();
     const event = scenario().event;
-    setTime(event.kind === 'bias_ramp' ? event.end_s : event.first_correction_after_s);
+    setTime(event ? (event.kind === 'bias_ramp' ? event.end_s : event.first_correction_after_s) : duration);
   });
   document.querySelectorAll('[data-scenario]').forEach(button => button.addEventListener('click', () => {
     stop();
     scenarioId = button.dataset.scenario;
-    time = scenarioId === 'nominal' ? Math.min(8, duration) : eventInspectionTime();
+    time = eventInspectionTime();
     renderScenario();
     $('#announcement').textContent = `${button.textContent} selected.`;
   }));

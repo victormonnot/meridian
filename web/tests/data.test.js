@@ -42,6 +42,30 @@ test('wrong initialization remains distinct from simulation truth', () => {
   assert.equal(latestCorrection(scenario, .1), .1);
 });
 
+test('initial confidence changes the Kalman outcomes with identical baseline trajectories', () => {
+  const uncertain = artifact.scenarios.initial_offset;
+  const confident = artifact.scenarios.initial_overconfident;
+  assert.equal(confident.initialization.angle_std_deg, 0);
+  assert.deepEqual(sampleAt(confident.rows, 0).slice(2, 6), [60, 60, 60, 60]);
+  assert.deepEqual(confident.rows.map(row => row.slice(0, 4)), uncertain.rows.map(row => row.slice(0, 4)));
+  assert.notEqual(confident.metrics.rmse_deg.ekf, uncertain.metrics.rmse_deg.ekf);
+  assert.equal(confident.event, null);
+});
+
+test('noise metadata separates simulated and assumed standard deviations without an interval event', () => {
+  for (const [name, scenario] of Object.entries(artifact.scenarios)) {
+    assert.deepEqual(scenario.accelerometer_noise, {
+      actual_std_m_s2: name === 'accel_noise_mismatch' ? .6 : .2, assumed_std_m_s2: .2,
+    });
+  }
+  const noisy = artifact.scenarios.accel_noise_mismatch;
+  assert.equal(noisy.event, null);
+  assert.equal(noisy.correction_times_s.length, 300);
+  const definition = controlled.scenario_definitions.find(item => item.name === 'accel_noise_mismatch');
+  assert.equal(noisy.accelerometer_noise.actual_std_m_s2, definition.accel_noise_std_m_s2);
+  assert.equal(noisy.accelerometer_noise.assumed_std_m_s2, controlled.shared_settings.assumed_accel_noise_std_m_s2);
+});
+
 test('dropout retains predictions and applies bias recovery only at 17 seconds', () => {
   const scenario = artifact.scenarios.accel_dropout;
   assert.equal(scenario.correction_times_s.length, 250);
@@ -67,7 +91,7 @@ test('bias ramp interpolates truth continuously while holding estimated biases',
   }
   assert.equal(latestCorrection(scenario, 15), 15);
   assert.ok(Math.abs(sampleAt(scenario.rows, 30)[8] - .934711) < 1e-6);
-  // The four previous runs retain their constant true bias.
+  // All other runs retain their constant true bias.
   for (const [name, other] of Object.entries(artifact.scenarios)) {
     if (name !== 'bias_ramp') assert.equal(sampleAt(other.rows, 15.025)[6], .5);
   }
@@ -113,6 +137,10 @@ const mutations = {
   'missing metric': data => { delete data.scenarios.nominal.metrics.rmse_deg.ekf; },
   'invalid disturbance': data => { data.scenarios.translation_pulse.event.end_s = 31; },
   'incorrect initial covariance': data => { data.scenarios.initial_offset.initialization.angle_std_deg = 0; },
+  'overconfident start mislabeled as uncertain': data => { data.scenarios.initial_overconfident.initialization.angle_std_deg = 30; },
+  'missing noise provenance': data => { delete data.scenarios.accel_noise_mismatch.accelerometer_noise; },
+  'noise mismatch hidden': data => { data.scenarios.accel_noise_mismatch.accelerometer_noise.actual_std_m_s2 = .2; },
+  'filter retuned to actual noise': data => { data.scenarios.accel_noise_mismatch.accelerometer_noise.assumed_std_m_s2 = .6; },
   'invented missing correction': data => { data.scenarios.accel_dropout.correction_times_s.push(16); },
   'wrong recovery': data => { data.scenarios.accel_dropout.event.first_correction_after_s = 16.9; },
   'domain hiding initial error': data => { data.scenarios.initial_offset.domains.roll_deg = [-20, 20]; },

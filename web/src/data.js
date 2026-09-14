@@ -29,7 +29,8 @@ export function validateComparison(data) {
     && config.observation_every === 10, 'measurement schedule');
   require(Number.isSafeInteger(data.seed) && data.seed >= 0, 'seed');
   require(Number.isInteger(data.display_stride) && data.display_stride > 0, 'display stride');
-  const names = ['nominal', 'translation_pulse', 'initial_offset', 'accel_dropout', 'bias_ramp'];
+  const names = ['nominal', 'translation_pulse', 'initial_offset', 'accel_dropout', 'bias_ramp',
+    'initial_overconfident', 'accel_noise_mismatch'];
   require(JSON.stringify(Object.keys(data.scenarios ?? {}).sort()) === JSON.stringify([...names].sort()), 'scenario selection');
   for (const [source, experiment] of [['paired', 'vector_ekf_comparison'], ['controlled', 'controlled_scenarios']]) {
     const provenance = data.sources?.[source];
@@ -47,9 +48,12 @@ export function validateComparison(data) {
     require(scenario.source_sample_count === 3001 && scenario.rows.length <= 3001, 'sample count');
     const initial = scenario.initialization;
     require(initial && ['roll_deg', 'angle_std_deg', 'bias_deg_s', 'bias_std_deg_s'].every(field => Number.isFinite(initial[field])), 'initialization');
-    require(initial.roll_deg === (name === 'initial_offset' ? 60 : 0)
+    require(initial.roll_deg === (['initial_offset', 'initial_overconfident'].includes(name) ? 60 : 0)
       && initial.angle_std_deg === (name === 'initial_offset' ? 30 : 0)
       && initial.bias_deg_s === 0 && initial.bias_std_deg_s === 1, 'initialization contract');
+    const noise = scenario.accelerometer_noise;
+    require(noise?.actual_std_m_s2 === (name === 'accel_noise_mismatch' ? .6 : .2)
+      && noise.assumed_std_m_s2 === .2 && config.accel_noise_std_m_s2 === .2, 'accelerometer noise contract');
     const rowTimes = new Set();
     let previous = -Infinity;
     for (const row of scenario.rows) {

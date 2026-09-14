@@ -1,4 +1,4 @@
-"""Export five selected simulation cases for the static results explorer."""
+"""Export seven selected simulation cases for the static results explorer."""
 
 import argparse
 from dataclasses import asdict
@@ -14,7 +14,8 @@ from meridian.web_export import _read_columns, build_comparison
 
 
 METHODS = ("gyro", "complementary", "kalman", "ekf")
-CONTROLLED_CASES = ("initial_offset", "accel_dropout", "bias_ramp")
+CONTROLLED_CASES = ("initial_offset", "accel_dropout", "bias_ramp",
+                    "initial_overconfident", "accel_noise_mismatch")
 ESTIMATE_FIELDS = ["time_s", *[f"{method}_roll_rad" for method in METHODS],
                    "kalman_bias_rad_s", "ekf_bias_rad_s"]
 INITIAL_COVARIANCE_FIELDS = [f"{method}_{field}" for method in ("kalman", "ekf")
@@ -55,8 +56,8 @@ def _domains(rows):
 def build_scenarios(paired_source: Path, controlled_source: Path, *, stride: int = 5) -> dict:
     """Validate two experiment schemas; no simulation or estimator is executed.
 
-    This selection supports the fixed, uniform-time initial-offset, dropout and
-    bias-ramp cases. It does not silently generalize to the other controlled cases.
+    This selection supports fixed, uniform-time initialization, dropout, bias-ramp
+    and noise-mismatch cases. Irregular timing and delay are not included.
     """
     if isinstance(stride, bool) or not isinstance(stride, int) or stride < 1:
         raise ValueError("stride must be a positive integer")
@@ -88,6 +89,7 @@ def build_scenarios(paired_source: Path, controlled_source: Path, *, stride: int
         boundaries = [] if event is None else [event["start_s"], event["end_s"]]
         case.update(source="paired", event=event, domains=data["domains"],
                     initialization={"roll_deg": 0., "angle_std_deg": 0., "bias_deg_s": 0., "bias_std_deg_s": 1.},
+                    accelerometer_noise={"actual_std_m_s2": .2, "assumed_std_m_s2": .2},
                     scheduled_accel_count=300, correction_times_s=arrivals.tolist(),
                     rows=_display(full, arrivals, boundaries, stride))
         # The pair's full-resolution metrics and shared domains are retained.
@@ -142,6 +144,11 @@ def build_scenarios(paired_source: Path, controlled_source: Path, *, stride: int
         arrivals = schedule[available, 0]
         accel = read("accel_measurements.csv", ["arrival_time_s", "force_y_m_s2", "force_z_m_s2"])
         _equal(accel[:, 0], arrivals, f"{name} available measurements")
+        # Source/sample times coincide in this selection. Remove the checked
+        # gravity signal before comparing the same noise draw at different scales.
+        angle = truth[np.rint(arrivals*100).astype(int), 1]
+        gravity = -shared["gravity_m_s2"]*np.column_stack([np.sin(angle), np.cos(angle)])
+        accel_noise = (accel[:, 1:]-gravity)/definition["accel_noise_std_m_s2"]
         for filename in ("kalman_innovations.csv", "ekf_innovations.csv"):
             _equal(read(filename, ["arrival_time_s"])[:, 0], arrivals, f"{name} actual corrections")
         gyro = read("gyro_measurements.csv", ["t_start_s", "t_end_s", "rate_rad_s"])
@@ -188,20 +195,23 @@ def build_scenarios(paired_source: Path, controlled_source: Path, *, stride: int
             "source": "controlled", "source_sample_count": len(times), "event": event,
             "initialization": {"roll_deg": definition["initial_angle_deg"], "angle_std_deg": definition["initial_angle_std_deg"],
                                "bias_deg_s": 0., "bias_std_deg_s": 1.},
+            "accelerometer_noise": {"actual_std_m_s2": definition["accel_noise_std_m_s2"],
+                                    "assumed_std_m_s2": shared["assumed_accel_noise_std_m_s2"]},
             "scheduled_accel_count": 300, "correction_times_s": arrivals.tolist(),
             "metrics": metrics, "domains": _domains(rows),
             "rows": _display(rows, arrivals, boundaries, stride),
         }
         streams[name] = {key: str(value) for key, value in record["stream_seeds"].items()}
-        paired_inputs[name] = (truth, gyro, accel, gyro[:, 2]-interval_truth[:, 2]-mean_bias)
-    reference_truth, reference_gyro, reference_accel, reference_noise = paired_inputs["initial_offset"]
+        paired_inputs[name] = (truth, gyro, accel, gyro[:, 2]-interval_truth[:, 2]-mean_bias, accel_noise)
+    reference_truth, reference_gyro, reference_accel, reference_noise, reference_accel_noise = paired_inputs["initial_offset"]
     for name in CONTROLLED_CASES[1:]:
-        truth, gyro, accel, gyro_noise = paired_inputs[name]
+        truth, gyro, accel, gyro_noise, accel_noise = paired_inputs[name]
         _equal(reference_truth[:, :2], truth[:, :2], f"{name} paired motion truth")
         _equal(reference_gyro[:, :2], gyro[:, :2], f"{name} paired gyro timing")
         _equal(reference_noise, gyro_noise, f"{name} paired gyro noise")
         subset = np.isin(reference_accel[:, 0], accel[:, 0])
-        _equal(reference_accel[subset], accel, f"{name} paired accelerometer subset")
+        _equal(reference_accel[subset, 0], accel[:, 0], f"{name} paired accelerometer times")
+        _equal(reference_accel_noise[subset], accel_noise, f"{name} paired accelerometer noise")
     data["sources"]["controlled"] = {
         "experiment": "controlled_scenarios", "source_sha256": hashes, "stream_seeds": streams,
         "metric_basis": "all original endpoints, including initialization; unwrapped angle error",

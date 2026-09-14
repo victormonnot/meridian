@@ -20,7 +20,8 @@ vector EKF has only been evaluated in simulation. Its real-log replay and new
 documented bench acquisition are pending; historical replay is not a completed
 bench validation. A [static web explorer](web-explorer.md) replays the selected
 nominal and translation simulations, plus controlled cases with an incorrect
-initial angle, unavailable accelerometer observations and changing gyro bias,
+initial angle at two confidence levels, unavailable accelerometer observations,
+changing gyro bias and underestimated noise,
 with full-run metrics and source provenance.
 
 ## Scope
@@ -186,11 +187,16 @@ are an experiment format, not a general sensor interchange specification.
 The web interface uses JavaScript ES modules, Vite and D3. A small Python adapter
 validates existing experiment CSVs against their summaries, then exports a
 versioned JSON display artifact. The adapter keeps per-scenario
-initialization, domains and correction schedules, with source fingerprints grouped
+initialization, simulated/assumed accelerometer noise, domains and correction schedules, with source fingerprints grouped
 by experiment. Every correction endpoint and its predecessor survive display
 reduction; estimated biases are held until a recorded correction, while roll and
 true bias are interpolated. The ramp changes the simulated bias from 0.5 to
 1.5 deg/s over 10–20 s; the estimators retain their constant-bias prediction model.
+Two initialization cases start at 60° with 30° or zero declared angle standard
+deviation. The noise-mismatch case generates component noise with a standard
+deviation of 0.6 m/s² while the Kalman filters still assume 0.2 m/s².
+Source checks compare standardized acceleration
+noise after removing gravity; raw forces differ when the noise scale changes.
 The browser reads that artifact and synchronizes
 roll/bias plots, playback and a rear-view roll indicator. Display decimation and
 interpolation never replace full-resolution metrics. Neither the estimator core
@@ -204,7 +210,7 @@ Read back the installed flight-controller configuration and acquire a short
 stationary and manual-roll bench recording with documented poses and conditions.
 Use the implemented audit and replay to inspect those measurements, with explicit
 angle-reference uncertainty and noise assumptions. Historical logs do not replace
-that acquisition. The web interface now explores five reproducible simulated
+that acquisition. The web interface now explores seven reproducible simulated
 runs; browser interaction and responsive use remain to be evaluated. Real angle reference,
 sensor noise, and broader validation criteria remain open. Current parameters have
 not been fitted to a physical IMU.

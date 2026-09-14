@@ -25,7 +25,8 @@ def test_selection_units_metrics_and_preserved_corrections(sources):
     data = build_scenarios(*sources, stride=37)
     summary = json.loads((sources[1]/"summary.json").read_text())
     assert data["schema_version"] == 2
-    assert list(data["scenarios"]) == ["nominal", "translation_pulse", "initial_offset", "accel_dropout", "bias_ramp"]
+    assert list(data["scenarios"]) == ["nominal", "translation_pulse", "initial_offset", "accel_dropout", "bias_ramp",
+                                       "initial_overconfident", "accel_noise_mismatch"]
     for name, case in data["scenarios"].items():
         rows = np.array(case["rows"])
         ticks = set(np.rint(rows[:, 0]*100).astype(int))
@@ -86,6 +87,60 @@ def test_export_is_deterministic_and_refuses_overwrite(sources, tmp_path):
     with pytest.raises(FileExistsError):
         export_scenarios(*sources, first)
     assert first.read_bytes() == second.read_bytes()
+
+
+def test_initial_confidence_changes_only_kalman_references(sources):
+    cases = build_scenarios(*sources)["scenarios"]
+    uncertain, confident = cases["initial_offset"], cases["initial_overconfident"]
+    assert confident["rows"][0][2:6] == [60]*4
+    assert confident["initialization"]["angle_std_deg"] == 0
+    assert uncertain["initialization"]["angle_std_deg"] == 30
+    assert confident["event"] is None
+    np.testing.assert_array_equal(np.asarray(uncertain["rows"])[:, :4], np.asarray(confident["rows"])[:, :4])
+    assert uncertain["metrics"]["rmse_deg"]["ekf"] != confident["metrics"]["rmse_deg"]["ekf"]
+
+
+def test_noise_scale_is_separate_from_fixed_filter_assumption(sources):
+    cases = build_scenarios(*sources)["scenarios"]
+    assert cases["accel_noise_mismatch"]["event"] is None
+    for name, case in cases.items():
+        assert case["accelerometer_noise"] == {
+            "actual_std_m_s2": .6 if name == "accel_noise_mismatch" else .2, "assumed_std_m_s2": .2}
+    reference, noisy = [np.loadtxt(sources[1]/name/"accel_measurements.csv", delimiter=",", skiprows=1)
+                        for name in ("initial_offset", "accel_noise_mismatch")]
+    # Independent force identity for the same standardized noise draw at 3x sigma.
+    theta = np.deg2rad(20)*np.sin(2*np.pi*.1*reference[:, 0])
+    gravity = -9.80665*np.column_stack([np.sin(theta), np.cos(theta)])
+    np.testing.assert_allclose(noisy[:, 1:], 3*reference[:, 1:]-2*gravity, atol=1e-12, rtol=0)
+
+
+@pytest.mark.parametrize("mutation", ["actual_noise", "assumed_noise", "accel_component", "overconfident_covariance"])
+def test_reject_misrepresented_confidence_or_noise(sources, tmp_path, mutation):
+    controlled = Path(shutil.copytree(sources[1], tmp_path/"controlled"))
+    if mutation in ("actual_noise", "assumed_noise"):
+        path = controlled/"summary.json"
+        summary = json.loads(path.read_text())
+        if mutation == "actual_noise":
+            definition = next(item for item in summary["scenario_definitions"] if item["name"] == "accel_noise_mismatch")
+            definition["accel_noise_std_m_s2"] = .2
+        else:
+            summary["shared_settings"]["assumed_accel_noise_std_m_s2"] = .6
+        path.write_text(json.dumps(summary))
+        message = "definition|settings"
+    else:
+        path = controlled/("accel_noise_mismatch/accel_measurements.csv" if mutation == "accel_component"
+                           else "initial_overconfident/estimates.csv")
+        header = path.read_text().splitlines()[0]
+        values = np.loadtxt(path, delimiter=",", skiprows=1)
+        if mutation == "accel_component":
+            values[40, 1] += .01
+            message = "paired accelerometer noise"
+        else:
+            values[0, header.split(",").index("ekf_p_angle_rad2")] = np.deg2rad(30)**2
+            message = "initial covariance"
+        np.savetxt(path, values, delimiter=",", header=header, comments="", fmt="%.17g")
+    with pytest.raises(ValueError, match=message):
+        build_scenarios(sources[0], controlled)
 
 
 @pytest.mark.parametrize("stride", [0, -1, True, 1.5])

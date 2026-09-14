@@ -24,8 +24,10 @@
           <button type="button" data-scenario="nominal" aria-pressed="true">Nominal</button>
           <button type="button" data-scenario="translation_pulse" aria-pressed="false">Translation disturbance</button>
           <button type="button" data-scenario="initial_offset" aria-pressed="false">Wrong initial angle</button>
+          <button type="button" data-scenario="initial_overconfident" aria-pressed="false">Overconfident start</button>
           <button type="button" data-scenario="accel_dropout" aria-pressed="false">Accelerometer loss</button>
           <button type="button" data-scenario="bias_ramp" aria-pressed="false">Changing gyro bias</button>
+          <button type="button" data-scenario="accel_noise_mismatch" aria-pressed="false">Underestimated noise</button>
         </nav>
         <div class="context"><p id="scenario-description"></p><div class="inspection-links"><button type="button" id="jump" hidden>Inspect disturbance</button><button type="button" id="recovery" hidden>Inspect recovery</button></div></div>
         <div class="player" aria-label="Playback controls">
