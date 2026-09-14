@@ -26,6 +26,7 @@ meridian-controlled-scenarios = "meridian.stress_experiment:main"
 meridian-cpp-parity = "meridian.cpp_parity:main"
 meridian-dataflash-audit = "meridian.dataflash_audit:main"
 meridian-imu-replay = "meridian.imu_replay:main"
+meridian-imu-cpp-parity = "meridian.imu_cpp_parity:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

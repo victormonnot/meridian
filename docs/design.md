@@ -11,6 +11,9 @@ keeping all estimator algorithms and tuning fixed.
 A separate [C++17/Eigen EKF](cpp-ekf.md) implements the same model, with native
 tests and every-operation numerical comparison against Python on those cases
 and the translation pulse.
+The [recorded IMU comparison](imu-cpp-parity.md) also checks that port after every
+operation on the selected historical segment, with separate linkage to the Python
+snapshot replay and unchanged tuning and numerical tolerances.
 The earlier direct synthetic angle experiment remains available.
 An optional [DataFlash audit](dataflash-audit.md) now extracts IMU snapshots,
 checks recorded units, and reports timing discontinuities and selected metadata.

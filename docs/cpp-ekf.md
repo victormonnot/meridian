@@ -64,8 +64,10 @@ predict,0.12,0.01
 update,-0.15,-9.8
 ```
 
-For `predict`, values are the measured interval-mean gyro rate in rad/s and dt in
-seconds. For `update`, they are body y/z specific force in m/s². Events execute
+For `predict`, values are the supplied gyro rate in rad/s and dt in seconds.
+Simulation adapters supply interval means; the [recorded IMU adapter](imu-cpp-parity.md)
+holds the previous snapshot over the logged interval. For `update`, values are
+body y/z specific force in m/s². Events execute
 in file order. The caller supplies time ordering through the event sequence and
 prediction durations; the protocol is not a general sensor-log format. There is
 no truth, hidden acquisition time, gap filling, or automatic delayed update.
@@ -106,6 +108,10 @@ criteria, not sensor accuracy specifications. Check the eight
 [controlled cases](controlled-scenarios.md) plus the existing translation pulse,
 each at seed 42 and seeds 0–19: **189 complete traces**. No model parameters are
 retuned and no physical accuracy requirement is added to the difficult cases.
+
+The [recorded IMU comparison](imu-cpp-parity.md) also applies these unchanged
+tolerances to an explicitly selected DataFlash segment. A separate snapshot
+linkage check verifies the event conversion before interpreting port agreement.
 
 Native C++ tests separately check poses/Jacobians, analytical prediction and
 correction, covariance behavior, failure atomicity, and local zero/opposite-force

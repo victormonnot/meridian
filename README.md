@@ -16,7 +16,8 @@ timing, gaps and health metadata. Offline replay compares gyro, complementary,
 angle KF and vector EKF estimates on an explicitly selected log segment with declared
 sampling and tuning assumptions. The [historical replay](results/imu-replay/README.md)
 has no independent angle reference. A C++17 port of the vector EKF provides a separate numerical core and
-event replay executable, checked against Python after every operation.
+event replay executable, checked against Python after every operation in simulation
+and on the same [recorded IMU segment](results/imu-cpp-parity/README.md).
 A static web explorer replays the nominal and translation runs, plus wrong
 initialization at two confidence levels, accelerometer loss, changing gyro bias
 and underestimated noise, irregular timing and unmodeled delay from the controlled suite. A new documented bench
@@ -158,6 +159,7 @@ Historical recordings do not establish current acquisition conditions.
 | `src/meridian/dataflash_audit.py` | Per-instance timing, measurement inspection and local exports. |
 | `src/meridian/replay.py` | Causal roll/bias replay of contiguous snapshots, independent of file formats. |
 | `src/meridian/imu_replay.py` | Explicit DataFlash segment selection, replay diagnostics and exports. |
+| `src/meridian/imu_cpp_parity.py` | Recorded snapshot-to-event mapping and full Python/C++ comparison with provenance. |
 | `src/meridian/web_export.py` | Checked display export from existing paired simulation records. |
 | `src/meridian/web_scenarios.py` | Combine the paired runs with selected controlled cases, preserving corrections and provenance. |
 | `src/meridian/web_diagnostics.py` | Check endpoint covariance and pre-correction innovations, then export diagnostic states and NIS. |

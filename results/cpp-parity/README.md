@@ -5,6 +5,8 @@ This report checks implementation agreement on serialized input operations,
 including the difficult cases where both filters can be physically wrong.
 The [model and comparison contract](../../docs/cpp-ekf.md) defines the numerical
 thresholds before evaluation and documents the standalone C++ API and event CLI.
+A separate [recorded IMU report](../imu-cpp-parity/README.md) applies the same
+tolerances to the selected historical DataFlash segment.
 
 **All 189 complete traces pass the declared agreement criteria.** The comparison
 covers nine cases at displayed seed 42 and seeds 0–19: the eight

@@ -37,7 +37,8 @@ if(BUILD_TESTING)
             COMMAND "${CMAKE_COMMAND}" -E env
                 "MERIDIAN_CPP_BINARY=$<TARGET_FILE:meridian_ekf_replay>"
                 "${MERIDIAN_TEST_PYTHON}" -m pytest -q
-                "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_cpp_parity.py")
+                "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_cpp_parity.py"
+                "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_imu_cpp_parity.py")
         set_tests_properties(cpp_python_parity PROPERTIES
             WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
     endif()

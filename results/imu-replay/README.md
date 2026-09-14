@@ -121,8 +121,10 @@ All exported state covariances were positive semidefinite and innovation
 covariances positive definite. These checks establish numerical agreement of
 the replay calculations, not correctness of the physical observation model.
 
-The existing C++ core remains a separate implementation; this historical run
-did not execute it. The web explorer still contains simulations only. Known
+This Python experiment does not execute C++. A separate
+[historical Python/C++ comparison](../imu-cpp-parity/README.md) now checks the
+same segment and links its operations back to these snapshot results.
+The web explorer still contains simulations only. Known
 static poses, reference uncertainty and slow manual roll in a new documented
 acquisition remain necessary, with the drone disarmed, propellers removed and
 Meridian outside the control loop. No embedded, real-time or flight validation

@@ -7,6 +7,8 @@ preserves the original recording. This is a Python offline experiment; the
 separate C++ core is not executed by this runner. A
 [historical replay report](../results/imu-replay/README.md) records the selected
 real-data results and their limits.
+The separate [Python/C++ comparison driver](imu-cpp-parity.md) retains this
+replay and checks the native EKF after every prediction and correction.
 
 ## Run
 

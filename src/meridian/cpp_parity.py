@@ -22,6 +22,10 @@ from meridian.stress_scenarios import SCENARIOS, generate_scenario
 CASE_NAMES = tuple(scenario.name for scenario in SCENARIOS) + ("translation_pulse",)
 VALUE_NAMES = ("angle_rad", "bias_rad_s", "p00", "p01", "p10", "p11", "v0", "v1", "s00", "s01", "s10", "s11")
 TRACE_HEADER = ("step", "operation", *VALUE_NAMES)
+QUANTITY_UNITS = {"angle_rad": "rad", "bias_rad_s": "rad/s", "p00": "rad^2",
+                  "p01": "rad^2/s", "p10": "rad^2/s", "p11": "rad^2/s^2",
+                  "v0": "m/s^2", "v1": "m/s^2", "s00": "m^2/s^4", "s01": "m^2/s^4",
+                  "s10": "m^2/s^4", "s11": "m^2/s^4"}
 # Fixed before evaluation; absolute units follow each named scalar quantity.
 TOLERANCES = {name: {"atol": 1e-12 if name.startswith("p") else 1e-10, "rtol": 1e-10}
               for name in VALUE_NAMES}
@@ -195,10 +199,7 @@ def run_experiment(binary: Path, output_dir: Path, *, seed: int = 42, validation
         "seed": seed, "validation_seeds": list(range(validation_seeds)), "scenario_names": list(CASE_NAMES),
         "tolerances": TOLERANCES,
         "comparison_rule": "abs(cpp-python) <= atol + rtol * abs(python); both use decoded serialized inputs",
-        "quantity_units": {"angle_rad": "rad", "bias_rad_s": "rad/s", "p00": "rad^2",
-                           "p01": "rad^2/s", "p10": "rad^2/s", "p11": "rad^2/s^2",
-                           "v0": "m/s^2", "v1": "m/s^2", "s00": "m^2/s^4", "s01": "m^2/s^4",
-                           "s10": "m^2/s^4", "s11": "m^2/s^4"},
+        "quantity_units": QUANTITY_UNITS,
         "selected": selected, "validation": repeats,
         "aggregate": {"trace_count": len(all_results),
                       "record_count": sum(result["record_count"] for result in all_results),
