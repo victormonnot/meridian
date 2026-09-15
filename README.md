@@ -48,6 +48,12 @@ retains every paired score, including bias errors and innovation diagnostics.
 The [fixed protocol](docs/r-sensitivity.md) describes reproduction and limits;
 this study does not change the default tuning or identify physical sensor noise.
 
+The [bias random-walk comparison](results/bias-random-walk/README.md) adds an
+optional continuous bias-diffusion model to the Python and C++ vector EKF. It
+compares three intensities on constant and ramping bias, retaining the constant
+reference, and checks both implementations after every operation. Tracking error
+and late bias fluctuations are reported separately; the default intensity is zero.
+
 The [C++ agreement report](results/cpp-parity/README.md) compares states,
 covariances, and innovations on those eight cases plus the translation pulse.
 Agreement includes unfavorable cases; it establishes implementation agreement
@@ -171,6 +177,7 @@ Historical recordings do not establish current acquisition conditions.
 | `src/meridian/stress_experiment.py` | Repeated scenario evaluation, exports, numerical checks, and comparison figures. |
 | `src/meridian/r_sensitivity.py` | Fixed R comparisons with separate exploration/evaluation seeds, paired metrics, and reproducible exports. |
 | `src/meridian/r_sensitivity_plot.py` | Static figures of individual R-study scores and observed ranges. |
+| `src/meridian/bias_experiment.py` | Bias-diffusion comparison, paired metrics, and every-operation Python/C++ agreement. |
 | `src/meridian/dataflash.py` | Optional DataFlash reader with recorded-unit checks and selected metadata. |
 | `src/meridian/dataflash_audit.py` | Per-instance timing, measurement inspection and local exports. |
 | `src/meridian/replay.py` | Causal roll/bias replay of contiguous snapshots, independent of file formats. |

@@ -1,10 +1,15 @@
 # C++ EKF and Python agreement contract
 
 The C++ port implements the existing [vector EKF model](vector-ekf.md): the same
-two states, force observation, Jacobian, constant-bias prediction, per-interval
+two states, force observation, Jacobian, default constant-bias prediction, per-interval
 gyro noise, and Joseph covariance correction. It is an independent implementation
 of that model; matching Python does not establish physical accuracy or remove the
 known initialization, translation, varying-bias, and delay limitations.
+
+Both vector implementations also accept optional continuous bias diffusion,
+disabled by default. The [bias model and study](bias-random-walk.md) define its
+intensity in (rad/s)/sqrt(s), coupled process covariance, unchanged mean-bias
+prediction and operation-by-operation comparisons on constant and ramping bias.
 
 ## Implementation choices
 
@@ -77,6 +82,12 @@ Pass `--input` and a new `--output` path plus all seven numeric settings:
 `--initial-bias-std-rad-s`, `--gyro-noise-std-rad-s`, `--accel-noise-std-m-s2`,
 and `--gravity-m-s2`. `--help` describes the protocol; `--version` reports the
 compiler, build configuration, Eigen version, C++ standard and protocol version.
+
+The optional `--bias-random-walk-std-rad-s-per-sqrt-s` defaults to zero.
+Unlike gyro/accelerometer per-sample noise, it describes a continuous bias
+diffusion intensity. Omitting it preserves the previous constant-bias invocation;
+the CSV format and protocol version remain 1. The corresponding C++ field is
+appended to `EkfConfig`, retaining the original seven-field aggregate initializer.
 
 Output contains one initial record and one record after each operation. Each
 record includes step, operation, state and all four covariance entries. Update

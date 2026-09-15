@@ -67,6 +67,9 @@ AngleBiasEKF::AngleBiasEKF(const EkfConfig& config) {
     const double bias_variance = checked_variance(
         config.initial_bias_std_rad_s, "initial_bias_std_rad_s");
     checked_variance(config.gyro_noise_std_rad_s, "gyro_noise_std_rad_s");
+    const double bias_random_walk_variance = checked_variance(
+        config.bias_random_walk_std_rad_s_per_sqrt_s,
+        "bias_random_walk_std_rad_s_per_sqrt_s");
     const double accel_variance = checked_variance(
         config.accel_noise_std_m_s2, "accel_noise_std_m_s2");
     if (accel_variance <= 0.0) {
@@ -79,6 +82,7 @@ AngleBiasEKF::AngleBiasEKF(const EkfConfig& config) {
     covariance_(0, 0) = angle_variance;
     covariance_(1, 1) = bias_variance;
     gyro_noise_std_rad_s_ = config.gyro_noise_std_rad_s;
+    bias_random_walk_variance_ = bias_random_walk_variance;
     accel_covariance_ = accel_variance * Matrix2::Identity();
     gravity_m_s2_ = config.gravity_m_s2;
 }
@@ -106,6 +110,17 @@ void AngleBiasEKF::predict(double rate_rad_s, double dt_s) {
     Matrix2 covariance = transition * covariance_ * transition.transpose();
     const double angle_noise_std = gyro_noise_std_rad_s_ * dt_s;
     covariance(0, 0) += angle_noise_std * angle_noise_std;
+    if (bias_random_walk_variance_ > 0.0) {
+        // Integrate continuous bias noise through angle_dot = rate - bias.
+        // Multiply by q_b first instead of forming a potentially huge dt^3.
+        const double qb_dt = bias_random_walk_variance_ * dt_s;
+        const double qb_dt2 = qb_dt * dt_s;
+        const double cross_noise = -0.5 * qb_dt2;
+        covariance(0, 0) += (qb_dt2 * dt_s) / 3.0;
+        covariance(0, 1) += cross_noise;
+        covariance(1, 0) += cross_noise;
+        covariance(1, 1) += qb_dt;
+    }
     if (!state.allFinite() || !covariance.allFinite()) {
         throw std::runtime_error("prediction exceeds the finite numerical range");
     }

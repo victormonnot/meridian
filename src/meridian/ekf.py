@@ -1,4 +1,4 @@
-"""Roll and constant gyro-bias EKF with a gravity-vector observation."""
+"""Roll/bias EKF with a gravity observation and optional bias random walk."""
 
 import math
 
@@ -47,13 +47,17 @@ def gravity_jacobian(
 
 
 class AngleBiasEKF:
-    """Estimate unwrapped roll (rad) and constant gyro bias (rad/s).
+    """Estimate unwrapped roll (rad) and gyro bias (rad/s).
 
     State order is [angle, bias]. Prediction uses independent interval-mean
     gyro noise with Q = diag([(gyro_noise_std_rad_s * dt_s)**2, 0]). Its
     standard deviation is per sample, not a continuous-time noise density.
     Initial uncertainties are independent; a known initial angle may have
-    zero uncertainty. There is no bias random walk.
+    zero uncertainty. Bias is constant by default. A positive
+    bias_random_walk_std_rad_s_per_sqrt_s adds continuous bias diffusion:
+    Q_bias = sigma_b^2 * [[dt^3/3, -dt^2/2], [-dt^2/2, dt]]. Its units are
+    (rad/s)/sqrt(s), unlike the gyro's per-interval standard deviation. Mean
+    bias stays unchanged during prediction; no drift slope is predicted.
 
     The observation is the unnormalized body y/z specific-force vector:
     h = [-g*sin(angle), -g*cos(angle)]. R = accel_noise_std_m_s2**2 * I
@@ -84,6 +88,7 @@ class AngleBiasEKF:
         gyro_noise_std_rad_s: float,
         accel_noise_std_m_s2: float,
         gravity_m_s2: float = 9.80665,
+        bias_random_walk_std_rad_s_per_sqrt_s: float = 0.0,
     ) -> None:
         if not math.isfinite(initial_angle_rad) or not math.isfinite(initial_bias_rad_s):
             raise ValueError("initial angle and bias must be finite")
@@ -93,6 +98,7 @@ class AngleBiasEKF:
             "initial_bias_std_rad_s": initial_bias_std_rad_s,
             "gyro_noise_std_rad_s": gyro_noise_std_rad_s,
             "accel_noise_std_m_s2": accel_noise_std_m_s2,
+            "bias_random_walk_std_rad_s_per_sqrt_s": bias_random_walk_std_rad_s_per_sqrt_s,
         }
         variances = {}
         for name, value in standard_deviations.items():
@@ -110,6 +116,7 @@ class AngleBiasEKF:
             variances["initial_angle_std_rad"], variances["initial_bias_std_rad_s"]
         ])
         self._gyro_noise_std_rad_s = float(gyro_noise_std_rad_s)
+        self._bias_random_walk_variance = variances["bias_random_walk_std_rad_s_per_sqrt_s"]
         self._accel_covariance = np.eye(2) * variances["accel_noise_std_m_s2"]
         self._gravity_m_s2 = float(gravity_m_s2)
 
@@ -137,6 +144,15 @@ class AngleBiasEKF:
             covariance = transition @ self._covariance @ transition.T
             angle_noise_std = self._gyro_noise_std_rad_s * dt_s
             covariance[0, 0] += angle_noise_std * angle_noise_std
+            if self._bias_random_walk_variance > 0.0:
+                # Integrate the same bias disturbance into angle and bias;
+                # the negative cross term follows from subtracting gyro bias.
+                bias_variance = self._bias_random_walk_variance * dt_s
+                cross_scale = bias_variance * dt_s
+                covariance[0, 0] += cross_scale * dt_s / 3.0
+                covariance[0, 1] -= cross_scale / 2.0
+                covariance[1, 0] -= cross_scale / 2.0
+                covariance[1, 1] += bias_variance
         if not np.all(np.isfinite(state)) or not np.all(np.isfinite(covariance)):
             raise ValueError("prediction exceeds the finite numerical range")
         self._state = state

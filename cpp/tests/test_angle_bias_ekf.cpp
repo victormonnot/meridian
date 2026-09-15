@@ -122,6 +122,123 @@ void test_analytical_prediction_and_bias_correction() {
     check_near(fixed_bias.covariance()(1, 1), 0.0, 0.0);
 }
 
+void test_bias_random_walk_analytical_covariance() {
+    EkfConfig config = configuration();
+    config.bias_random_walk_std_rad_s_per_sqrt_s = 0.2;
+    AngleBiasEKF estimator(config);
+    estimator.predict(0.4, 1.5);
+
+    // Integrating q_b=0.04 over 1.5 s contributes 0.045 rad^2 to angle,
+    // -0.045 rad^2/s cross covariance and 0.06 (rad/s)^2 to bias.
+    // Add these to the initial covariance propagation and sample gyro noise.
+    Matrix2 expected;
+    expected << 0.16 + 2.25 * 0.04 + 0.075 * 0.075 + 0.045, -1.5 * 0.04 - 0.045,
+                -1.5 * 0.04 - 0.045, 0.04 + 0.06;
+    check_matrix(estimator.state(), Vector2(0.87, 0.02));
+    check_matrix(estimator.covariance(), expected);
+    check_covariance(estimator.covariance());
+
+    // With no initial uncertainty or gyro noise, isolate the continuous Q.
+    config.initial_angle_std_rad = 0.0;
+    config.initial_bias_std_rad_s = 0.0;
+    config.gyro_noise_std_rad_s = 0.0;
+    AngleBiasEKF isolated(config);
+    isolated.predict(0.4, 1.5);
+    expected << 0.045, -0.045, -0.045, 0.06;
+    check_matrix(isolated.covariance(), expected);
+    check_covariance(isolated.covariance());
+}
+
+void test_bias_random_walk_interval_composition() {
+    EkfConfig config = configuration();
+    config.gyro_noise_std_rad_s = 0.0;
+    config.bias_random_walk_std_rad_s_per_sqrt_s = 0.13;
+    AngleBiasEKF whole(config);
+    AngleBiasEKF partitioned(config);
+    whole.predict(0.4, 1.25);
+    for (double dt : {0.125, 0.375, 0.5, 0.25}) {
+        partitioned.predict(0.4, dt);
+    }
+    // Continuous process noise composes across intervals via F Q F^T.
+    // Fixed per-sample gyro variance deliberately contributes no noise here.
+    check_matrix(partitioned.state(), whole.state());
+    check_matrix(partitioned.covariance(), whole.covariance());
+}
+
+void test_bias_random_walk_reopens_bias_uncertainty() {
+    EkfConfig config{0.0, 0.0, 0.0, 0.0, 0.0, 0.2, gravity};
+    config.bias_random_walk_std_rad_s_per_sqrt_s = 0.2;
+    AngleBiasEKF estimator(config);
+    estimator.predict(0.0, 1.5);
+    check_matrix(estimator.state(), Vector2::Zero(), 0.0);
+    const Matrix2 prior = estimator.covariance();
+    CHECK(prior(1, 1) > 0.0);
+    CHECK(prior(0, 1) < 0.0);
+
+    // The nonzero cross covariance permits a bias correction even though
+    // P0=0. This scalar tangent oracle is independent of the 2 x 2 solve.
+    const Vector2 expected_state = prior.col(0)
+        * (std::sin(0.1) / (prior(0, 0) + std::pow(0.2 / gravity, 2)));
+    estimator.update(meridian::gravity_observation(0.1));
+    check_matrix(estimator.state(), expected_state);
+    CHECK(estimator.state()(1) < 0.0);
+    CHECK(estimator.covariance()(1, 1) < prior(1, 1));
+    check_covariance(estimator.covariance());
+}
+
+void test_zero_bias_random_walk_preserves_reference() {
+    // The original seven-field aggregate still defaults to the old model.
+    const EkfConfig original = configuration();
+    check_near(original.bias_random_walk_std_rad_s_per_sqrt_s, 0.0, 0.0);
+    EkfConfig explicit_zero = original;
+    explicit_zero.bias_random_walk_std_rad_s_per_sqrt_s = 0.0;
+    AngleBiasEKF default_estimator(original);
+    AngleBiasEKF zero_estimator(explicit_zero);
+    for (int index = 1; index <= 25; ++index) {
+        const double dt = 0.01 * (index % 3 + 1);
+        const double rate = 0.2 * std::cos(0.1 * index);
+        default_estimator.predict(rate, dt);
+        zero_estimator.predict(rate, dt);
+        check_matrix(zero_estimator.state(), default_estimator.state(), 0.0);
+        check_matrix(zero_estimator.covariance(), default_estimator.covariance(), 0.0);
+        const Vector2 observation = meridian::gravity_observation(0.1 * std::sin(index));
+        const auto default_innovation = default_estimator.update(observation);
+        const auto zero_innovation = zero_estimator.update(observation);
+        check_matrix(zero_estimator.state(), default_estimator.state(), 0.0);
+        check_matrix(zero_estimator.covariance(), default_estimator.covariance(), 0.0);
+        check_matrix(zero_innovation.residual, default_innovation.residual, 0.0);
+        check_matrix(zero_innovation.covariance, default_innovation.covariance, 0.0);
+    }
+
+    // Zero density must skip the unused dt^3 calculation: this prediction has
+    // exactly zero uncertainty, even at an interval whose cube would overflow.
+    AngleBiasEKF certain(EkfConfig{0.1, 0.02, 0.0, 0.0, 0.0, 0.2, gravity});
+    certain.predict(0.02, 1e200);
+    check_matrix(certain.state(), Vector2(0.1, 0.02), 0.0);
+    check_matrix(certain.covariance(), Matrix2::Zero(), 0.0);
+}
+
+void test_bias_random_walk_overflow_is_atomic() {
+    for (const auto& density_interval : std::array<std::array<double, 2>, 2>{{
+             {{1.0, 1e110}}, {{1e150, 1e10}}}}) {
+        EkfConfig config{0.1, 0.02, 0.0, 0.0, 0.0, 0.2, gravity};
+        config.bias_random_walk_std_rad_s_per_sqrt_s = density_interval[0];
+        AngleBiasEKF estimator(config);
+        const Vector2 initial_state = estimator.state();
+        const Matrix2 initial_covariance = estimator.covariance();
+        // Respectively overflow the integrated angle variance and q_b * dt.
+        // The deterministic state and all other covariance terms are finite.
+        expect_exception<std::runtime_error>([&] {
+            estimator.predict(0.02, density_interval[1]);
+        });
+        check_matrix(estimator.state(), initial_state, 0.0);
+        check_matrix(estimator.covariance(), initial_covariance, 0.0);
+        estimator.predict(0.02, 0.01);
+        CHECK(estimator.covariance().allFinite());
+        CHECK(estimator.covariance()(1, 1) > 0.0);
+    }
+}
+
 void test_independent_scalar_correction_oracle() {
     // Isotropic component noise reduces to a scalar angular correction with
     // innovation (measured magnitude / g) * sin(measured angle - prior angle).
@@ -243,9 +360,10 @@ void test_nominal_convergence_and_covariance() {
 void test_invalid_configuration_and_helpers() {
     const double infinity = std::numeric_limits<double>::infinity();
     const double nan = std::numeric_limits<double>::quiet_NaN();
-    const std::array<double EkfConfig::*, 4> deviations{{
+    const std::array<double EkfConfig::*, 5> deviations{{
         &EkfConfig::initial_angle_std_rad, &EkfConfig::initial_bias_std_rad_s,
-        &EkfConfig::gyro_noise_std_rad_s, &EkfConfig::accel_noise_std_m_s2}};
+        &EkfConfig::gyro_noise_std_rad_s, &EkfConfig::accel_noise_std_m_s2,
+        &EkfConfig::bias_random_walk_std_rad_s_per_sqrt_s}};
     for (const auto member : deviations) {
         for (double invalid : {-0.1, infinity, -infinity, nan, 1e200}) {
             EkfConfig config = configuration();
@@ -355,6 +473,11 @@ int main() {
     try {
         test_gravity_geometry_and_jacobian();
         test_analytical_prediction_and_bias_correction();
+        test_bias_random_walk_analytical_covariance();
+        test_bias_random_walk_interval_composition();
+        test_bias_random_walk_reopens_bias_uncertainty();
+        test_zero_bias_random_walk_preserves_reference();
+        test_bias_random_walk_overflow_is_atomic();
         test_independent_scalar_correction_oracle();
         test_radial_zero_and_opposite_observations();
         test_value_ownership_and_zero_uncertainty();

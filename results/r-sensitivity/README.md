@@ -1,5 +1,11 @@
 # Accelerometer covariance sensitivity
 
+These artifacts record the constant-bias implementation at revision `21adf84`,
+before the optional bias-diffusion extension. The current default retains zero
+diffusion and the same numerical behavior; source fingerprints change when the
+implementation changes. Use that revision to reproduce the original source
+fingerprints and complete artifact bytes.
+
 Changing the EKF's assumed accelerometer noise changes both errors and innovation
 diagnostics. In this fixed two-case study, the matched 0.6 m/s² assumption reduces
 angle RMSE relative to the default 0.2 on all 20 final-evaluation seeds when the

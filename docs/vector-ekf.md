@@ -1,7 +1,7 @@
 # Accelerometer-vector roll and bias EKF
 
 The Python EKF estimates the same two states as the [angle Kalman reference](linear-kalman.md):
-unwrapped roll `theta` in rad and constant gyro bias `b` in rad/s. Its observation
+unwrapped roll `theta` in rad and gyro bias `b` in rad/s, constant by default. Its observation
 uses two accelerometer components directly. The sine/cosine observation makes the
 model nonlinear; the prediction remains linear. This implementation is evaluated
 in simulation and used by the [offline IMU replay](imu-replay.md), with a declared
@@ -29,8 +29,22 @@ Q = [[sigma_g² * dt², 0], [0, 0]]
 `sigma_g` is the independent gyro-noise standard deviation in rad/s **per interval
 mean**, not a continuous-time noise density. This is the existing simulation's
 sampling convention, not an assumption about arbitrary logged gyro snapshots.
-Bias has no random walk. Initial standard deviations define a diagonal covariance;
+The default bias has no random walk. Initial standard deviations define a diagonal covariance;
 zero initial angle uncertainty is permitted when that angle is known by construction.
+
+The optional `bias_random_walk_std_rad_s_per_sqrt_s` (default zero) adds a
+continuous bias diffusion covariance:
+
+```text
+Q_bias = sigma_b² * [[dt³/3, -dt²/2], [-dt²/2, dt]]
+Q_total = Q + Q_bias
+```
+
+Here sigma_b is in (rad/s)/sqrt(s), unlike the per-interval sigma_g. Predicted
+mean bias stays unchanged; observations can adjust it as uncertainty grows.
+The [bias model and comparison protocol](bias-random-walk.md) derive the coupled
+terms and distinguish a random-walk prior from the deterministic ramp used to
+evaluate tracking. The scalar angle KF and earlier experiments retain sigma_b=0.
 
 ## Vector correction
 
@@ -58,7 +72,8 @@ asymmetry. Returned innovation and `S` describe the prior, before correction.
 
 The Jacobian's bias column is zero. Prediction creates angle–bias cross-covariance,
 which lets subsequent force observations correct bias. A zero initial bias
-uncertainty prevents that correction because this model adds no bias process noise.
+uncertainty prevents that correction when sigma_b=0. Positive bias diffusion
+creates new uncertainty and cross-covariance even from an initially known bias.
 
 The state angle stays unwrapped. Periodicity of `h` allows a local correction
 across ±pi without explicitly wrapping the innovation, but it cannot recover an
@@ -91,6 +106,10 @@ Jacobian's angle column and isotropic `R`. It holds even when the state trajecto
 differ or a disturbance violates the gravity model, up to floating-point roundoff.
 Consequently, equal or narrow covariance bands do not demonstrate equal or small
 actual errors.
+
+For the current scalar KF implementation, matching the prediction noise requires
+the vector EKF's bias diffusion to be zero. Do not compare those covariance
+histories as equal after enabling diffusion only in the vector EKF.
 
 ## Innovations and local failure modes
 

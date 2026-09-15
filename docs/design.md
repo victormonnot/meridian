@@ -67,9 +67,14 @@ b_next = b + process_noise_bias
 F = [[1, -dt], [0, 1]]
 ```
 
-The implemented reference assumes constant bias, independent interval-mean gyro
+The default reference assumes constant bias, independent interval-mean gyro
 noise, and `Q = diag(sigma_g^2 * dt^2, 0)`. Bias uncertainty starts nonzero and is
-updated through the angle–bias covariance; no bias random walk is modeled yet.
+updated through the angle–bias covariance. The vector EKF now optionally adds
+continuous bias diffusion, with `Q_bias = sigma_b² [[dt³/3,-dt²/2],[-dt²/2,dt]]`
+and sigma_b in (rad/s)/sqrt(s). The [bias study](bias-random-walk.md) compares
+this prior with the zero-diffusion reference in Python and C++. Mean bias is
+unchanged during prediction; no deterministic drift slope is modeled. The scalar
+angle KF and the existing default experiments retain zero bias diffusion.
 The controlled suite also varies the true bias while keeping this filter model
 constant to measure the resulting mismatch. Per-sample variance and continuous-time
 noise density are different quantities.
@@ -96,7 +101,7 @@ The direct vector correction linearizes once at the prior, with
 `R = sigma_accel^2 * I`, a joint gain solve, and Joseph covariance update.
 The [vector model guide](vector-ekf.md) derives the observation and explains its
 local relationship to the angle KF. Under isotropic noise and the same initial
-covariance and schedule, the two covariance histories are mathematically equal,
+covariance, process noise and schedule, the two covariance histories are mathematically equal,
 even when translation produces different state errors. Their nominal accuracy
 is similar in the selected simulation; neither resolves translation ambiguity.
 The EKF does not normalize observations or reject physical model violations.
@@ -167,6 +172,12 @@ simulation provenance and are never supplied to a filter. This is an evaluation 
 unmodeled delay, not delayed-measurement compensation. The
 [scenario report](../results/controlled-scenarios/README.md) retains every repeat,
 including unfavorable cases, without extending nominal accuracy claims to them.
+
+The separate bias-diffusion study retains fixed R and P0, compares constant and
+ramping truth across three declared intensities, and reports tracking-window
+errors and late bias fluctuations. It uses separate exploration/final seeds and
+checks every Python/C++ operation. A deterministic ramp does not identify a
+physical random walk, and centered late error fluctuations can include settling.
 
 The C++ comparison reuses full-precision serialized input operations, and checks
 the initial state and every prediction/correction in both implementations. States,

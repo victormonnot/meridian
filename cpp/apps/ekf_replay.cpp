@@ -36,9 +36,10 @@ constexpr std::string_view output_header =
 struct NumericOption {
     std::string_view name;
     double meridian::EkfConfig::*member;
+    bool required = true;
 };
 
-constexpr std::array<NumericOption, 7> numeric_options{{
+constexpr std::array<NumericOption, 8> numeric_options{{
     {"--initial-angle-rad", &meridian::EkfConfig::initial_angle_rad},
     {"--initial-bias-rad-s", &meridian::EkfConfig::initial_bias_rad_s},
     {"--initial-angle-std-rad", &meridian::EkfConfig::initial_angle_std_rad},
@@ -46,6 +47,8 @@ constexpr std::array<NumericOption, 7> numeric_options{{
     {"--gyro-noise-std-rad-s", &meridian::EkfConfig::gyro_noise_std_rad_s},
     {"--accel-noise-std-m-s2", &meridian::EkfConfig::accel_noise_std_m_s2},
     {"--gravity-m-s2", &meridian::EkfConfig::gravity_m_s2},
+    {"--bias-random-walk-std-rad-s-per-sqrt-s",
+     &meridian::EkfConfig::bias_random_walk_std_rad_s_per_sqrt_s, false},
 }};
 
 struct Arguments {
@@ -108,7 +111,7 @@ Arguments parse_arguments(int argc, char** argv) {
         }
     }
     for (const auto& required : numeric_options) {
-        if (seen.count(std::string(required.name)) == 0) {
+        if (required.required && seen.count(std::string(required.name)) == 0) {
             throw std::invalid_argument("missing required option: " + std::string(required.name));
         }
     }
@@ -121,9 +124,11 @@ void print_help() {
         << "  --initial-angle-rad VALUE --initial-bias-rad-s VALUE\n"
         << "  --initial-angle-std-rad VALUE --initial-bias-std-rad-s VALUE\n"
         << "  --gyro-noise-std-rad-s VALUE --accel-noise-std-m-s2 VALUE\n"
-        << "  --gravity-m-s2 VALUE\n\n"
-        << "All options are required, with finite numeric values in SI units.\n"
-        << "Noise standard deviations are per observation, not continuous densities.\n"
+        << "  --gravity-m-s2 VALUE\n"
+        << "  [--bias-random-walk-std-rad-s-per-sqrt-s VALUE]\n\n"
+        << "All options except bias random walk are required, with finite SI values.\n"
+        << "Gyro and accelerometer noise standard deviations are per observation.\n"
+        << "Bias random walk is a continuous density in rad/s/sqrt(s), default 0.\n"
         << "Input header: operation,value0,value1\n"
         << "Rows: predict,rate_rad_s,dt_s or update,force_y_m_s2,force_z_m_s2\n"
         << "The strict CSV protocol does not support quoting or blank rows.\n"
