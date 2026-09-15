@@ -79,5 +79,8 @@ jobs:
       - name: Run web tests
         run: npm --prefix web test
 
+      - name: Check recorded study export
+        run: npm --prefix web run check:studies
+
       - name: Build web application
         run: npm --prefix web run build

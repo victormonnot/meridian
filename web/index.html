@@ -10,9 +10,14 @@
   <body>
     <header class="header">
       <div class="identity"><span class="brand">MERIDIAN</span><span>State estimation</span></div>
-      <span class="metadata">Experiment replay</span>
+      <span class="metadata">Simulation results</span>
     </header>
     <main>
+      <nav class="page-nav" aria-label="Results view">
+        <a href="#replay" aria-current="page">Experiment replay</a>
+        <a href="#studies">Parameter studies</a>
+      </nav>
+      <section id="replay-page" aria-label="Experiment replay">
       <div class="intro">
         <div><h1>Roll estimation</h1><p class="muted">Four methods, shared measurements, known simulation truth.</p></div>
         <span id="record-info" class="metadata"></span>
@@ -169,6 +174,75 @@
         <footer><span>Recorded simulation · No hardware connection</span><span class="signature">Meridian / Roll and bias study</span></footer>
         <div id="announcement" class="sr-only" role="status"></div>
       </div>
+      </section>
+      <section id="studies-page" aria-labelledby="studies-heading" hidden>
+        <div class="intro">
+          <div><h1 id="studies-heading">Parameter studies</h1><p class="muted">One assumption changes. Measurements stay shared within each trial.</p></div>
+          <span class="metadata">Vector EKF · Recorded results</span>
+        </div>
+        <p id="studies-status" role="status">Loading the recorded studies…</p>
+        <div id="study-content" hidden>
+          <div class="scenarios" role="group" aria-label="Parameter study">
+            <button type="button" data-study="r" aria-pressed="true">Accelerometer noise · R</button>
+            <button type="button" data-study="bias" aria-pressed="false">Evolving gyro bias</button>
+          </div>
+          <div class="study-controls">
+            <label for="study-case">Simulated case<select id="study-case"></select></label>
+            <label for="study-phase">Trial set<select id="study-phase"><option value="evaluation">Final evaluation</option><option value="exploration">Exploration</option></select></label>
+            <label for="study-metric">Compare<select id="study-metric"></select></label>
+          </div>
+          <p id="study-context" class="metadata"></p>
+          <div class="study-overview">
+            <div class="study-question">
+              <h2 id="study-question" class="accent-heading"></h2>
+              <p id="study-description"></p>
+              <dl id="study-assumptions" class="study-assumptions"></dl>
+            </div>
+            <section aria-labelledby="study-settings-heading">
+              <h2 id="study-settings-heading">All three settings</h2>
+              <div class="table-scroll" tabindex="0" role="region" aria-label="Setting comparison table">
+                <table class="study-table">
+                  <caption id="study-table-caption" class="metadata"></caption>
+                  <thead><tr><th scope="col" id="study-setting-column">Setting</th><th scope="col">Mean</th><th scope="col">Observed min–max</th><th scope="col">Mean difference</th></tr></thead>
+                  <tbody id="study-settings"></tbody>
+                </table>
+              </div>
+              <p id="study-metric-note" class="metadata chart-note"></p>
+              <p id="study-baselines" class="metadata chart-note" hidden></p>
+            </section>
+          </div>
+          <section class="study-pairs" aria-labelledby="study-pairs-heading">
+            <div class="panel-heading">
+              <h2 id="study-pairs-heading" class="accent-heading">Difference on the same measurements</h2>
+              <label for="study-setting" class="metadata">Inspect setting <select id="study-setting"></select></label>
+            </div>
+            <p id="study-delta-summary" class="metadata"></p>
+            <div class="study-pair-layout">
+              <div>
+                <div id="study-chart" class="chart study-chart"></div>
+                <p id="study-chart-readout" class="metadata mono chart-note" role="status"></p>
+                <p class="metadata chart-note">Each point is a separate trial, not a time sample. Zero means the selected setting and reference have the same score. Scales adapt to the selection.</p>
+              </div>
+              <aside class="study-seed" aria-label="Paired trial inspector">
+                <label for="study-seed">Inspect trial <select id="study-seed"></select></label>
+                <dl id="study-seed-values" class="readings"></dl>
+                <p class="metadata chart-note">Both scores use the same sensor inputs and initial state. Only the studied setting changes.</p>
+                <details class="study-input-details"><summary>Input fingerprint</summary><p id="study-seed-source" class="metadata study-fingerprint"></p></details>
+              </aside>
+            </div>
+          </section>
+          <details class="details">
+            <summary>Protocol, provenance and limits</summary>
+            <p id="study-phase-note"></p>
+            <p id="study-protocol-note"></p>
+            <p>All settings are retained. No default is changed by this view. Means and observed min–max ranges summarize these 20 trials; ranges are not confidence intervals or hardware accuracy bounds. Final evaluation sets have already been used and are not an untouched reserve for future tuning.</p>
+            <p>These studies use single-axis simulations. They do not establish bench, embedded or flight performance. The replay view keeps its original seed-42 trajectories and constant-bias settings; this view contains trial scores, not additional trajectories.</p>
+            <p id="study-provenance" class="study-fingerprint"></p>
+            <a id="study-download" download="parameter-studies.json">Download both studies, trial scores and provenance</a>
+          </details>
+          <footer><span>Recorded simulation · No hardware connection</span><span class="signature">Meridian / Parameter studies</span></footer>
+        </div>
+      </section>
     </main>
     <div id="tooltip" class="tooltip" hidden></div>
     <script type="module" src="/src/main.js"></script>

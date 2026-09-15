@@ -7,7 +7,7 @@ web application on Ubuntu 24.04. A newer run cancels an older run for the same r
 | Job | Environment | Checks |
 | --- | --- | --- |
 | Python and C++ | Python 3.12, C++17, CMake, Eigen | Install the Python and DataFlash locks, check dependency consistency, build Release targets, run native CTest checks, then the complete Python suite with the built replay executable. |
-| Web | Node.js 22 | Install from `web/package-lock.json`, run the Node tests, then build the Vite application. |
+| Web | Node.js 22 | Install from `web/package-lock.json`, run the Node tests, check the recorded parameter-study export, then build the Vite application. |
 
 `requirements-dataflash.lock` includes `requirements.lock` and the optional
 decoder. Installing it exercises the binary DataFlash tests, which create their
@@ -49,6 +49,7 @@ With Node.js 22.12 or later in the 22.x series:
 ```sh
 npm --prefix web ci
 npm --prefix web test
+npm --prefix web run check:studies
 npm --prefix web run build
 ```
 

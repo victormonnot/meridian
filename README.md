@@ -22,6 +22,8 @@ A static web explorer replays the nominal and translation runs, plus wrong
 initialization at two confidence levels, accelerometer loss, changing gyro bias
 and underestimated noise, irregular timing and unmodeled delay from the controlled suite.
 It also compares full-run angle RMSE across 20 repeated noise seeds per scenario.
+Its **Parameter studies** view compares the recorded R and bias-diffusion settings
+on paired trials, with separate exploration and final-evaluation sets.
 A new documented bench acquisition remains planned.
 
 ![Vector EKF and baseline comparison on shared simulated measurements](results/ekf-comparison/overview.png)
@@ -204,7 +206,13 @@ range alongside the displayed seed, without treating that range as a confidence 
 In Trajectories, estimated biases remain held between recorded
 corrections; true bias is interpolated along its continuous ramp. Its JavaScript/Vite/D3
 presentation works independently of the numerical core. Interactive retuning and
-real-log browser replay are not implemented. A new documented bench acquisition
+real-log browser replay are not implemented. **Parameter studies** adds the
+[R sensitivity](results/r-sensitivity/README.md) and
+[bias random walk](results/bias-random-walk/README.md) results: all three settings,
+observed ranges, paired differences and per-seed scores, including NIS and the
+bias tracking/fluctuation tradeoff. It uses saved summaries, without running an
+estimator in the browser or changing the original replay trajectories.
+A new documented bench acquisition
 and evaluation of known static poses and slow manual roll remain required.
 
 The [linear Kalman model](docs/linear-kalman.md), [accelerometer fusion model](docs/accelerometer-fusion.md),

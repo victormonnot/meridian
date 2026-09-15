@@ -218,7 +218,7 @@ are an experiment format, not a general sensor interchange specification.
 
 The web interface uses JavaScript ES modules, Vite and D3. A small Python adapter
 validates existing experiment CSVs against their summaries, then exports a
-versioned JSON display artifact. Schema 4 keeps per-scenario initialization,
+versioned JSON display artifact. Schema 5 keeps per-scenario initialization,
 simulated/assumed accelerometer noise, domains, acquisition times and correction
 schedules, with source fingerprints grouped by experiment. Every correction
 endpoint and its actual predecessor survive display
@@ -259,14 +259,25 @@ nor raw sensor logs enter the browser. No backend or hosting provider is configu
 Later interactive settings, if implemented, should invoke the same simulation and
 estimator core rather than duplicate algorithms in the presentation layer.
 
+The separate **Parameter studies** view reads a compact schema-1 artifact from
+the two published R and bias-diffusion studies. A Node exporter checks all four
+phase summaries, paired deltas, aggregates and recorded numerical checks before
+copying trial metrics and provenance. The browser validates the fixed protocols,
+then computes means, observed ranges and setting-minus-reference differences from
+those scores. Exploration and final evaluation stay separate; setting selection
+does not retune or rerun an estimator. The two views load independently and
+switching away from replay pauses it. No additional trajectory format or numerical
+core is introduced. See the [explorer guide](web-explorer.md#parameter-studies).
+
 ## Next step and open decisions
 
 Read back the installed flight-controller configuration and acquire a short
 stationary and manual-roll bench recording with documented poses and conditions.
 Use the implemented audit and replay to inspect those measurements, with explicit
 angle-reference uncertainty and noise assumptions. Historical logs do not replace
-that acquisition. The web interface now explores nine reproducible simulated
-runs; limited Chromium interaction and desktop/mobile viewport checks cover
-diagnostic windows, with broader browser and device testing still pending. Real angle reference,
+that acquisition. The web interface explores nine reproducible simulated
+runs and the two recorded parameter studies; limited Chromium interaction and
+desktop/mobile viewport checks cover diagnostic windows and study comparisons,
+with broader browser and device testing still pending. Real angle reference,
 sensor noise, and broader validation criteria remain open. Current parameters have
 not been fitted to a physical IMU.

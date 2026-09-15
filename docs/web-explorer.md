@@ -9,6 +9,8 @@ gyro integration, complementary fusion, angle KF and vector EKF against simulati
 truth. Playback reads recorded results; it does not execute an estimator.
 The Repeated trials panel adds full-run angle RMSE for seeds 0–19 in each scenario,
 using the saved experiment summaries. Only seed 42 has playback trajectories.
+The **Parameter studies** view adds the recorded R and bias-diffusion studies,
+with paired trial scores and separate exploration/final-evaluation sets.
 
 ## Run locally
 
@@ -125,6 +127,85 @@ The inspector precedes the plots in document order: left on wide screens, above
 on narrow screens. Color is supplemented by line styles and labels. The
 application uses the graphite theme; appearance controls used during design
 exploration are not part of this version.
+
+## Parameter studies
+
+Use **Parameter studies** in the top navigation, or open `/#studies` on the same
+server. **Experiment replay** returns to the existing trajectories and diagnostics.
+Switching pages pauses playback and preserves the controls in each view. The
+study artifact is fetched only when its view is first opened; a failed request
+does not prevent the other view from loading.
+
+Choose **Accelerometer noise · R** or **Evolving gyro bias**, then the simulated
+case, trial set and metric. The controls select existing results; there is no
+browser-side estimator or live parameter slider.
+
+| Study | Compared settings | Fixed reference | Cases | Exploration / final seeds |
+| --- | --- | --- | --- | --- |
+| R | Assumed component σa = 0.1, 0.2, 0.6 m/s² | 0.2 m/s² in both cases | Actual noise 0.2 or 0.6 m/s² | 0–19 / 1000–1019 |
+| Bias diffusion | σb = 0, 0.03, 0.1 (°/s)/√s | 0, zero bias diffusion | True bias constant or ramping 0.5→1.5°/s over 10–20 s | 0–19 / 2000–2019 |
+
+**All three settings** shows each cohort's mean, observed min–max and mean paired
+difference from the reference. Select a row or **Inspect setting** to inspect its
+20 differences. Each point is `selected score − reference score` for one seed,
+using the same sensor inputs and initialization. The dashed line is zero; seed
+identifiers denote separate runs, not time. Axes adapt to the selection and always
+include zero. All settings, including the reference itself, remain selectable.
+
+Move over a point, select it, or use **Inspect trial** for both original scores,
+the signed difference and an optional input fingerprint. Keyboard users can focus
+the inspected point and use arrows, Home or End to move between seeds. Counts of
+lower/equal/higher scores use unrounded differences. R angle metrics also show
+gyro and complementary mean scores on the same measurements; no bias or NIS
+value is invented for those baselines.
+
+Metric labels retain their evaluation windows: full-run RMSE includes all 3,001
+endpoints, late RMSE covers 25–30 s inclusive (501 endpoints), and the bias study's
+10–20 s RMSE covers 1,001 endpoints in either case. Each endpoint has equal
+weight, without restarting the filter at a window boundary. Mean NIS uses all
+300 prior innovations and the full two-component innovation covariance. Its
+ideal-model mean is 2, not a threshold or a lower-is-better objective. Late bias
+fluctuation is a temporal standard deviation about the run's own mean (ddof 0);
+it includes settling and is neither sensor noise nor accuracy alone.
+
+The default comparison is R, nominal, final evaluation, σa = 0.6 against 0.2:
+mean roll RMSE is 0.252726° versus 0.249624°, with 7 lower and 13 higher paired
+scores. The same comparison at higher actual noise has 20 lower scores. In the
+bias ramp case, σb = 0.1 improves the 10–20 s bias RMSE on all 20 final seeds;
+the constant-bias case exposes increased late fluctuations. These observations
+do not select a universal setting. Both final trial sets have already been used.
+The reports retain the full evidence and limits:
+[R sensitivity](../results/r-sensitivity/README.md),
+[bias random walk](../results/bias-random-walk/README.md).
+
+### Reproduce the study display artifact
+
+The compact `web/public/data/parameter-studies.json` (schema 1) is generated only
+from the four tracked phase summaries under `results/r-sensitivity/` and
+`results/bias-random-walk/`. No ignored experiment output, private notes, Python
+installation or C++ executable is required for this export:
+
+```sh
+npm --prefix web run export:studies
+npm --prefix web run check:studies
+```
+
+The check command compares bytes without rewriting the artifact and runs in CI.
+The exporter checks the fixed protocols, seed/setting/case grids, finite metrics,
+per-seed deltas, all recorded aggregates and RMSE sign counts, plus the recorded
+numerical-check and Python/C++ parity verdicts. It does not rerun those experiments.
+The browser separately validates the payload and computes displayed summaries
+from per-seed scores. All exported values come from the recorded summaries;
+formatting rounds only at display time.
+
+Each phase retains its protocol, limitations, original summary path and raw-file
+SHA-256, source fingerprints and environment; the bias study also retains native
+binary metadata. Original source hashes are historical, including the R study
+before the optional bias model was added. They are not checked against today's
+working tree. Unsafe 64-bit child stream seeds are omitted from the compact JSON;
+the original summaries retain them. The download is the derived display artifact,
+not a byte-for-byte copy of the original summaries. Existing seed-42 replay data
+and its schema remain separate.
 
 ## Diagnostics view
 
@@ -418,6 +499,8 @@ not arbitrary logs or delayed-measurement compensation.
 | `web/src/diagnostic-window.js` | Checked time bounds, presets, causal state-boundary holds and selection of actual corrections. |
 | `web/src/diagnostic-chart.js` | Error/model bands as steps, discrete innovation/NIS markers and synchronized cursor. |
 | `web/src/trials.js`, `web/src/trial-chart.js` | Validate repeat cohorts, calculate observed summaries and plot separate trial scores with the selected-run reference. |
+| `web/scripts/export-studies.js`, `web/src/studies.js` | Check the two published studies, export compact trial metrics/provenance, validate browser input and calculate paired comparisons. |
+| `web/src/study-view.js`, `web/src/study-chart.js` | Study/case/phase/metric controls, setting summaries and paired-trial inspection. |
 | `web/src/chart.js` | D3 scales, paths, shared cursor and pointer inspection. |
 | `web/src/main.js` | Load data and connect scenario selection, playback, legends and readings. |
 | `web/src/style.css`, `web/index.html` | Appearance, semantic structure and responsive layout. |
@@ -431,6 +514,7 @@ in `web/public/third-party-notices.txt` and copied into the build.
 ```sh
 python -m pytest -q tests/test_web_export.py tests/test_web_scenarios.py tests/test_web_trials.py
 npm --prefix web test
+npm --prefix web run check:studies
 npm --prefix web run build
 ```
 
@@ -449,6 +533,31 @@ and delayed schedules. Repeat tests check seed pairing, aggregates, malformed
 scores, reference inclusion, constant/single-trial domains, source immutability
 and exact linkage of all 720 shipped scores to the public summaries.
 These tests run without a browser.
+
+Parameter-study tests check all four source summaries against the shipped artifact,
+protocol/phase/setting identities, malformed metrics and provenance, paired deltas,
+aggregate/count consistency and recorded Python/C++ verdicts. Export reproduction
+is checked from another working directory without rewriting files. Local Chromium
+checks additionally covered all 156 study/phase/case/metric/setting combinations
+and their 3,120 plotted differences, original score readings, keyboard selection,
+page navigation, independent HTTP/malformed-data failures, exact downloads and
+320–1440 px layouts. These interaction checks remain separate from CI and have
+the browser-coverage limits described below.
+
+To check the study interactions manually:
+
+- Open **Parameter studies → Accelerometer noise · R → Nominal → Final evaluation**.
+  Select full-run roll RMSE and 0.6: the table shows 0.2527° and the comparison
+  counts 7 lower / 0 equal / 13 higher. The higher-noise case gives 20 / 0 / 0.
+- Select mean NIS: the ideal mean is described as 2 and baselines disappear.
+  Lower differences are not labeled as better estimation.
+- Open **Evolving gyro bias → Bias ramp → Final evaluation → Bias RMSE · 10–20 s**.
+  The 0.1 setting shows a 0.2655°/s mean. Selecting the zero-diffusion reference
+  gives exactly 20 zero differences. Switch to constant bias and late fluctuation
+  to inspect the associated fluctuation cost.
+- Use the trial selector or keyboard arrows on a point. Both score readings and
+  the inspected marker follow the same seed. Return to replay and back: the study
+  selection is preserved and playback stays paused.
 
 Window controls were additionally checked in local headless Chromium at desktop
 and mobile viewport sizes, including Replay on a fractional interval, view changes,
@@ -476,7 +585,7 @@ sits above the twenty dots; **Translation disturbance** puts it below them.
 
 Trajectories remain limited to the nine selected Python simulations; repeated
 trials provide full-run scores only. There is no live
-hardware connection, real-log browser replay, parameter tuning, C++ execution in
+hardware connection, real-log browser replay, live parameter tuning, C++ execution in
 the browser, or formal statistical-consistency evaluation. The similar nominal KF/EKF RMSE
 does not imply superiority; the translation case demonstrates a shared physical
 model limitation. [Real EKF replay](imu-replay.md) is available separately in

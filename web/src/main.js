@@ -1,4 +1,5 @@
 import './style.css';
+import { loadStudies } from './study-view.js';
 import { createChart } from './chart.js';
 import { createDiagnosticChart } from './diagnostic-chart.js';
 import { createTrialChart } from './trial-chart.js';
@@ -9,6 +10,19 @@ import { SERIES, advanceTime, correctionDetails, formatValue, sampleAt, validate
 
 const $ = selector => document.querySelector(selector);
 const dataUrl = `${import.meta.env.BASE_URL}data/roll-comparison.json`;
+let replayController;
+
+function selectPage() {
+  const studies = window.location.hash === '#studies';
+  replayController?.pause();
+  $('#replay-page').hidden = studies;
+  $('#studies-page').hidden = !studies;
+  document.querySelectorAll('.page-nav a').forEach(link => {
+    if (link.hash === (studies ? '#studies' : '#replay')) link.setAttribute('aria-current', 'page');
+    else link.removeAttribute('aria-current');
+  });
+  if (studies) loadStudies();
+}
 
 async function load() {
   try {
@@ -17,7 +31,7 @@ async function load() {
     const data = validateComparison(await response.json());
     $('#load-status').hidden = true;
     $('#explorer').hidden = false;
-    startExplorer(data);
+    replayController = startExplorer(data);
   } catch (error) {
     $('#explorer').hidden = true;
     const status = $('#load-status');
@@ -461,6 +475,9 @@ function startExplorer(data) {
   document.addEventListener('visibilitychange', () => { if (document.hidden) stop(); });
   window.addEventListener('pagehide', stop);
   renderScenario();
+  return { pause: stop };
 }
 
+window.addEventListener('hashchange', selectPage);
+selectPage();
 load();
