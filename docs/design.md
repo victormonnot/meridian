@@ -31,6 +31,12 @@ the existing 20 noise realizations per scenario as individual endpoint RMSE scor
 with their mean and observed range. The selected trajectory remains separate;
 these repeats do not establish hardware accuracy or statistical confidence bounds.
 
+A separate [accelerometer covariance study](r-sensitivity.md) varies only the
+vector EKF's R across three predeclared settings and two generated noise levels.
+Exploration and final evaluation use disjoint seed sets, with paired comparisons
+against the unchanged default. The public report retains all settings and runs;
+it does not retune the project defaults or calibrate a physical sensor.
+
 ## Scope
 
 Meridian's first study estimates roll angle and residual gyroscope bias from one

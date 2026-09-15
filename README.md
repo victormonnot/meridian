@@ -41,6 +41,13 @@ irregular intervals, underestimated noise, and unmodeled delay. Estimator tuning
 stays fixed. It reports transient and final-window errors; only the nominal case
 receives accuracy pass/fail criteria.
 
+The [accelerometer covariance study](results/r-sensitivity/README.md) compares
+three declared R settings on identical measurements, at two simulated noise
+levels. It separates 20 exploratory seeds from 20 final-evaluation seeds and
+retains every paired score, including bias errors and innovation diagnostics.
+The [fixed protocol](docs/r-sensitivity.md) describes reproduction and limits;
+this study does not change the default tuning or identify physical sensor noise.
+
 The [C++ agreement report](results/cpp-parity/README.md) compares states,
 covariances, and innovations on those eight cases plus the translation pulse.
 Agreement includes unfavorable cases; it establishes implementation agreement
@@ -162,6 +169,8 @@ Historical recordings do not establish current acquisition conditions.
 | `src/meridian/stress_scenarios.py` | Fixed controlled scenarios, paired sensor noise, and separate timing/bias truth. |
 | `src/meridian/stress_evaluation.py` | Shared-input evaluation of unchanged filters using actual intervals and availability. |
 | `src/meridian/stress_experiment.py` | Repeated scenario evaluation, exports, numerical checks, and comparison figures. |
+| `src/meridian/r_sensitivity.py` | Fixed R comparisons with separate exploration/evaluation seeds, paired metrics, and reproducible exports. |
+| `src/meridian/r_sensitivity_plot.py` | Static figures of individual R-study scores and observed ranges. |
 | `src/meridian/dataflash.py` | Optional DataFlash reader with recorded-unit checks and selected metadata. |
 | `src/meridian/dataflash_audit.py` | Per-instance timing, measurement inspection and local exports. |
 | `src/meridian/replay.py` | Causal roll/bias replay of contiguous snapshots, independent of file formats. |
