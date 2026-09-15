@@ -104,6 +104,12 @@ dependencies, other build configurations, the event protocol, and comparison
 tolerances. The default Python-only test run skips C++ integration tests unless
 `MERIDIAN_CPP_BINARY` is set; the configured CTest job supplies the built executable.
 
+The [CI workflow](.github/workflows/ci.yml) automates the native tests and full
+Python suite with C++ integration and the DataFlash decoder enabled, plus web
+tests and a production build. It uses synthetic log fixtures and tracked
+simulation results. The [CI guide](docs/ci.md) covers triggers, local reproduction
+and coverage; its first hosted run remains to be confirmed after publication.
+
 For a stationary scenario or a different noise realization:
 
 ```sh

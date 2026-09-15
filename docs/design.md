@@ -174,6 +174,12 @@ Without an independent dynamic reference, report repeatability and agreement;
 ArduPilot attitude is another estimate, not ground truth. Bench replay does not
 establish embedded, real-time, or flight performance.
 
+The [CI workflow](ci.md) automates the existing native C++ tests, the full Python
+suite with C++ integration and synthetic DataFlash inputs, and the web tests/build.
+It targets Linux with Python 3.12 and Node.js 22. Browser interaction checks and
+bench acquisition remain separate. Its commands have been verified locally from
+clean source snapshots; a hosted execution is pending publication of the workflow.
+
 ## Software boundaries and presentation
 
 | Component | Responsibility |
