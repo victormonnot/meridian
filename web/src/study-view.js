@@ -127,7 +127,11 @@ function startStudies(data) {
     options($('#study-setting'), study.settings.map(key => [key, `${definition.setting(key)}${key === reference ? ' · reference' : ''}`]), state.setting);
     options($('#study-seed'), phase.seeds.map(seed => [String(seed), `Seed ${seed}`]), String(state.seed));
     $('#study-phase').value = state.phase;
-    $('#study-context').textContent = `${state.phase === 'evaluation' ? 'Final evaluation' : 'Exploration'} · seeds ${phase.seeds[0]}–${phase.seeds.at(-1)} · ${phase.seeds.length} paired trials per setting · 30 s each. Trial sets are summarized separately.`;
+    $('#study-phase-label').textContent = state.phase === 'evaluation' ? 'Final evaluation' : 'Exploration';
+    $('#study-context').textContent = `${phase.seeds.length} paired trials per setting · seeds ${phase.seeds[0]}–${phase.seeds.at(-1)} · 30 s each`;
+    $('#study-phase-status').textContent = state.phase === 'evaluation'
+      ? 'Recorded final evaluation; these results have already been used.'
+      : 'Exploration results; summarized separately from final evaluation.';
     $('#study-question').textContent = definition.question;
     $('#study-description').textContent = definition.description;
     readings($('#study-assumptions'), isR ? [
@@ -181,7 +185,9 @@ function startStudies(data) {
     $('#study-baselines').textContent = baselines ? `Baselines on the same inputs · mean ${metric.label.toLowerCase()}: ${[['gyro', 'Gyro integration'], ['complementary', 'Complementary']].map(([key, label]) => `${label} ${(baselineMetrics.reduce((sum, trial) => sum + trial.baselines[key][state.metric], 0) / phase.seeds.length).toFixed(4)} ${metric.unit}`).join('; ')}. These do not change with R.` : '';
     currentStatistics = statistics.find(item => item.setting === state.setting).stats;
     const delta = currentStatistics.delta;
-    $('#study-delta-summary').textContent = `${definition.setting(state.setting)} minus reference ${definition.setting(reference)} · ${delta.negative} lower / ${delta.zero} equal / ${delta.positive} higher scores. Mean difference ${number(delta.mean, true)} ${metric.unit}; observed range ${number(delta.min, true)} to ${number(delta.max, true)}. Counts use unrounded differences.`;
+    $('#study-comparison').textContent = `${definition.setting(state.setting)} minus reference ${definition.setting(reference)}`;
+    $('#study-delta-summary').textContent = `${delta.negative} lower / ${delta.zero} equal / ${delta.positive} higher scores`;
+    $('#study-delta-range').textContent = `Mean difference ${number(delta.mean, true)} ${metric.unit} · observed min–max ${number(delta.min, true)} to ${number(delta.max, true)} ${metric.unit}`;
     selectSeed(state.seed);
     chartModel = { label: metric.label, unit: metric.unit, settingLabel: definition.setting(state.setting), referenceLabel: definition.setting(reference), values: currentStatistics.values, selectedSeed: state.seed, onSelect: selectSeed };
     chart.update(chartModel);

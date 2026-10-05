@@ -267,7 +267,13 @@ then computes means, observed ranges and setting-minus-reference differences fro
 those scores. Exploration and final evaluation stay separate; setting selection
 does not retune or rerun an estimator. The two views load independently and
 switching away from replay pauses it. No additional trajectory format or numerical
-core is introduced. See the [explorer guide](web-explorer.md#parameter-studies).
+core is introduced. The study controls identify the active phase and its seed
+cohort above a shared design/comparison surface. All three settings stay in the
+summary table; paired differences, their sign counts and the selected trial's
+original scores are distinct from one another. NIS and fluctuation interpretation
+notes stay visible beside the summary. These sections stack on narrow screens,
+without changing selections or the statistics. See the
+[explorer guide](web-explorer.md#parameter-studies).
 
 The replay surface places the current roll, rear-view indicator and selected
 estimate beside the roll/bias plots, with full-run scores beneath the inspector.

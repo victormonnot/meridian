@@ -220,61 +220,74 @@
       </div>
       </section>
       <section id="studies-page" aria-labelledby="studies-heading" hidden>
-        <div class="intro">
-          <div><h1 id="studies-heading">Parameter studies</h1><p class="muted">One assumption changes. Measurements stay shared within each trial.</p></div>
-          <span class="metadata">Vector EKF · Recorded results</span>
+        <div class="intro studies-intro">
+          <div><p class="eyebrow">Recorded comparisons / Vector EKF</p><h1 id="studies-heading">Parameter studies.</h1><p class="muted">One assumption changes. Measurements stay shared within each trial.</p></div>
         </div>
         <p id="studies-status" role="status">Loading the recorded studies…</p>
         <div id="study-content" hidden>
-          <div class="scenarios" role="group" aria-label="Parameter study">
-            <button type="button" data-study="r" aria-pressed="true">Accelerometer noise · R</button>
-            <button type="button" data-study="bias" aria-pressed="false">Evolving gyro bias</button>
-          </div>
-          <div class="study-controls">
-            <label for="study-case">Simulated case<select id="study-case"></select></label>
-            <label for="study-phase">Trial set<select id="study-phase"><option value="evaluation">Final evaluation</option><option value="exploration">Exploration</option></select></label>
-            <label for="study-metric">Compare<select id="study-metric"></select></label>
-          </div>
-          <p id="study-context" class="metadata"></p>
-          <div class="study-overview">
-            <div class="study-question">
-              <h2 id="study-question" class="accent-heading"></h2>
-              <p id="study-description"></p>
-              <dl id="study-assumptions" class="study-assumptions"></dl>
+          <div class="study-selection">
+            <div class="study-tabs" role="group" aria-label="Parameter study">
+              <button type="button" data-study="r" aria-pressed="true">Accelerometer noise · R</button>
+              <button type="button" data-study="bias" aria-pressed="false">Evolving gyro bias</button>
             </div>
-            <section aria-labelledby="study-settings-heading">
-              <h2 id="study-settings-heading">All three settings</h2>
-              <div class="table-scroll" tabindex="0" role="region" aria-label="Setting comparison table">
-                <table class="study-table">
-                  <caption id="study-table-caption" class="metadata"></caption>
-                  <thead><tr><th scope="col" id="study-setting-column">Setting</th><th scope="col">Mean</th><th scope="col">Observed min–max</th><th scope="col">Mean difference</th></tr></thead>
-                  <tbody id="study-settings"></tbody>
-                </table>
+            <div class="study-controls">
+              <label for="study-case">Simulated case<select id="study-case"></select></label>
+              <label for="study-phase">Trial set<select id="study-phase" aria-describedby="study-phase-status"><option value="evaluation">Final evaluation</option><option value="exploration">Exploration</option></select></label>
+              <label for="study-metric">Compare<select id="study-metric"></select></label>
+            </div>
+            <div class="study-cohort">
+              <span id="study-phase-label" class="phase-label"></span>
+              <p id="study-context" class="metadata mono"></p>
+              <p id="study-phase-status" class="metadata"></p>
+            </div>
+          </div>
+          <div class="study-surface">
+            <div class="study-overview">
+              <aside class="study-question" aria-labelledby="study-question">
+                <p class="eyebrow">Study design</p>
+                <h2 id="study-question"></h2>
+                <p id="study-description"></p>
+                <dl id="study-assumptions" class="study-assumptions"></dl>
+              </aside>
+              <section class="study-comparison" aria-labelledby="study-settings-heading">
+                <h2 id="study-settings-heading">All three settings</h2>
+                <div class="table-scroll" tabindex="0" role="region" aria-label="Setting comparison table">
+                  <table class="study-table">
+                    <caption id="study-table-caption" class="metadata"></caption>
+                    <thead><tr><th scope="col" id="study-setting-column">Setting</th><th scope="col">Mean</th><th scope="col">Observed min–max</th><th scope="col">Mean difference</th></tr></thead>
+                    <tbody id="study-settings"></tbody>
+                  </table>
+                </div>
+                <p id="study-metric-note" class="metadata study-metric-note"></p>
+                <p id="study-baselines" class="metadata chart-note" hidden></p>
+              </section>
+            </div>
+            <section class="study-pairs" aria-labelledby="study-pairs-heading">
+              <div class="study-pairs-header">
+                <div><h2 id="study-pairs-heading">Paired differences</h2><p id="study-comparison" class="metadata"></p></div>
+                <label for="study-setting" class="metadata">Inspect setting <select id="study-setting"></select></label>
               </div>
-              <p id="study-metric-note" class="metadata chart-note"></p>
-              <p id="study-baselines" class="metadata chart-note" hidden></p>
+              <div class="study-pair-summary">
+                <p id="study-delta-summary" class="mono"></p>
+                <p id="study-delta-range" class="metadata"></p>
+              </div>
+              <div class="study-pair-layout">
+                <div class="study-distribution">
+                  <div id="study-chart" class="chart study-chart"></div>
+                  <p id="study-chart-readout" class="cursor-readout mono" role="status"></p>
+                  <p class="metadata chart-note">Each point is a separate trial. Zero means equal scores for the selected setting and reference. Scales adapt to the selection.</p>
+                </div>
+                <aside class="study-seed" aria-label="Paired trial inspector">
+                  <p class="eyebrow">On the same inputs</p>
+                  <label for="study-seed">Inspect trial <select id="study-seed"></select></label>
+                  <dl id="study-seed-values" class="readings"></dl>
+                  <p class="metadata chart-note">Both scores use the same sensor inputs and initial state. Only the studied setting changes.</p>
+                  <details class="study-input-details"><summary>Input fingerprint</summary><p id="study-seed-source" class="metadata study-fingerprint"></p></details>
+                </aside>
+              </div>
+              <p class="study-pair-note metadata">Counts use unrounded differences. Observed ranges describe these trials; they are not confidence intervals.</p>
             </section>
           </div>
-          <section class="study-pairs" aria-labelledby="study-pairs-heading">
-            <div class="panel-heading">
-              <h2 id="study-pairs-heading" class="accent-heading">Difference on the same measurements</h2>
-              <label for="study-setting" class="metadata">Inspect setting <select id="study-setting"></select></label>
-            </div>
-            <p id="study-delta-summary" class="metadata"></p>
-            <div class="study-pair-layout">
-              <div>
-                <div id="study-chart" class="chart study-chart"></div>
-                <p id="study-chart-readout" class="metadata mono chart-note" role="status"></p>
-                <p class="metadata chart-note">Each point is a separate trial, not a time sample. Zero means the selected setting and reference have the same score. Scales adapt to the selection.</p>
-              </div>
-              <aside class="study-seed" aria-label="Paired trial inspector">
-                <label for="study-seed">Inspect trial <select id="study-seed"></select></label>
-                <dl id="study-seed-values" class="readings"></dl>
-                <p class="metadata chart-note">Both scores use the same sensor inputs and initial state. Only the studied setting changes.</p>
-                <details class="study-input-details"><summary>Input fingerprint</summary><p id="study-seed-source" class="metadata study-fingerprint"></p></details>
-              </aside>
-            </div>
-          </section>
           <details class="details">
             <summary>Protocol, provenance and limits</summary>
             <p id="study-phase-note"></p>

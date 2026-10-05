@@ -41,7 +41,7 @@ export function createStudyChart(container, readout) {
       .attr('aria-pressed', point => String(point.seed === selectedSeed));
     points.selectAll('.study-dot')
       .attr('r', point => point.seed === selectedSeed ? 5 : 3.5)
-      .attr('fill', point => point.seed === selectedSeed ? 'var(--bg)' : 'var(--ekf)')
+      .attr('fill', point => point.seed === selectedSeed ? 'var(--surface)' : 'var(--ekf)')
       .attr('stroke-width', point => point.seed === selectedSeed ? 2 : 1);
     const selected = model.values.find(point => point.seed === selectedSeed);
     if (selected) readout.textContent = describe(selected);
@@ -106,7 +106,7 @@ export function createStudyChart(container, readout) {
           inspect(point);
         }
       });
-    const tickStep = Math.max(1, Math.ceil(seeds.length / (width < 420 ? 5 : 10)));
+    const tickStep = Math.max(1, Math.ceil(seeds.length / (width < 300 ? 4 : width < 420 ? 5 : 10)));
     const ticks = seeds.filter((seed, index) => index % tickStep === 0 || index === seeds.length - 1);
     xAxis.attr('transform', `translate(0,${height - margin.bottom})`)
       .call(axisBottom(x).tickValues(ticks).tickSizeOuter(0));

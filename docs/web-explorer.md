@@ -160,7 +160,15 @@ does not prevent the other view from loading.
 
 Choose **Accelerometer noise · R** or **Evolving gyro bias**, then the simulated
 case, trial set and metric. The controls select existing results; there is no
-browser-side estimator or live parameter slider.
+browser-side estimator or live parameter slider. The grouped controls show the
+active phase, seed range and number of paired trials together. A visible phase
+note distinguishes exploration from recorded final evaluation; the latter has
+already been used. Switching between studies restores each study's selections.
+
+The study design and all three settings share one surface, followed by
+**Paired differences** and a trial inspector. Narrow screens stack these sections;
+the labelled comparison table can scroll horizontally when its numeric columns
+need more room. Metric windows, units and interpretation notes remain visible.
 
 | Study | Compared settings | Fixed reference | Cases | Exploration / final seeds |
 | --- | --- | --- | --- | --- |
@@ -173,6 +181,9 @@ difference from the reference. Select a row or **Inspect setting** to inspect it
 using the same sensor inputs and initialization. The dashed line is zero; seed
 identifiers denote separate runs, not time. Axes adapt to the selection and always
 include zero. All settings, including the reference itself, remain selectable.
+The selected row is marked. The comparison settings, lower/equal/higher counts
+and mean/range of differences have separate readouts. Counts use unrounded values;
+the observed range is not a confidence interval.
 
 Move over a point, select it, or use **Inspect trial** for both original scores,
 the signed difference and an optional input fingerprint. Keyboard users can focus
@@ -592,8 +603,10 @@ is checked from another working directory without rewriting files. Local Chromiu
 checks additionally covered all 156 study/phase/case/metric/setting combinations
 and their 3,120 plotted differences, original score readings, keyboard selection,
 page navigation, independent HTTP/malformed-data failures, exact downloads and
-320–1440 px layouts. These interaction checks remain separate from CI and have
-the browser-coverage limits described below.
+320–1440 px layouts. The study layout was also checked in both themes, with
+separate phase/comparison readouts, visible NIS/fluctuation notes, keyboard focus,
+rendered contrast and touch controls. These interaction checks remain separate
+from CI and have the browser-coverage limits described below.
 
 To check the study interactions manually:
 
