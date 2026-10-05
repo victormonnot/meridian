@@ -78,6 +78,8 @@ npm --prefix web run dev
 
 Open the local URL printed by the server. The [explorer guide](docs/web-explorer.md)
 describes playback, data provenance, reproducible export, tests and static builds.
+The header's **Appearance** selector switches all views between dark and light
+themes, remembers the local preference and preserves the current inspection.
 Viewing the bundled simulations requires no Python environment or drone connection.
 
 The pinned environment was verified with **Python 3.12 on Linux**. From the

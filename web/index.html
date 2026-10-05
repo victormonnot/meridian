@@ -1,16 +1,32 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Compare roll and gyroscope bias estimates on reproducible Meridian simulations.">
-    <meta name="theme-color" content="#1e201f">
+    <meta name="theme-color" content="#1c1e1c">
+    <style>
+      html { color-scheme: dark; background: #1c1e1c; }
+      html[data-theme=light] { color-scheme: light; background: #f4f2eb; }
+    </style>
+    <script id="theme-bootstrap">
+      try {
+        document.documentElement.dataset.theme = window.localStorage.getItem('meridian-theme') === 'light' ? 'light' : 'dark';
+      } catch {
+        // Keep the default appearance when local preferences are unavailable.
+      }
+    </script>
     <title>Meridian — Roll estimation</title>
   </head>
   <body>
     <header class="header">
       <div class="identity"><span class="brand">MERIDIAN</span><span>State estimation</span></div>
-      <span class="metadata">Simulation results</span>
+      <div class="header-tools">
+        <span class="metadata">Simulation results</span>
+        <label class="appearance-control" for="appearance">Appearance
+          <select id="appearance"><option value="dark">Dark</option><option value="light">Light</option></select>
+        </label>
+      </div>
     </header>
     <main>
       <nav class="page-nav" aria-label="Results view">
@@ -54,7 +70,7 @@
               <div class="pose">
                 <svg viewBox="0 0 240 170" role="img" aria-labelledby="pose-title pose-description">
                   <title id="pose-title">Roll estimate and simulation truth, viewed from behind</title>
-                  <desc id="pose-description">Solid gray is the selected estimate. Dashed gray is the simulated reference. Positive roll lowers the vehicle's right side.</desc>
+                  <desc id="pose-description">The solid outline is the selected estimate. The dashed outline is the simulated reference. Positive roll lowers the vehicle's right side.</desc>
                   <line class="horizon" x1="16" x2="224" y1="85" y2="85"/>
                   <g transform="translate(120 85)">
                     <g id="truth-pose" class="truth-pose"><path d="M-86 0H86 M-99 -8H-73 M73 -8H99 M-86 -8V5 M86 -8V5 M-12 -9H12V9H-12Z"/></g>

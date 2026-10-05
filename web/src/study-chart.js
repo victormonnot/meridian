@@ -9,7 +9,7 @@ export function createStudyChart(container, readout) {
   const margin = { top: 30, right: 16, bottom: 46, left: 64 };
   const svg = select(container).append('svg').attr('role', 'group');
   const title = svg.append('title');
-  const grid = svg.append('g').attr('aria-hidden', 'true');
+  const grid = svg.append('g').attr('class', 'chart-grid').attr('aria-hidden', 'true');
   const zero = svg.append('line').attr('class', 'study-zero').attr('aria-hidden', 'true')
     .attr('stroke', 'var(--muted)').attr('stroke-width', 1).attr('stroke-dasharray', '4 4');
   const stems = svg.append('g').attr('aria-hidden', 'true');
@@ -79,7 +79,7 @@ export function createStudyChart(container, readout) {
       .attr('y1', y(0)).attr('y2', y(0));
     stems.selectAll('line').data(model.values, point => point.seed).join('line')
       .attr('class', 'study-stem').attr('stroke', 'var(--muted)').attr('stroke-width', 1)
-      .attr('opacity', 0.55).attr('x1', point => x(point.seed)).attr('x2', point => x(point.seed))
+      .attr('x1', point => x(point.seed)).attr('x2', point => x(point.seed))
       .attr('y1', y(0)).attr('y2', point => y(point.delta));
     const markers = points.selectAll('.study-point').data(model.values, point => point.seed).join(
       enter => {

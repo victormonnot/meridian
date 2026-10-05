@@ -1,4 +1,5 @@
 import './style.css';
+import { initializeTheme } from './theme.js';
 import { loadStudies } from './study-view.js';
 import { createChart } from './chart.js';
 import { createDiagnosticChart } from './diagnostic-chart.js';
@@ -7,6 +8,8 @@ import { trialStatistics } from './trials.js';
 import { diagnosticStateAt, lastInnovation, stateDiagnostic } from './diagnostics.js';
 import { clampToWindow, correctionInWindow, innovationsInWindow, inWindow, validateWindow, windowPreset } from './diagnostic-window.js';
 import { SERIES, advanceTime, correctionDetails, formatValue, sampleAt, validateComparison } from './data.js';
+
+initializeTheme();
 
 const $ = selector => document.querySelector(selector);
 const dataUrl = `${import.meta.env.BASE_URL}data/roll-comparison.json`;

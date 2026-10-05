@@ -52,7 +52,7 @@ export function createDiagnosticChart(container, kind, duration, onInspect) {
     const spread = Math.max(hi - lo, .1);
     y.domain([lo - .08 * spread, hi + .08 * spread]).nice();
     svg.attr('aria-label', `${method.label}: ${label}. Window ${bounds[0].toFixed(3)} to ${bounds[1].toFixed(3)} seconds. Use the shared time slider for readings.`);
-    const grid = svg.append('g').attr('transform', `translate(${margin.left},0)`)
+    const grid = svg.append('g').attr('class', 'chart-grid').attr('transform', `translate(${margin.left},0)`)
       .call(axisLeft(y).ticks(5).tickSize(-(width - margin.left - margin.right)).tickFormat(''));
     grid.select('.domain').remove();
     grid.selectAll('line').attr('opacity', .4);
@@ -62,6 +62,13 @@ export function createDiagnosticChart(container, kind, duration, onInspect) {
     if (eventEnd > eventStart) svg.append('rect').attr('x', x(eventStart)).attr('y', margin.top)
       .attr('width', x(eventEnd) - x(eventStart)).attr('height', height - margin.bottom - margin.top)
       .attr('fill', 'var(--line)').attr('opacity', .25);
+    if (event) for (const time of [event.start_s, event.end_s]) {
+      if (time < bounds[0] || time > bounds[1]) continue;
+      svg.append('line').attr('class', 'event-boundary')
+        .attr('x1', x(time)).attr('x2', x(time))
+        .attr('y1', margin.top).attr('y2', height - margin.bottom)
+        .attr('stroke', 'var(--axis)').attr('stroke-dasharray', '3 5');
+    }
     const reference = kind === 'innovation' && mode === 'nis' ? scenario.diagnostics[method.id]?.dimension ?? 0 : 0;
     svg.append('line').attr('x1', margin.left).attr('x2', width - margin.right)
       .attr('y1', y(reference)).attr('y2', y(reference)).attr('stroke', 'var(--muted)').attr('stroke-dasharray', '4 4');
@@ -72,7 +79,7 @@ export function createDiagnosticChart(container, kind, duration, onInspect) {
         svg.append('path').datum(points).attr('d', band).attr('fill', method.color).attr('opacity', .12);
         for (const sign of [-1, 1]) svg.append('path').datum(points)
           .attr('d', line().curve(curveStepAfter).x(d => x(d.time)).y(d => y(sign * 2 * d.sigma)))
-          .attr('fill', 'none').attr('stroke', method.color).attr('stroke-dasharray', '3 3').attr('opacity', .6);
+          .attr('fill', 'none').attr('stroke', method.color).attr('stroke-dasharray', '3 3');
       }
       svg.append('path').datum(points).attr('d', line().curve(curveStepAfter).x(d => x(d.time)).y(d => y(d.error)))
         .attr('fill', 'none').attr('stroke', method.color).attr('stroke-width', 1.5);
@@ -81,7 +88,7 @@ export function createDiagnosticChart(container, kind, duration, onInspect) {
         .attr('d', d => d.component === 0 ? 'M-2,0a2,2 0 1,0 4,0a2,2 0 1,0 -4,0' : 'M-2,-2L2,2M-2,2L2,-2')
         .attr('transform', d => `translate(${x(d.time)},${y(d.value)})`)
         .attr('fill', d => d.component === 0 ? method.color : 'none')
-        .attr('stroke', d => d.component === 0 ? method.color : 'var(--muted)').attr('stroke-width', 1).attr('opacity', .8);
+        .attr('stroke', d => d.component === 0 ? method.color : 'var(--muted)').attr('stroke-width', 1);
     }
     svg.append('g').attr('transform', `translate(0,${height - margin.bottom})`)
       .call(axisBottom(x).ticks(width < 420 ? 4 : 6).tickSizeOuter(0));

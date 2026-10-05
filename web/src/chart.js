@@ -24,7 +24,7 @@ export function createChart(container, kind, duration, onInspect, tooltip) {
     x.range([margin.left + 4, width - margin.right - 4]);
     svg.attr('viewBox', `0 0 ${width} ${height}`);
     svg.selectAll('*').remove();
-    const grid = svg.append('g').attr('transform', `translate(${margin.left},0)`)
+    const grid = svg.append('g').attr('class', 'chart-grid').attr('transform', `translate(${margin.left},0)`)
       .call(axisLeft(y).ticks(5).tickSize(-(width - margin.left - margin.right)).tickFormat(''));
     grid.select('.domain').remove();
     grid.selectAll('line').attr('opacity', .45);
@@ -34,6 +34,12 @@ export function createChart(container, kind, duration, onInspect, tooltip) {
         .attr('width', x(pulse.end_s) - x(pulse.start_s))
         .attr('height', height - margin.top - margin.bottom)
         .attr('fill', 'var(--line)').attr('opacity', .3);
+      for (const time of [pulse.start_s, pulse.end_s]) {
+        svg.append('line').attr('class', 'event-boundary')
+          .attr('x1', x(time)).attr('x2', x(time))
+          .attr('y1', margin.top).attr('y2', height - margin.bottom)
+          .attr('stroke', 'var(--axis)').attr('stroke-dasharray', '3 5');
+      }
       if (kind === 'roll') svg.append('text').attr('x', (x(pulse.start_s) + x(pulse.end_s)) / 2)
         .attr('y', 16).attr('text-anchor', 'middle').text(
           pulse.kind === 'translation' ? 'Translation' : pulse.kind === 'bias_ramp' ? 'Bias ramp' : 'Accel. loss');

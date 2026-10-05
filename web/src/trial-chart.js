@@ -18,7 +18,7 @@ export function createTrialChart(container, readout) {
     svg.attr('viewBox', `0 0 ${width} ${height}`)
       .attr('aria-label', `${method.label}: full-run angle RMSE by noise seed. Focus or point at a dot to read its score. The dashed line is the displayed seed ${selectedSeed}.`);
     svg.selectAll('*').remove();
-    const grid = svg.append('g').attr('aria-hidden', 'true').attr('transform', `translate(${margin.left},0)`)
+    const grid = svg.append('g').attr('class', 'chart-grid').attr('aria-hidden', 'true').attr('transform', `translate(${margin.left},0)`)
       .call(axisLeft(y).ticks(5).tickSize(-(width - margin.left - margin.right)).tickFormat(''));
     grid.select('.domain').remove();
     grid.selectAll('line').attr('opacity', .4);

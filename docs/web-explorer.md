@@ -107,7 +107,7 @@ backend or database is configured.
   application time, age at arrival and the gap since the previous correction.
   Time labels round to milliseconds; navigation retains full precision. The
   slider has a 1 ms step and may select an interpolated instant between arrivals.
-- Read **Full-run error** for angle RMSE. The amber row marker identifies the
+- Read **Full-run error** for angle RMSE. The accent row marker identifies the
   inspected method, not the best score. Expand the experiment details for
   settings, display limitations and the JSON download. The score includes the
   initialization transient. A lower RMSE for the dropout case on this seed does
@@ -125,8 +125,18 @@ the plot, and always include hidden methods.
 
 The inspector precedes the plots in document order: left on wide screens, above
 on narrow screens. Color is supplemented by line styles and labels. The
-application uses the graphite theme; appearance controls used during design
-exploration are not part of this version.
+**Appearance** selector in the header applies **Dark** or **Light** to every view,
+including charts, tooltips and controls. Dark is the default. The choice is
+remembered in this browser and restored before the page is displayed; if local
+storage is unavailable, switching still works for the current page. Changing
+appearance preserves selections, diagnostic windows and the playback position,
+and does not interrupt active playback.
+
+The dark palette uses graphite surfaces and pale plot colors; the light palette
+uses warm paper surfaces and darker plot colors. Command accents remain separate
+from estimator colors. Axis strokes, event boundaries and uncertainty bounds are
+distinct from faint decorative grids and shading. Keyboard focus has an outer
+ring on trial markers, separate from the selected-point styling.
 
 ## Parameter studies
 
@@ -503,6 +513,7 @@ not arbitrary logs or delayed-measurement compensation.
 | `web/src/study-view.js`, `web/src/study-chart.js` | Study/case/phase/metric controls, setting summaries and paired-trial inspection. |
 | `web/src/chart.js` | D3 scales, paths, shared cursor and pointer inspection. |
 | `web/src/main.js` | Load data and connect scenario selection, playback, legends and readings. |
+| `web/src/theme.js`, the HTML head bootstrap | Restore and persist appearance independently of replay and study state. |
 | `web/src/style.css`, `web/index.html` | Appearance, semantic structure and responsive layout. |
 
 JavaScript ES modules keep the presentation small. [Vite](https://vite.dev/guide/)
@@ -533,6 +544,13 @@ and delayed schedules. Repeat tests check seed pairing, aggregates, malformed
 scores, reference inclusion, constant/single-trial domains, source immutability
 and exact linkage of all 720 shipped scores to the public summaries.
 These tests run without a browser.
+
+Appearance tests exercise the head bootstrap and theme control with saved,
+absent or invalid preferences, denied storage access and failed writes. Local
+Chromium checks also cover theme changes during playback and inspection,
+reload persistence, keyboard focus, rendered text/plot contrast and both themes
+at desktop and 320/390 px widths. These are limited browser checks, not a claim
+of complete accessibility or cross-browser validation.
 
 Parameter-study tests check all four source summaries against the shipped artifact,
 protocol/phase/setting identities, malformed metrics and provenance, paired deltas,

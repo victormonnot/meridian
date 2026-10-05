@@ -269,6 +269,13 @@ does not retune or rerun an estimator. The two views load independently and
 switching away from replay pauses it. No additional trajectory format or numerical
 core is introduced. See the [explorer guide](web-explorer.md#parameter-studies).
 
+Dark and light appearance share the same page structure, series identities and
+recorded data. A local browser preference controls presentation tokens only;
+switching it preserves replay and study state. Text, control boundaries and
+essential plot marks use separate roles from decorative dividers and shading.
+Neither the theme controller nor its early page bootstrap changes numerical
+inputs, interpolation, metrics or data exports.
+
 ## Next step and open decisions
 
 Read back the installed flight-controller configuration and acquire a short
