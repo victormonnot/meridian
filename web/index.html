@@ -16,6 +16,8 @@
         // Keep the default appearance when local preferences are unavailable.
       }
     </script>
+    <link rel="stylesheet" href="/src/style.css">
+    <noscript><style>.page-nav, .appearance-control, .experiment-control, #load-status { display: none !important; }</style></noscript>
     <title>Meridian — Roll estimation</title>
   </head>
   <body>
@@ -50,8 +52,8 @@
           </select>
         </label>
       </div>
-      <p id="load-status" role="status">Loading the recorded simulations…</p>
-      <noscript>This explorer needs JavaScript. Static figures and reproduction commands are available in the repository's EKF comparison report.</noscript>
+      <p id="load-status" class="load-status" role="status">Loading the recorded simulations…</p>
+      <noscript><p class="load-status">Enable JavaScript to explore these recordings. Static figures and reproduction commands are available in the <a href="https://github.com/victormonnot/meridian/tree/main/results">repository reports</a>.</p></noscript>
       <div id="explorer" hidden>
         <div class="context"><p id="scenario-description"></p><div class="inspection-links"><button type="button" id="jump" hidden>Inspect disturbance</button><button type="button" id="recovery" hidden>Inspect recovery</button></div></div>
         <div class="analysis-surface">
@@ -223,7 +225,7 @@
         <div class="intro studies-intro">
           <div><p class="eyebrow">Recorded comparisons / Vector EKF</p><h1 id="studies-heading">Parameter studies.</h1><p class="muted">One assumption changes. Measurements stay shared within each trial.</p></div>
         </div>
-        <p id="studies-status" role="status">Loading the recorded studies…</p>
+        <p id="studies-status" class="load-status" role="status">Loading the recorded studies…</p>
         <div id="study-content" hidden>
           <div class="study-selection">
             <div class="study-tabs" role="group" aria-label="Parameter study">

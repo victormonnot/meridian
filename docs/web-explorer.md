@@ -39,6 +39,25 @@ also be served under a subdirectory. Serve it over HTTP; opening `index.html`
 directly with `file://` is not supported. No hosting provider, deployment workflow,
 backend or database is configured.
 
+## Find a result
+
+| View | What to inspect | Where to open it |
+| --- | --- | --- |
+| Trajectories | The displayed run's roll and bias over time | Experiment replay, then choose an Experiment |
+| Diagnostics | Error, model uncertainty, innovations and NIS in a time window | Diagnostics beside Trajectories |
+| Repeated trials | Full-run RMSE across 20 noise seeds | Compare repeated trials below the full-run scores |
+| Parameter studies | Recorded setting comparisons on paired inputs | Parameter studies in the top navigation |
+
+Use `#replay`, `#studies` or `#trial-heading` after the application's URL for a
+direct link, including its subdirectory when applicable (for example,
+`/meridian/#studies`). These links select a view or section, not a saved scenario,
+window or study configuration. Selections persist while moving between views;
+reloading restores their defaults. Only appearance is saved between visits.
+Both data requests report loading and validation failures within their own view;
+reload to retry a failed request. The other view remains independently usable
+when its own data loads. With JavaScript disabled, a static message links to the
+repository reports instead of showing inactive controls or a pending load.
+
 ## Use the view
 
 Choose a recording with **Experiment** above the replay surface. The selector
@@ -152,8 +171,9 @@ ring on trial markers, separate from the selected-point styling.
 
 ## Parameter studies
 
-Use **Parameter studies** in the top navigation, or open `/#studies` on the same
-server. **Experiment replay** returns to the existing trajectories and diagnostics.
+Use **Parameter studies** in the top navigation, or append `#studies` to the
+application URL. **Experiment replay** returns to the existing trajectories and
+diagnostics.
 Switching pages pauses playback and preserves the controls in each view. The
 study artifact is fetched only when its view is first opened; a failed request
 does not prevent the other view from loading.
@@ -176,8 +196,8 @@ need more room. Metric windows, units and interpretation notes remain visible.
 | Bias diffusion | σb = 0, 0.03, 0.1 (°/s)/√s | 0, zero bias diffusion | True bias constant or ramping 0.5→1.5°/s over 10–20 s | 0–19 / 2000–2019 |
 
 **All three settings** shows each cohort's mean, observed min–max and mean paired
-difference from the reference. Select a row or **Inspect setting** to inspect its
-20 differences. Each point is `selected score − reference score` for one seed,
+difference from the reference. Select a setting name or **Inspect setting** to
+inspect its 20 differences. Each point is `selected score − reference score` for one seed,
 using the same sensor inputs and initialization. The dashed line is zero; seed
 identifiers denote separate runs, not time. Axes adapt to the selection and always
 include zero. All settings, including the reference itself, remain selectable.
@@ -351,6 +371,12 @@ arrow keys move between seeds. Dot inspection does not change playback. The
 plot and four-method table share a bordered panel; on narrow screens, the table
 follows the plot. The inspected method is marked in the table, and the selected
 seed score appears beneath the plot.
+
+Tab enters the plot at the last inspected seed, or the first repeated seed before
+inspection. Arrow keys move between seeds; Home and End reach the first and last.
+Tab then leaves the plot. Resizing or visiting Parameter studies and returning
+keeps the inspected marker and its score together; changing scenario or method
+restores the displayed-run readout.
 
 **Inspect method**, the method buttons in the table and the main estimate selector
 stay synchronized. The chart shows one method at a time; the table lists all four
@@ -646,6 +672,35 @@ viewport without horizontal overflow. Scores stay fixed when moving the cursor,
 changing weighting or choosing a diagnostic window. This has the same browser
 coverage limits stated above. A manual check is **Nominal → Vector EKF**: seed 42
 sits above the twenty dots; **Translation disturbance** puts it below them.
+
+Final local Chromium checks also cover intermediate widths (768/950/1024 px),
+a 720 × 500 CSS-pixel viewport, mixed pointer/keyboard seed inspection, resize
+focus retention and direct section links after delayed loading. The production
+build was served at the root and under `/meridian/`, checking asset loading,
+downloads against the shipped bytes, saved appearance, failed requests and the
+JavaScript-disabled fallback. These checks do not establish physical-device,
+screen-reader or cross-browser conformance.
+
+For a final interface check, repeat these steps against the production preview
+as well as the development server, in both appearances:
+
+- Open `#replay`, `#studies` and `#trial-heading` directly, including with a
+  throttled data request. Check the same links under the deployed subdirectory.
+  Use Back/Forward after changing pages; selections remain, and replay is paused.
+- Change appearance during playback, then reload. Playback should continue
+  through the theme change; reload starts a fresh inspection in the saved theme.
+- At 320 px and an intermediate desktop width, traverse controls with Tab and
+  Shift+Tab. Focus must remain visible above the shared player. Inspect a repeated
+  seed with the arrow keys, resize, then switch pages and back: its marker and
+  readout must agree. Home/End reach the first/last seed and Tab exits the plot.
+- Reject invalid diagnostic bounds, then apply valid bounds or a preset. The
+  error and invalid-field indicators must clear without altering full-run scores.
+- Use the download links under **Experiment settings and limitations** and
+  **Protocol, provenance and limits**. Compare each file with its corresponding
+  artifact in `web/public/data/`; current selections must not filter the download.
+- Block each data request separately, then try both blocked. Each affected view
+  must report failure, while a successfully loaded view remains usable. Reload
+  with requests restored. Disable JavaScript to check the static reports link.
 
 Trajectories remain limited to the nine selected Python simulations; repeated
 trials provide full-run scores only. There is no live

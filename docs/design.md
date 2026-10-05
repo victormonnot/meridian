@@ -282,9 +282,10 @@ One sticky playback bar serves both trajectories and diagnostics. The experiment
 selector binds to the same nine recorded scenarios; the inspector's bias readout
 uses the existing held estimate, or explicitly states that the selected baseline
 does not estimate bias. Layout changes do not introduce another playback state.
-Diagnostic bounds and shortcuts share one control group; current values, measurement timing and full-run
-NIS have separate readouts. Repeated-trial plots and the four-method summary share
-a responsive panel, with longer interpretation notes in expandable sections.
+Diagnostic bounds and shortcuts share one control group; current values,
+measurement timing and full-run NIS have separate readouts. Repeated-trial plots
+and the four-method summary share a responsive panel, with longer interpretation
+notes in expandable sections.
 Invalid diagnostic bounds keep the applied interval and expose an inline error
 to both fields, cleared when the accepted bounds are restored.
 
@@ -294,6 +295,15 @@ switching it preserves replay and study state. Text, control boundaries and
 essential plot marks use separate roles from decorative dividers and shading.
 Neither the theme controller nor its early page bootstrap changes numerical
 inputs, interpolation, metrics or data exports.
+
+Replay and studies expose separate loading and error states. Direct fragments
+select either page or the repeated-trial section, including after asynchronous
+loading and under a deployment subdirectory. These fragments do not serialize
+inspection settings. Trial markers retain their identity across layout changes,
+so keyboard focus and the inspected score remain aligned on resize. Each trial
+plot has one tab stop, with arrow keys and Home/End for seed navigation. The
+stylesheet loads independently of JavaScript; without scripting, a static
+message links to the repository reports.
 
 ## Next step and open decisions
 

@@ -100,6 +100,7 @@ export function createStudyChart(container, readout) {
             : event.key === 'Home' ? 0 : event.key === 'End' ? seeds.length - 1 : null;
         if (next !== null) {
           event.preventDefault();
+          inspect(model.values[next]);
           markers.nodes()[next].focus();
         } else if (event.key === 'Enter' || event.key === ' ') {
           event.preventDefault();

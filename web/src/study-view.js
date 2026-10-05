@@ -79,7 +79,7 @@ export function loadStudies() {
       const status = $('#studies-status');
       status.hidden = false;
       status.setAttribute('role', 'alert');
-      status.textContent = 'The recorded studies could not be loaded. Reload the page to try again. Experiment replay is available separately.';
+      status.textContent = 'The recorded studies could not be loaded. Reload the page to try again. Experiment replay loads separately.';
       console.error('Meridian study loading failed:', error);
     }
   })();

@@ -1,4 +1,3 @@
-import './style.css';
 import { initializeTheme } from './theme.js';
 import { loadStudies } from './study-view.js';
 import { createChart } from './chart.js';
@@ -15,6 +14,15 @@ const $ = selector => document.querySelector(selector);
 const dataUrl = `${import.meta.env.BASE_URL}data/roll-comparison.json`;
 let replayController;
 
+function restoreReplayAnchor() {
+  // The fragment may have been resolved while the asynchronously loaded panel was hidden.
+  requestAnimationFrame(() => {
+    if (window.location.hash === '#trial-heading' && replayController) {
+      $('#trial-heading').scrollIntoView({ block: 'start' });
+    }
+  });
+}
+
 function selectPage() {
   const studies = window.location.hash === '#studies';
   replayController?.pause();
@@ -25,6 +33,7 @@ function selectPage() {
     else link.removeAttribute('aria-current');
   });
   if (studies) loadStudies();
+  else restoreReplayAnchor();
 }
 
 async function load() {
@@ -36,6 +45,7 @@ async function load() {
     $('#explorer').hidden = false;
     replayController = startExplorer(data);
     $('#scenario').disabled = false;
+    restoreReplayAnchor();
   } catch (error) {
     $('#scenario').disabled = true;
     $('#explorer').hidden = true;

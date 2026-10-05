@@ -94,8 +94,7 @@ main { max-width: 1298px; margin: 0 auto; padding: 26px 24px 18px; }
 .page-nav a[aria-current=page] { border-color: var(--accent); color: var(--text); }
 .metadata { color: var(--muted); font-size: .8125rem; }
 .mono { font-family: var(--mono); }
-#load-status { padding: 24px 0; }
-#studies-status { padding: 24px 0; }
+.load-status { padding: 20px; border: 1px solid var(--line); background: var(--surface); color: var(--muted); font-size: .875rem; }
 .studies-intro h1 { margin-top: 7px; }
 .study-selection, .study-surface { border: 1px solid var(--line); background: var(--surface); }
 .study-tabs { display: flex; gap: 24px; padding: 0 20px; border-bottom: 1px solid var(--line); }
@@ -257,7 +256,7 @@ select { padding: 7px 8px; min-height: 36px; max-width: 100%; border: 1px solid 
 .window-presets button:hover { background: var(--soft); }
 .window-summary { margin: 14px 0 4px; font-size: .8125rem; }
 #window-error { margin-top: 10px; color: var(--error); }
-#load-status[role=alert], #studies-status[role=alert] { color: var(--error); }
+.load-status[role=alert] { border-left: 2px solid var(--error); color: var(--error); }
 table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: .875rem; }
 th { font-weight: 400; color: var(--muted); }
 th, td { padding: 8px 0; text-align: left; border-bottom: 1px solid var(--line); }
