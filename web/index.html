@@ -116,32 +116,41 @@
             </section>
             </div>
             <div id="diagnostic-panels" hidden>
-              <div class="window-controls">
+              <section class="window-controls" aria-labelledby="window-heading">
+                <div class="panel-heading"><h2 id="window-heading" class="eyebrow">Inspection window</h2><span id="diagnostic-method" class="metadata"></span></div>
                 <form id="diagnostic-window" class="window-form" novalidate aria-label="Diagnostic time window">
-                  <label for="window-start">From (s)<input id="window-start" name="start" type="number" min="0" max="30" step="0.001" value="0" required></label>
-                  <label for="window-end">To (s)<input id="window-end" name="end" type="number" min="0" max="30" step="0.001" value="30" required></label>
+                  <label for="window-start">From (s)<input id="window-start" name="start" type="number" min="0" max="30" step="0.001" value="0" required aria-describedby="window-summary window-error"></label>
+                  <label for="window-end">To (s)<input id="window-end" name="end" type="number" min="0" max="30" step="0.001" value="30" required aria-describedby="window-summary window-error"></label>
                   <button type="submit">Apply window</button>
                 </form>
                 <div class="window-presets" role="group" aria-label="Time window shortcuts"><button type="button" data-window="full">Full run</button><button type="button" data-window="first">First 5 s</button><button type="button" data-window="last">Last 5 s</button><button type="button" data-window="around">Around cursor · 5 s</button></div>
                 <p id="window-error" class="metadata" role="alert" hidden></p>
-                <p id="window-summary" class="metadata chart-note"></p>
-              </div>
-              <p id="diagnostic-method" class="metadata"></p>
+                <p id="window-summary" class="window-summary mono"></p>
+                <p class="metadata">Playback and plot scales follow this window. RMSE and mean NIS remain full-run values.</p>
+              </section>
               <section class="diagnostic-section" aria-labelledby="error-heading">
-                <div class="panel-heading"><h2 id="error-heading" class="accent-heading">Error and model uncertainty</h2><label class="metadata" for="diagnostic-component">State <select id="diagnostic-component"><option value="roll">Roll</option><option value="bias">Gyro bias</option></select></label></div>
-                <p id="uncertainty-note" class="metadata chart-note"></p>
+                <div class="panel-heading"><h2 id="error-heading">Error and model uncertainty</h2><label class="metadata" for="diagnostic-component">State <select id="diagnostic-component"><option value="roll">Roll</option><option value="bias">Gyro bias</option></select></label></div>
+                <p id="uncertainty-note" class="metadata diagnostic-key"></p>
                 <div id="error-chart" class="chart"></div>
-                <p id="error-readout" class="metadata mono chart-note"></p>
-                <p class="metadata chart-note">Original endpoints in the window are shown as steps, with held values at its edges. Values change after the next recorded prediction and any correction. The band describes the filter's model; it does not guarantee accuracy.</p>
+                <p id="error-readout" class="cursor-readout mono"></p>
+                <p class="metadata chart-note">Model uncertainty is not an accuracy bound.</p>
               </section>
               <section class="diagnostic-section" aria-labelledby="innovation-heading">
-                <div class="panel-heading"><h2 id="innovation-heading" class="accent-heading">Measurement corrections</h2><label class="metadata" for="innovation-mode">Show <select id="innovation-mode"><option value="raw">Innovation</option><option value="nis">NIS</option></select></label></div>
-                <p id="innovation-note" class="metadata chart-note"></p>
+                <div class="panel-heading"><h2 id="innovation-heading">Measurement corrections</h2><label class="metadata" for="innovation-mode">Show <select id="innovation-mode"><option value="raw">Innovation</option><option value="nis">NIS</option></select></label></div>
+                <p id="innovation-note" class="metadata diagnostic-key"></p>
+                <p id="nis-summary" class="nis-summary metadata" hidden></p>
                 <div id="innovation-chart" class="chart"></div>
-                <p id="innovation-readout" class="metadata chart-note"></p>
+                <p id="innovation-readout" class="cursor-readout mono"></p>
+                <p id="innovation-timing" class="metadata chart-note" hidden></p>
                 <p id="innovation-scale" class="metadata chart-note"></p>
               </section>
-              <p class="metadata chart-note">Use the same time slider, move across a plot, or step between corrections within the window. Scales fit the selected interval, including all its values. RMSE and mean NIS still describe the full run. State uncertainty is recorded after prediction and any correction; innovations describe the prior before correction.</p>
+              <details class="interpretation-details">
+                <summary>Reading these diagnostics</summary>
+                <p>State errors use every original endpoint, held until the next recorded prediction and any correction. Steps extend to the window edges; no estimator restarts at the window boundary. State uncertainty is recorded after prediction and any correction. The band shows ±2 model standard deviations about zero; it does not guarantee accuracy.</p>
+                <p>Innovations and their covariance describe the prior before correction. Points appear only at recorded arrivals in the window; no new value is created between corrections. A latest innovation from before the window can appear in the readout, explicitly labelled as not plotted.</p>
+                <p>Full-run mean NIS includes startup and does not change with this window. The angle KF has one measurement dimension; the vector EKF has two. Their ideal-model means differ, so their raw NIS values are not a shared lower-is-better score. Neither individual values nor the displayed mean establish statistical consistency.</p>
+                <p>Use the shared time slider, move across a plot, or step between corrections. Plot scales fit the window, including all its values; RMSE, mean NIS and repeated-trial scores continue to describe their full runs.</p>
+              </details>
             </div>
           </div>
             <section class="metrics" aria-labelledby="metrics-heading">
@@ -167,18 +176,18 @@
         </div>
         <div class="replay-provenance metadata"><span id="record-info" class="mono"></span><span>Recorded results · Single-axis model</span></div>
         <section class="trial-panel" aria-labelledby="trial-heading">
-          <div class="panel-heading">
-            <h2 id="trial-heading" class="accent-heading">Repeated trials</h2>
+          <div class="trial-header">
+            <div><p class="eyebrow">Across noise seeds</p><h2 id="trial-heading">Repeated trials</h2></div>
             <label class="metadata" for="trial-method">Inspect method <select id="trial-method"><option value="gyro">Gyro integration</option><option value="complementary">Complementary</option><option value="kalman">Angle KF</option><option value="ekf" selected>Vector EKF</option></select></label>
           </div>
-          <p id="trial-context" class="metadata"></p>
+          <p id="trial-context" class="metadata trial-context"></p>
           <div class="trial-layout">
-            <div>
+            <div class="trial-distribution">
               <div class="legend trial-legend" aria-label="Trial markers"><span><i id="trial-dot-key" class="trial-dot-key" aria-hidden="true"></i>Repeated seed</span><span><i id="trial-reference-key" class="swatch" aria-hidden="true"></i><span id="trial-reference-label">Displayed run</span></span></div>
               <div id="trial-chart" class="chart"></div>
-              <p id="trial-readout" class="metadata mono chart-note" role="status"></p>
+              <p id="trial-readout" class="cursor-readout mono" role="status"></p>
             </div>
-            <div>
+            <div class="trial-comparison">
               <table id="trial-summary">
                 <caption class="metadata">Full-run angle RMSE (°) · sample-count weighting</caption>
                 <thead><tr><th scope="col">Method</th><th scope="col">Mean</th><th scope="col">Observed min–max</th><th scope="col" id="trial-displayed-heading">Displayed</th></tr></thead>
@@ -187,9 +196,15 @@
               <p id="trial-position" class="metadata chart-note"></p>
             </div>
           </div>
-          <p class="metadata chart-note">Each point summarizes all 3,001 states of a 30 s run, including initialization. Trials keep the scenario and filter settings fixed while changing noise draws; irregular timing also varies between seeds.</p>
-          <p class="metadata chart-note">These scores always use sample-count weighting and the full run, independently of the playback cursor, diagnostic window and weighting selector above. The plot scale fits the inspected method and includes the displayed run.</p>
-          <p class="metadata chart-note">The observed range describes these trials. It is not a confidence interval, a general robustness ranking, or a hardware accuracy bound. Only the displayed seed has a trajectory in this explorer.</p>
+          <div class="trial-notes">
+            <p class="metadata">The observed range describes these trials, not a confidence interval. Only the displayed seed has a replay trajectory.</p>
+            <details class="interpretation-details">
+              <summary>Trial protocol and limits</summary>
+              <p>Each point summarizes all 3,001 states of a 30 s run, including initialization. Trials keep the scenario and filter settings fixed while changing noise draws; irregular timing also varies between seeds.</p>
+              <p>These scores always use sample-count weighting and the full run, independently of the playback cursor, diagnostic window and weighting selector above. The plot scale fits the inspected method and includes the displayed run.</p>
+              <p>The observed range is not a general robustness ranking or a hardware accuracy bound. Selecting a point inspects its full-run score; it does not load another trajectory.</p>
+            </details>
+          </div>
         </section>
         <details class="details">
           <summary>Experiment settings and limitations</summary>

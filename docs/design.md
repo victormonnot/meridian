@@ -276,6 +276,11 @@ One sticky playback bar serves both trajectories and diagnostics. The experiment
 selector binds to the same nine recorded scenarios; the inspector's bias readout
 uses the existing held estimate, or explicitly states that the selected baseline
 does not estimate bias. Layout changes do not introduce another playback state.
+Diagnostic bounds and shortcuts share one control group; current values, measurement timing and full-run
+NIS have separate readouts. Repeated-trial plots and the four-method summary share
+a responsive panel, with longer interpretation notes in expandable sections.
+Invalid diagnostic bounds keep the applied interval and expose an inline error
+to both fields, cleared when the accepted bounds are restored.
 
 Dark and light appearance share the same page structure, series identities and
 recorded data. A local browser preference controls presentation tokens only;

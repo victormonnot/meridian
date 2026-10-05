@@ -238,6 +238,12 @@ correction controls appear for every scenario in Diagnostics. Switching views
 pauses playback and retains method and scenario; time is clamped to the active
 view's interval when necessary.
 
+The **Inspection window** panel groups bounds and shortcuts, followed by the two
+plots and their cursor readouts. Plot keys and **Full-run mean NIS** remain
+visible; **Reading these diagnostics** expands the interpretation and limitations.
+The current state, latest measurement values and full-run statistics are labelled
+separately. The same layout stacks its controls on narrow screens.
+
 **Error and model uncertainty** selects roll or gyro bias. The solid line is
 `estimate - truth`, using the unwrapped angle convention. The shaded band and
 dotted bounds are ±2 model standard deviations about zero, not an empirical
@@ -261,9 +267,10 @@ complementary filter provide angle error only, with no invented covariance or bi
 
 Innovations inside the selected interval are plotted as isolated markers at their actual arrival times;
 there is no line or fabricated value through the dropout. The highlighted last
-innovation stays at its original plotted time when inside the window. The readout explicitly names its
-arrival, acquisition and elapsed time since arrival, and reports the prior
-innovation standard deviation(s) from S. Before the first correction it reports
+innovation stays at its original plotted time when inside the window. Its value
+and NIS appear in a cursor readout, with arrival time, acquisition time and elapsed
+time since arrival on a separate line. The prior innovation standard deviation(s)
+from S follow below. Before the first correction it reports
 no innovation. These are pre-correction diagnostics; the state at the same time
 is post-correction. The gyro and complementary baselines do not expose S or NIS.
 
@@ -271,7 +278,9 @@ is post-correction. The gyro and complementary baselines do not expose S or NIS.
 
 Enter **From (s)** and **To (s)**, then use **Apply window** or press Enter.
 Bounds must be finite, within 0–30 s, and at least 1 ms apart. Invalid entries
-leave the applied interval unchanged. **Full run**, **First 5 s**, **Last 5 s**
+leave the applied interval unchanged and show an inline error associated with
+both fields. Applying a valid window or restoring the accepted bounds clears
+the error. **Full run**, **First 5 s**, **Last 5 s**
 and **Around cursor · 5 s** provide shortcuts; the last shifts near the run's
 edges to keep five seconds. Changing the window pauses playback and clamps the
 cursor to it. Play resumes from the cursor and stops at the right bound; Replay
@@ -327,7 +336,10 @@ Use **Compare repeated trials** beneath the full-run error table to reach the
 panel below the plots. It shows how full-run angle RMSE varies across **20 noise
 seeds, 0–19**, for the current scenario. Each dot is one complete run, not a point
 in time. Hover, tap or focus a dot for its seed and six-decimal score; Left/Right
-arrow keys move between seeds. Dot inspection does not change playback.
+arrow keys move between seeds. Dot inspection does not change playback. The
+plot and four-method table share a bordered panel; on narrow screens, the table
+follows the plot. The inspected method is marked in the table, and the selected
+seed score appears beneath the plot.
 
 **Inspect method**, the method buttons in the table and the main estimate selector
 stay synchronized. The chart shows one method at a time; the table lists all four
@@ -353,6 +365,9 @@ noise changes. Irregular timing also redraws its interval schedule for each seed
 The JSON download includes all 720 repeated scores (nine cases × twenty seeds ×
 four methods), at source precision, but no repeated-seed trajectories or diagnostics.
 The panel neither reruns filters nor assigns new pass/fail or superiority claims.
+**Trial protocol and limits** expands the run length, weighting and interpretation
+notes; the distinction between an observed range and a confidence interval stays
+visible beside these results.
 Physical noise identification and new bench acquisition remain separate work.
 
 ## Data contract and reproduction
@@ -563,9 +578,12 @@ Chromium checks also cover theme changes during playback and inspection,
 reload persistence, keyboard focus, rendered text/plot contrast and both themes
 at desktop and 320/390 px widths. Replay layout checks cover all nine scenarios
 and four methods, current roll/error/bias values, both RMSE weightings, linked
-legends, correction navigation, keyboard controls and touch targets. These are
-limited browser checks, not a claim of complete accessibility or cross-browser
-validation.
+legends, correction navigation, keyboard controls and touch targets. Diagnostic
+checks additionally cover rejected bounds and accessible errors, fractional
+windows, intervals without observations, separate arrival/acquisition readouts,
+full-run NIS and repeated scores preserved across cursor/window/weighting changes.
+These are limited browser checks, not a claim of complete accessibility or
+cross-browser validation.
 
 Parameter-study tests check all four source summaries against the shipped artifact,
 protocol/phase/setting identities, malformed metrics and provenance, paired deltas,

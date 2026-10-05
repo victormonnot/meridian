@@ -93,7 +93,8 @@ export function createDiagnosticChart(container, kind, duration, onInspect) {
     svg.append('g').attr('transform', `translate(0,${height - margin.bottom})`)
       .call(axisBottom(x).ticks(width < 420 ? 4 : 6).tickSizeOuter(0));
     svg.append('g').attr('transform', `translate(${margin.left},0)`).call(axisLeft(y).ticks(5).tickSizeOuter(0));
-    svg.append('text').attr('class', 'axis-title').attr('x', margin.left).attr('y', 17).text(label);
+    svg.append('text').attr('class', 'axis-title').attr('x', margin.left).attr('y', 17).text(kind === 'innovation' && mode === 'nis' && width < 420
+        ? `NIS · ${scenario.diagnostics[method.id]?.dimension ?? '—'}D` : label);
     svg.append('text').attr('class', 'axis-title').attr('x', (width + margin.left) / 2).attr('y', height - 4).text('Time (s)');
     svg.append('line').attr('class', 'cursor').attr('y1', margin.top).attr('y2', height - margin.bottom)
       .attr('stroke', 'var(--accent)').attr('stroke-dasharray', '2 3');

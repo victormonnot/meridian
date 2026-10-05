@@ -175,8 +175,11 @@ function startExplorer(data) {
     $('#window-end').max = duration;
     $('#window-start').value = diagnosticWindow[0];
     $('#window-end').value = diagnosticWindow[1];
+    $('#window-error').hidden = true;
+    $('#window-error').textContent = '';
+    for (const id of ['window-start', 'window-end']) $(`#${id}`).removeAttribute('aria-invalid');
     const correctionCount = innovationsInWindow(scenario(), 'kalman', diagnosticWindow).length;
-    $('#window-summary').textContent = `Viewing ${formatValue(diagnosticWindow[0], 3)}–${formatValue(diagnosticWindow[1], 3)} s · ${correctionCount} corrections. Playback and axes follow this window; RMSE and mean NIS remain full-run values.`;
+    $('#window-summary').textContent = `${formatValue(diagnosticWindow[0], 3)}–${formatValue(diagnosticWindow[1], 3)} s · ${correctionCount} ${correctionCount === 1 ? 'correction' : 'corrections'}`;
     $('#correction-navigation').hidden = !active && scenarioId !== 'timing_jitter' && scenarioId !== 'accel_delay';
     document.querySelectorAll('[data-view]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.view === view)));
     const component = $('#diagnostic-component').value;
@@ -186,16 +189,18 @@ function startExplorer(data) {
     $('#diagnostic-method').textContent = `${method().label} · follows the inspected estimate`;
     $('#error-chart').hidden = current === null;
     $('#uncertainty-note').textContent = current === null ? 'This method does not estimate gyro bias.'
-      : current.sigma === null ? 'Solid line: estimate − truth. This baseline does not report model covariance.'
-        : 'Solid line: estimate − truth. Shaded band and dotted bounds: ±2 model standard deviations about zero.';
+      : current.sigma === null ? 'Solid line: estimate − truth. No model covariance for this baseline.'
+        : 'Solid line: estimate − truth · shaded band and dotted bounds: ±2 model σ about zero.';
     $('#innovation-chart').hidden = !record;
     $('#innovation-mode').disabled = !record;
     $('#innovation-note').textContent = !record ? 'Innovation covariance and NIS are available for the angle KF and vector EKF.'
-      : (mode === 'nis' ? `Dots: joint NIS. Dashed line: ideal-model mean ${record.dimension}, not a test threshold. `
-        : methodId === 'kalman' ? 'Dots: measured tilt − predicted roll, before correction (°). '
-          : 'Dots: body-y innovation; crosses: body-z innovation, before correction (m/s²). ')
-        + `Full-run mean NIS ${formatValue(record.mean_nis, 3)} · ${record.dimension} measurement ${record.dimension === 1 ? 'dimension' : 'dimensions'}. Includes startup; KF and EKF NIS have different dimensions. No statistical consistency is established by this view.`
+      : (mode === 'nis' ? 'Dots: joint NIS · dashed line: ideal-model mean.'
+        : methodId === 'kalman' ? 'Dots: measured tilt − predicted roll, before correction (°).'
+          : 'Dots: body-y innovation · crosses: body-z innovation, before correction (m/s²).')
         + (correctionCount === 0 ? ' No corrections in this window.' : '');
+    $('#nis-summary').hidden = !record;
+    $('#nis-summary').textContent = !record ? ''
+      : `Full-run mean NIS ${formatValue(record.mean_nis, 3)} · ${record.dimension} measurement ${record.dimension === 1 ? 'dimension' : 'dimensions'} · ideal-model mean ${record.dimension}, not a test threshold.`;
     diagnosticCharts.forEach(chart => chart.setData(scenario(), method(), component, mode, diagnosticWindow));
   }
 
@@ -210,10 +215,14 @@ function startExplorer(data) {
     const correction = correctionDetails(scenario(), time);
     $('#innovation-readout').textContent = !scenario().diagnostics[methodId] ? ''
       : innovation === null ? 'No innovation yet: the first measurement has not arrived.'
-        : `Latest innovation${inWindow(innovation[0], diagnosticWindow) ? '' : ' (before this window; not plotted)'} at arrival ${formatValue(innovation[0], 3)} s, acquired at ${formatValue(correction.sample, 3)} s (${formatValue((time - innovation[0]) * 1000, 1)} ms since arrival): `
+        : 'Latest innovation: '
           + (methodId === 'kalman' ? `${formatValue(innovation[1], 3)}°`
             : `y ${formatValue(innovation[1], 3)}, z ${formatValue(innovation[2], 3)} m/s²`)
-          + ` · NIS ${formatValue(innovation.at(-1), 3)}. No new value between corrections.`;
+          + ` · NIS ${formatValue(innovation.at(-1), 3)}`;
+    $('#innovation-timing').hidden = innovation === null;
+    $('#innovation-timing').textContent = innovation === null ? ''
+      : `Arrival ${formatValue(innovation[0], 3)} s · acquired ${formatValue(correction.sample, 3)} s · ${formatValue((time - innovation[0]) * 1000, 1)} ms since arrival.`
+        + (inWindow(innovation[0], diagnosticWindow) ? '' : ' Before this window; not plotted.');
     $('#innovation-scale').textContent = !innovation ? '' : methodId === 'kalman'
       ? `Prior innovation standard deviation √S: ${formatValue(Math.sqrt(innovation[2]), 3)}°.`
       : `Prior innovation standard deviations: y ${formatValue(Math.sqrt(innovation[3]), 3)}, z ${formatValue(Math.sqrt(innovation[5]), 3)} m/s². Joint NIS uses the full S, including its cross term.`;
@@ -390,7 +399,6 @@ function startExplorer(data) {
   function applyWindow(bounds) {
     stop();
     diagnosticWindow = bounds;
-    $('#window-error').hidden = true;
     redraw();
     $('#announcement').textContent = `Diagnostic window ${formatValue(bounds[0], 3)} to ${formatValue(bounds[1], 3)} seconds.`;
   }
@@ -437,6 +445,7 @@ function startExplorer(data) {
     } catch (error) {
       $('#window-error').textContent = error.message;
       $('#window-error').hidden = false;
+      for (const id of ['window-start', 'window-end']) $(`#${id}`).setAttribute('aria-invalid', 'true');
     }
   });
   document.querySelectorAll('[data-window]').forEach(button => button.addEventListener('click', () => {
@@ -472,7 +481,6 @@ function startExplorer(data) {
     stop();
     scenarioId = event.target.value;
     diagnosticWindow = [0, duration];
-    $('#window-error').hidden = true;
     time = eventInspectionTime();
     renderScenario();
     $('#announcement').textContent = `${event.target.selectedOptions[0].textContent} selected.`;
