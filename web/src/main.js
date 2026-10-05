@@ -35,7 +35,9 @@ async function load() {
     $('#load-status').hidden = true;
     $('#explorer').hidden = false;
     replayController = startExplorer(data);
+    $('#scenario').disabled = false;
   } catch (error) {
+    $('#scenario').disabled = true;
     $('#explorer').hidden = true;
     const status = $('#load-status');
     status.hidden = false;
@@ -124,6 +126,8 @@ function startExplorer(data) {
     $('#truth-angle').textContent = `${formatValue(row[1])}°`;
     $('#estimate-angle').textContent = `${formatValue(row[method().roll])}°`;
     $('#angle-error').textContent = `${formatValue(row[method().roll] - row[1])}°`;
+    $('#estimate-bias').textContent = method().bias === null
+      ? 'Not estimated' : `${formatValue(row[method().bias], 3)}°/s`;
     for (const item of SERIES.filter(item => item.bias !== null)) {
       $(`#bias-${item.id}`).textContent = `${formatValue(row[item.bias], 3)}°/s`;
     }
@@ -242,7 +246,7 @@ function startExplorer(data) {
     const consecutive = seeds.every((seed, index) => seed === seeds[0] + index);
     const seedLabel = seeds.length === 1 ? `seed ${seeds[0]}`
       : consecutive ? `seeds ${seeds[0]}–${seeds.at(-1)}` : 'seeds listed on the plot';
-    const scenarioLabel = $(`[data-scenario="${scenarioId}"]`).textContent;
+    const scenarioLabel = $('#scenario').selectedOptions[0].textContent;
     $('#trial-context').textContent = `${scenarioLabel} · ${seeds.length} recorded ${seeds.length === 1 ? 'trial' : 'trials'} · ${seedLabel}. `
       + (seeds.includes(data.seed) ? `Displayed seed ${data.seed} is also included in these trials.`
         : `Displayed seed ${data.seed} is a separate reference, excluded from their mean and range.`);
@@ -330,9 +334,7 @@ function startExplorer(data) {
         : ramp ? 'The filters keep their constant-bias model. This run evaluates a model mismatch, not retuned filters.'
         : dropout ? 'A lower error on this seed does not mean losing observations improves estimation.'
         : 'Computed from every original endpoint, including initialization.';
-    document.querySelectorAll('[data-scenario]').forEach(button => {
-      button.setAttribute('aria-pressed', String(button.dataset.scenario === scenarioId));
-    });
+    $('#scenario').value = scenarioId;
     const settings = [
       ['Roll motion', `${config.amplitude_deg}° amplitude · ${config.frequency_hz} Hz · ${duration} s`],
       ['Measurement schedule', irregular
@@ -466,15 +468,15 @@ function startExplorer(data) {
     const event = scenario().event;
     inspectTime(event ? (event.kind === 'bias_ramp' ? event.end_s : event.first_correction_after_s) : duration);
   });
-  document.querySelectorAll('[data-scenario]').forEach(button => button.addEventListener('click', () => {
+  $('#scenario').addEventListener('change', event => {
     stop();
-    scenarioId = button.dataset.scenario;
+    scenarioId = event.target.value;
     diagnosticWindow = [0, duration];
     $('#window-error').hidden = true;
     time = eventInspectionTime();
     renderScenario();
-    $('#announcement').textContent = `${button.textContent} selected.`;
-  }));
+    $('#announcement').textContent = `${event.target.selectedOptions[0].textContent} selected.`;
+  });
   document.addEventListener('visibilitychange', () => { if (document.hidden) stop(); });
   window.addEventListener('pagehide', stop);
   renderScenario();

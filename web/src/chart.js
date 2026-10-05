@@ -111,7 +111,7 @@ export function createChart(container, kind, duration, onInspect, tooltip) {
     svg.select('.cursor-points').selectAll('circle')
       .data(series.filter(item => visible.has(item.id)), item => item.id).join('circle')
       .attr('cx', x(row[0])).attr('cy', item => y(row[item[kind]]))
-      .attr('r', 3).attr('fill', 'var(--bg)').attr('stroke', item => item.color)
+      .attr('r', 3).attr('fill', 'var(--surface)').attr('stroke', item => item.color)
       .attr('stroke-width', 1.5);
   }
 

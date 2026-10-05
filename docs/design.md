@@ -269,6 +269,14 @@ does not retune or rerun an estimator. The two views load independently and
 switching away from replay pauses it. No additional trajectory format or numerical
 core is introduced. See the [explorer guide](web-explorer.md#parameter-studies).
 
+The replay surface places the current roll, rear-view indicator and selected
+estimate beside the roll/bias plots, with full-run scores beneath the inspector.
+On narrow screens, current values precede the plots and scores follow them.
+One sticky playback bar serves both trajectories and diagnostics. The experiment
+selector binds to the same nine recorded scenarios; the inspector's bias readout
+uses the existing held estimate, or explicitly states that the selected baseline
+does not estimate bias. Layout changes do not introduce another playback state.
+
 Dark and light appearance share the same page structure, series identities and
 recorded data. A local browser preference controls presentation tokens only;
 switching it preserves replay and study state. Text, control boundaries and

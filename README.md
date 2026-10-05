@@ -78,6 +78,8 @@ npm --prefix web run dev
 
 Open the local URL printed by the server. The [explorer guide](docs/web-explorer.md)
 describes playback, data provenance, reproducible export, tests and static builds.
+Choose one of nine recordings with **Experiment**. The replay pairs a current-state
+inspector with synchronized roll/bias plots and a shared playback bar.
 The header's **Appearance** selector switches all views between dark and light
 themes, remembers the local preference and preserves the current inspection.
 Viewing the bundled simulations requires no Python environment or drone connection.

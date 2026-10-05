@@ -41,6 +41,15 @@ backend or database is configured.
 
 ## Use the view
 
+Choose a recording with **Experiment** above the replay surface. The selector
+becomes available after the saved data loads. The current-state inspector sits
+beside the roll and bias plots on wide screens; on narrow screens, the attitude
+and current values appear first, then the plots and full-run scores. The shared
+playback bar stays at the bottom of the viewport while scrolling through this
+surface and serves both **Trajectories** and **Diagnostics**. Repeated trials,
+experiment settings and parameter studies remain accessible below or through
+the page navigation.
+
 - **Nominal** uses a known initial roll and gravity-based accelerometer measurements.
 - **Translation disturbance** adds +2 m/s² along body y for `12 <= t < 17 s`.
   The shaded interval marks this injection.
@@ -89,8 +98,10 @@ backend or database is configured.
   **Inspect end** moves to 30 s for either initialization case, to distinguish
   an initial recovery transient from remaining error.
   Method selection, metric weighting and curve visibility are preserved between scenarios.
-- Select an estimate to inspect its roll and signed error at the cursor. The
-  solid neutral drone follows that estimate; the dashed outline follows truth.
+- Select an estimate to inspect its roll, signed error and estimated bias at the
+  cursor. Gyro integration and complementary fusion show **Not estimated** for
+  bias. The solid neutral drone follows that estimate; the dashed outline
+  follows truth.
   The rear view looks along forward +X in a forward-right-down body frame:
   positive roll lowers the vehicle's right side.
 - Toggle a method in either legend to change its curve visibility. Selecting
@@ -108,7 +119,8 @@ backend or database is configured.
   Time labels round to milliseconds; navigation retains full precision. The
   slider has a 1 ms step and may select an interpolated instant between arrivals.
 - Read **Full-run error** for angle RMSE. The accent row marker identifies the
-  inspected method, not the best score. Expand the experiment details for
+  inspected method, not the best score. **About these scores** explains weighting
+  and scenario-specific caveats. Expand the experiment details for
   settings, display limitations and the JSON download. The score includes the
   initialization transient. A lower RMSE for the dropout case on this seed does
   not establish that losing observations improves estimation.
@@ -549,8 +561,11 @@ Appearance tests exercise the head bootstrap and theme control with saved,
 absent or invalid preferences, denied storage access and failed writes. Local
 Chromium checks also cover theme changes during playback and inspection,
 reload persistence, keyboard focus, rendered text/plot contrast and both themes
-at desktop and 320/390 px widths. These are limited browser checks, not a claim
-of complete accessibility or cross-browser validation.
+at desktop and 320/390 px widths. Replay layout checks cover all nine scenarios
+and four methods, current roll/error/bias values, both RMSE weightings, linked
+legends, correction navigation, keyboard controls and touch targets. These are
+limited browser checks, not a claim of complete accessibility or cross-browser
+validation.
 
 Parameter-study tests check all four source summaries against the shipped artifact,
 protocol/phase/setting identities, malformed metrics and provenance, paired deltas,
