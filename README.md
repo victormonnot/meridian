@@ -1,92 +1,94 @@
 # Meridian
 
-Meridian is an experimental state-estimation and sensor-fusion project. Its first
-study targets roll angle and residual gyroscope bias using gyroscope and
-accelerometer measurements, with reproducible simulation and offline replay of
-real drone bench data.
+**Work in progress. V1 isn't ready yet.**
 
-**Implemented:** Python gyro integration, accelerometer tilt, a complementary
-filter, an angle/bias Kalman reference, and an accelerometer-vector EKF, with
-controlled simulation, reproducible exports, and numerical tests. On the selected
-nominal simulation, angle RMSE is 8.854° for gyro integration, 0.660° for the
-complementary filter, 0.354° for the angle KF, and 0.353° for the vector EKF.
-A paired translation disturbance exposes failure of the gravity-based observation
-model in both Kalman filters. A DataFlash IMU audit checks real-log units,
-timing, gaps and health metadata. Offline replay compares gyro, complementary,
-angle KF and vector EKF estimates on an explicitly selected log segment with declared
-sampling and tuning assumptions. The [historical replay](results/imu-replay/README.md)
-has no independent angle reference. A C++17 port of the vector EKF provides a separate numerical core and
-event replay executable, checked against Python after every operation in simulation
-and on the same [recorded IMU segment](results/imu-cpp-parity/README.md).
-A static web explorer replays the nominal and translation runs, plus wrong
-initialization at two confidence levels, accelerometer loss, changing gyro bias
-and underestimated noise, irregular timing and unmodeled delay from the controlled suite.
-It also compares full-run angle RMSE across 20 repeated noise seeds per scenario.
-Its **Parameter studies** view compares the recorded R and bias-diffusion settings
-on paired trials, with separate exploration and final-evaluation sets.
-A new documented bench acquisition remains planned.
+Meridian is my state estimation and sensor fusion project. I'm starting with a
+drone's roll angle, meaning how far it tilts to either side, using gyroscope and
+accelerometer measurements.
 
-![Vector EKF and baseline comparison on shared simulated measurements](results/ekf-comparison/overview.png)
+A small error in the gyroscope adds up over time. The accelerometer can help
+correct it, but movement can also make that correction wrong. I'm comparing
+filters in simulation and on recorded sensor data to see where each one works
+and where it fails.
 
-The vector EKF comparison combines 100 Hz gyro intervals with 10 Hz accelerometer
-components. The EKF corrects directly from the y/z force vector; the earlier
-filters use derived tilt. All methods share measurements and a known initial
-angle. The [EKF comparison report](results/ekf-comparison/README.md) includes
-20 additional paired noise seeds, innovation diagnostics, and local convergence
-limits. Near the correct angle, the two Kalman formulations behave similarly;
-the nonlinear observation does not remove translation ambiguity.
-The noise and timing models are controlled assumptions, not identified sensor characteristics.
+![Meridian explorer showing simulated roll, the estimated tilt and comparisons between four filters](docs/media/explorer.png)
 
-The [controlled scenario suite](results/controlled-scenarios/README.md) extends
-this comparison to wrong initialization, changing bias, unavailable observations,
-irregular intervals, underestimated noise, and unmodeled delay. Estimator tuning
-stays fixed. It reports transient and final-window errors; only the nominal case
-receives accuracy pass/fail criteria.
+*The current explorer, showing a saved simulation. The dotted gyro curve drifts
+away from the reference as errors accumulate. [Screenshot details](docs/media/README.md).*
 
-The [accelerometer covariance study](results/r-sensitivity/README.md) compares
-three declared R settings on identical measurements, at two simulated noise
-levels. It separates 20 exploratory seeds from 20 final-evaluation seeds and
-retains every paired score, including bias errors and innovation diagnostics.
-The [fixed protocol](docs/r-sensitivity.md) describes reproduction and limits;
-this study does not change the default tuning or identify physical sensor noise.
+[Try the explorer](#try-the-explorer) · [Results](#experiments-and-results) ·
+[Technical setup](#technical-setup) · [Design notes](docs/design.md)
 
-The [bias random-walk comparison](results/bias-random-walk/README.md) adds an
-optional continuous bias-diffusion model to the Python and C++ vector EKF. It
-compares three intensities on constant and ramping bias, retaining the constant
-reference, and checks both implementations after every operation. Tracking error
-and late bias fluctuations are reported separately; the default intensity is zero.
+## What exists so far
 
-The [C++ agreement report](results/cpp-parity/README.md) compares states,
-covariances, and innovations on those eight cases plus the translation pulse.
-Agreement includes unfavorable cases; it establishes implementation agreement
-within numerical tolerances, not improved physical accuracy.
+- Python experiments comparing gyro integration, a complementary filter and
+  Kalman filters on the same measurements, including cases where they fail.
+- A browser interface to replay the saved simulations, inspect errors and
+  compare repeated trials and filter settings.
+- A C++17 implementation of the extended Kalman filter (EKF), checked against
+  Python after each prediction and correction.
+- Tools to inspect recorded drone sensor data and replay a selected log segment
+  through the filters offline.
 
-The earlier [gyro-drift baseline](results/gyro-drift/README.md) isolates integration
-error from bias and noise, and the [linear reference](results/linear-kalman/README.md)
-uses direct synthetic angle observations. All experiments use **mean rates over simulation
-intervals**, so the ideal case reconstructs the trajectory up to roundoff by
-construction. This is not an established sample convention for real logs.
+The first study is still incomplete. A new bench recording with known angles
+is needed to check the estimates against a physical reference. The historical
+recording used so far has no independent angle reference, so it cannot tell us
+the filters' real accuracy.
 
-## Run the experiment
+This is currently a single-axis study. Meridian has not been validated onboard,
+in real time or in flight. The planned bench work keeps the drone disarmed, with
+propellers removed and the estimator outside the flight-control loop.
 
-To explore the included results in a browser, install Node.js 22.12+ and run:
+## Try the explorer
+
+The prototype includes saved results you can explore locally. You need
+**Node.js 22.12+** and npm; no Python setup or drone connection is needed.
 
 ```sh
+git clone https://github.com/victormonnot/meridian.git
+cd meridian
 npm --prefix web ci
 npm --prefix web run dev
 ```
 
-Open the local URL printed by the server. The [explorer guide](docs/web-explorer.md)
-describes playback, data provenance, reproducible export, tests and static builds.
-Choose one of nine recordings with **Experiment**. The replay pairs a current-state
-inspector with synchronized roll/bias plots and a shared playback bar.
-**Diagnostics** inspects errors, uncertainty and measurement corrections;
-**Repeated trials** compares full-run scores across noise seeds. Open
-**Parameter studies** in the top navigation to inspect the recorded R and
-bias-diffusion comparisons. Switching pages pauses replay and keeps selections.
-The header's **Appearance** selector switches all views between dark and light
-themes, remembers the local preference and preserves the current inspection.
-Viewing the bundled simulations requires no Python environment or drone connection.
+Open the local URL printed in the terminal. Start with **Nominal**, then choose
+**Translation disturbance** to see what happens when acceleration is mistaken
+for tilt. Use the time slider to compare an estimate with the simulated reference.
+
+**Diagnostics** shows errors and filter uncertainty. **Repeated trials** compares
+runs with different sensor noise. **Parameter studies** shows how saved runs
+change with different filter settings.
+
+The browser reads recorded results. It doesn't run or retune the filters, and
+real-log playback isn't available in the interface yet.
+See the [explorer guide](docs/web-explorer.md) for the views, controls and build commands.
+
+## Experiments and results
+
+Each report explains the inputs, assumptions, results and how to reproduce them.
+The simulations include known motion for comparison; the historical log does not.
+
+| Study | What it looks at |
+| --- | --- |
+| [Gyro drift](results/gyro-drift/README.md) | How noise and sensor bias accumulate into angle error. |
+| [Linear Kalman filter](results/linear-kalman/README.md) | An initial reference using synthetic angle measurements. |
+| [Accelerometer fusion](results/accelerometer-fusion/README.md) | Combining gyro and accelerometer data, with and without a translation disturbance. |
+| [Vector EKF](results/ekf-comparison/README.md) | Comparing the nonlinear filter with the earlier methods on shared inputs. |
+| [Controlled scenarios](results/controlled-scenarios/README.md) | Wrong initial angle, missing measurements, changing bias, noise and timing problems. |
+| [Filter settings](results/r-sensitivity/README.md) and [changing bias](results/bias-random-walk/README.md) | Separate studies of measurement uncertainty and the bias model, with exploration and final evaluation runs. |
+| [Python/C++ agreement](results/cpp-parity/README.md) | Checking both implementations after every operation, including in failure cases. |
+| [Recorded IMU replay](results/imu-replay/README.md) and [C++ comparison](results/imu-cpp-parity/README.md) | Offline replay of a historical drone log, without an independent angle reference. |
+
+Good results in a simulation don't establish accuracy on hardware. Likewise,
+Python/C++ agreement checks the port, not the physical model. The raw historical
+log is not included in this repository; its report contains aggregate results.
+
+## Technical setup
+
+The numerical core uses Python/NumPy and C++17/Eigen. The explorer uses
+JavaScript, Vite and D3, separately from the estimation code.
+
+### Python experiments
 
 The pinned environment was verified with **Python 3.12 on Linux**. From the
 repository root:
@@ -95,141 +97,31 @@ repository root:
 python3.12 -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements.lock -e .
-python -m meridian.gyro_drift --output outputs/gyro-drift
-python -m meridian.kalman_experiment --output outputs/linear-kalman
-python -m meridian.accel_experiment --output outputs/accelerometer-fusion
 python -m meridian.ekf_experiment --output outputs/ekf-comparison
-python -m meridian.stress_experiment --output outputs/controlled-scenarios
 python -m pytest -q
 ```
 
+Use a **new output directory** for each experiment; existing directories are
+refused. Generated runs under `outputs/` are ignored by Git. They include
+measurements, simulation truth, estimates, a JSON summary and plots.
+The reports above contain the commands for each study.
+
 On Windows with Python 3.12 installed, create the environment with
-`py -3.12 -m venv .venv` and run the remaining `python -m ...` commands using
-`.venv\Scripts\python.exe` in place of `python`.
+`py -3.12 -m venv .venv` and replace `python` in the remaining commands with
+`.venv\Scripts\python.exe`. Windows is not part of the tested platform matrix.
 
-Each experiment exports separate measurements, truth, and estimates, plus a JSON
-summary and PNG plot. Fusion experiments also export covariance and innovation
-diagnostics and evaluate seeds 0–19. Use a **new output directory** for each run;
-existing directories are refused. Generated runs under `outputs/` are ignored by
-Git. Selected figures and summaries under `results/` document the default runs.
+### C++, recorded data and checks
 
-For the C++ EKF, install CMake 3.20+, a C++17 compiler and Eigen 3.4+, then:
+- [C++ guide](docs/cpp-ekf.md): dependencies, build, native tests and comparison
+  with Python. Requires CMake 3.20+, a C++17 compiler and Eigen 3.4+.
+- [DataFlash audit](docs/dataflash-audit.md) and [offline replay](docs/imu-replay.md):
+  optional decoder setup, timing inspection and explicit log-segment selection.
+- [CI guide](docs/ci.md): full Python/C++ checks, synthetic DataFlash fixtures,
+  web tests and production build. The Python-only command above skips C++
+  integration tests unless `MERIDIAN_CPP_BINARY` points to the built executable.
+- [Design and validation](docs/design.md): models, assumptions, software boundaries
+  and remaining work.
 
-```sh
-cmake -S . -B build/cpp -DCMAKE_BUILD_TYPE=Release -DMERIDIAN_TEST_PYTHON="$PWD/.venv/bin/python"
-cmake --build build/cpp --parallel 2
-ctest --test-dir build/cpp --output-on-failure
-python -m meridian.cpp_parity --binary build/cpp/meridian_ekf_replay --output outputs/cpp-parity
-```
-
-These commands were verified on Linux. The [C++ guide](docs/cpp-ekf.md) describes
-dependencies, other build configurations, the event protocol, and comparison
-tolerances. The default Python-only test run skips C++ integration tests unless
-`MERIDIAN_CPP_BINARY` is set; the configured CTest job supplies the built executable.
-
-The [CI workflow](.github/workflows/ci.yml) automates the native tests and full
-Python suite with C++ integration and the DataFlash decoder enabled, plus web
-tests and a production build. It uses synthetic log fixtures and tracked
-simulation results. The [CI guide](docs/ci.md) covers triggers, local reproduction
-and coverage; its first hosted run remains to be confirmed after publication.
-
-For a stationary scenario or a different noise realization:
-
-```sh
-python -m meridian.gyro_drift --amplitude-deg 0 --output outputs/stationary
-python -m meridian.gyro_drift --seed 7 --output outputs/seed-7
-python -m meridian.kalman_experiment --help
-python -m meridian.accel_experiment --help
-python -m meridian.ekf_experiment --help
-python -m meridian.stress_experiment --help
-```
-
-For existing DataFlash recordings, install the optional decoder and generate a
-local measurement audit:
-
-```sh
-python -m pip install -r requirements-dataflash.lock -e '.[dataflash]'
-python -m meridian.dataflash_audit /path/to/recording.bin --output outputs/dataflash-audit
-```
-
-The [DataFlash audit guide](docs/dataflash-audit.md) describes the input contract,
-exports and timing checks. After inspecting its segment IDs, use the
-[offline replay](docs/imu-replay.md) to compare estimators on a chosen segment:
-
-```sh
-python -m meridian.imu_replay /path/to/recording.bin --instance 0 --segment 0 --output outputs/imu-replay
-```
-
-Choose IDs from the audit; the example assumes instance 0, segment 0 exists.
-Replay retains source provenance and uses a previous-snapshot gyro hold. Agreement
-with accelerometer tilt is a diagnostic, not accuracy against independent truth.
-Historical recordings do not establish current acquisition conditions.
-
-## Design and next steps
-
-| Location | Responsibility |
-| --- | --- |
-| `src/meridian/simulation.py` | Roll truth and gyro, angle, and specific-force measurements. |
-| `src/meridian/integration.py` | Gyro integration from interval rates and timestamps. |
-| `src/meridian/kalman.py` | Linear angle/bias prediction and correction; no file or plotting dependencies. |
-| `src/meridian/ekf.py` | Roll/bias EKF with a nonlinear gravity-vector observation and analytical Jacobian. |
-| `cpp/include/meridian/`, `cpp/src/` | Independent C++17/Eigen vector EKF core and public API. |
-| `cpp/apps/ekf_replay.cpp` | Explicit prediction/update event replay with strict CSV input. |
-| `cpp/tests/` | Native numerical and failure-handling checks, active in Release builds. |
-| `src/meridian/cpp_parity.py` | Full-precision input serialization and comparison after every C++/Python operation. |
-| `src/meridian/tilt.py` | Tilt extraction, angular wrapping, and complementary roll estimation. |
-| `src/meridian/gyro_drift.py` | Experiment configuration, evaluation, plots, and exports. |
-| `src/meridian/kalman_experiment.py` | Shared-data comparison, sparse angle observations, and repeated trials. |
-| `src/meridian/accel_experiment.py` | Nominal/disturbed comparisons using shared simulated IMU data. |
-| `src/meridian/ekf_experiment.py` | Vector EKF comparison on the same inputs, with vector innovations and repeated trials. |
-| `src/meridian/stress_scenarios.py` | Fixed controlled scenarios, paired sensor noise, and separate timing/bias truth. |
-| `src/meridian/stress_evaluation.py` | Shared-input evaluation of unchanged filters using actual intervals and availability. |
-| `src/meridian/stress_experiment.py` | Repeated scenario evaluation, exports, numerical checks, and comparison figures. |
-| `src/meridian/r_sensitivity.py` | Fixed R comparisons with separate exploration/evaluation seeds, paired metrics, and reproducible exports. |
-| `src/meridian/r_sensitivity_plot.py` | Static figures of individual R-study scores and observed ranges. |
-| `src/meridian/bias_experiment.py` | Bias-diffusion comparison, paired metrics, and every-operation Python/C++ agreement. |
-| `src/meridian/dataflash.py` | Optional DataFlash reader with recorded-unit checks and selected metadata. |
-| `src/meridian/dataflash_audit.py` | Per-instance timing, measurement inspection and local exports. |
-| `src/meridian/replay.py` | Causal roll/bias replay of contiguous snapshots, independent of file formats. |
-| `src/meridian/imu_replay.py` | Explicit DataFlash segment selection, replay diagnostics and exports. |
-| `src/meridian/imu_cpp_parity.py` | Recorded snapshot-to-event mapping and full Python/C++ comparison with provenance. |
-| `src/meridian/web_export.py` | Checked display export from existing paired simulation records. |
-| `src/meridian/web_scenarios.py` | Combine the paired runs with selected controlled cases, preserving corrections and provenance. |
-| `src/meridian/web_diagnostics.py` | Check endpoint covariance and pre-correction innovations, then export diagnostic states and NIS. |
-| `src/meridian/web_trials.py` | Validate and extract recorded repeated-trial scores from experiment summaries. |
-| `web/` | Static JavaScript/D3 explorer, selected display data, and presentation tests. |
-| `tests/` | Numerical contracts, analytical drift, reproducibility, and export checks. |
-| `results/` | Selected results and reproduction reports. |
-
-The web explorer reads nine existing simulation runs, with synchronized roll/bias
-plots, a roll indicator, and inspection of initial confidence, observation
-loss/recovery, bias changes, noise mismatch and sensor timing. It distinguishes
-acquisition from arrival time and offers sample-count or elapsed-time RMSE weighting.
-Its Diagnostics view plots signed roll/bias errors with model uncertainty and
-discrete scalar/vector innovations or NIS. Model uncertainty is not an accuracy guarantee.
-Select a diagnostic time window to inspect startup or later behavior with local
-plot scales; RMSE and mean NIS remain full-run statistics.
-The Repeated trials panel shows individual scores and their observed min–max
-range alongside the displayed seed, without treating that range as a confidence interval.
-In Trajectories, estimated biases remain held between recorded
-corrections; true bias is interpolated along its continuous ramp. Its JavaScript/Vite/D3
-presentation works independently of the numerical core. Interactive retuning and
-real-log browser replay are not implemented. **Parameter studies** adds the
-[R sensitivity](results/r-sensitivity/README.md) and
-[bias random walk](results/bias-random-walk/README.md) results: all three settings,
-observed ranges, paired differences and per-seed scores, including NIS and the
-bias tracking/fluctuation tradeoff. It uses saved summaries, without running an
-estimator in the browser or changing the original replay trajectories.
-A new documented bench acquisition
-and evaluation of known static poses and slow manual roll remain required.
-
-The [linear Kalman model](docs/linear-kalman.md), [accelerometer fusion model](docs/accelerometer-fusion.md),
-and [vector EKF model](docs/vector-ekf.md), with the [controlled evaluation contract](docs/controlled-scenarios.md)
-and [C++ agreement contract](docs/cpp-ekf.md),
-specify timing, noise, initialization, and limitations.
-The [design and validation approach](docs/design.md) defines the broader models,
-assumptions, software boundaries, and remaining decisions. Real bench acquisition
-and replay are part of completing the study: the drone remains disarmed, with
-propellers removed, and Meridian stays outside the flight-control loop. No
-embedded, real-time, or flight validation is claimed. Additional estimation tasks
-and integrations are possible future directions.
+The [GitHub Actions history](https://github.com/victormonnot/meridian/actions)
+shows hosted checks. Browser interaction and physical validation are separate
+from those automated jobs.

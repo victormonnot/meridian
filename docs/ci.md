@@ -56,8 +56,8 @@ npm --prefix web run build
 ## Coverage and execution status
 
 These commands were checked locally in fresh environments containing only a
-tracked-source snapshot. The hosted workflow still needs its first run after
-publication; local checks do not establish GitHub runner behavior or cache hits.
+tracked-source snapshot. Hosted checks are recorded in the
+[GitHub Actions history](https://github.com/victormonnot/meridian/actions).
 
 The jobs exercise numerical behavior, Python/C++ agreement, synthetic log handling,
 web data/logic and compilation. Node tests do not run a browser. The limited

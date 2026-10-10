@@ -1,6 +1,9 @@
 # Design and validation approach
 
-Status: Python gyro integration, accelerometer tilt, complementary fusion, and the
+**Work in progress. V1 isn't ready yet.** The sections below describe the current
+experiments and the validation still needed.
+
+Python gyro integration, accelerometer tilt, complementary fusion, and the
 angle/bias Kalman reference are implemented, with tests and
 [paired nominal/disturbed simulations](../results/accelerometer-fusion/README.md).
 The [vector EKF comparison](../results/ekf-comparison/README.md) now uses those
@@ -195,7 +198,8 @@ The [CI workflow](ci.md) automates the existing native C++ tests, the full Pytho
 suite with C++ integration and synthetic DataFlash inputs, and the web tests/build.
 It targets Linux with Python 3.12 and Node.js 22. Browser interaction checks and
 bench acquisition remain separate. Its commands have been verified locally from
-clean source snapshots; a hosted execution is pending publication of the workflow.
+clean source snapshots; hosted runs are recorded in the
+[CI history](https://github.com/victormonnot/meridian/actions).
 
 ## Software boundaries and presentation
 
