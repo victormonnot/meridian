@@ -180,7 +180,8 @@ def run_experiment(binary: Path, output_dir: Path, *, seed: int = 42, validation
     binary = Path(binary).resolve(strict=True)
     version = subprocess.run([str(binary), "--version"], capture_output=True, text=True, timeout=30, check=True)
     metadata = json.loads(version.stdout)
-    if metadata.get("protocol_version") != 1:
+    if (not isinstance(metadata, dict) or type(metadata.get("protocol_version")) is not int
+            or metadata["protocol_version"] != 1):
         raise ValueError("C++ binary must support event protocol version 1")
     binary_digest = hashlib.sha256(binary.read_bytes()).hexdigest()
     output_dir.mkdir(parents=True, exist_ok=False)

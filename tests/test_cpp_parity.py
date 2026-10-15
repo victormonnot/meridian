@@ -137,6 +137,43 @@ def test_unknown_or_duplicate_option_is_refused(binary, tmp_path, extra):
     assert process.returncode != 0 and not output.exists()
 
 
+@pytest.mark.parametrize("metadata", [
+    None, [], "version 1", 1, True, {},
+    {"protocol_version": True}, {"protocol_version": 1.0},
+    {"protocol_version": "1"}, {"protocol_version": 2},
+])
+def test_invalid_native_protocol_metadata_does_not_create_results(tmp_path, monkeypatch, metadata):
+    executable = tmp_path / "native-fixture"
+    executable.write_bytes(b"mock executable")
+    output = tmp_path / "report"
+
+    def version(command, **kwargs):
+        assert command == [str(executable), "--version"]
+        return subprocess.CompletedProcess(command, 0, json.dumps(metadata), "")
+
+    monkeypatch.setattr("meridian.cpp_parity.subprocess.run", version)
+    with pytest.raises(ValueError, match="event protocol version 1"):
+        run_experiment(executable, output, validation_seeds=1)
+    assert not output.exists()
+
+
+def test_invalid_native_protocol_metadata_is_a_cli_error(tmp_path, monkeypatch, capsys):
+    from meridian.cpp_parity import main
+
+    executable = tmp_path / "native-fixture"
+    executable.write_bytes(b"mock executable")
+    output = tmp_path / "report"
+    monkeypatch.setattr("meridian.cpp_parity.subprocess.run", lambda *args, **kwargs:
+                        subprocess.CompletedProcess(args[0], 0, "null", ""))
+    with pytest.raises(SystemExit) as caught:
+        main(["--binary", str(executable), "--output", str(output)])
+    assert caught.value.code == 2
+    stderr = capsys.readouterr().err
+    assert "event protocol version 1" in stderr
+    assert "Traceback" not in stderr
+    assert not output.exists()
+
+
 def test_full_report_aggregates_and_preserves_existing_directory(binary, tmp_path):
     output = tmp_path / "report"
     summary = run_experiment(binary, output, validation_seeds=1)
