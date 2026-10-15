@@ -109,6 +109,8 @@ disarmed state, propellers removed, mounting/axes, static poses or prescribed
 roll motion, clock behavior, and any known interruptions. Read back the current
 controller configuration for a new acquisition. Keep Meridian outside the
 control loop.
+The [bench procedure and session template](bench-acquisition.md) provide a
+recording sequence and fields for reference angles, clock mapping and exclusions.
 
 Choose contiguous intervals and review the replay's approximation of logged rate
 snapshots. Initialization, calibration, residual noise, delay assumptions, and

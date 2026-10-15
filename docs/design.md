@@ -313,6 +313,8 @@ message links to the repository reports.
 
 Read back the installed flight-controller configuration and acquire a short
 stationary and manual-roll bench recording with documented poses and conditions.
+The [bench guide](bench-acquisition.md) includes a session template for reference
+uncertainty, timestamp mapping, selection rules and reproducible commands.
 Use the implemented audit and replay to inspect those measurements, with explicit
 angle-reference uncertainty and noise assumptions. Historical logs do not replace
 that acquisition. The web interface explores nine reproducible simulated

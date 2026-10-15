@@ -116,6 +116,8 @@ On Windows with Python 3.12 installed, create the environment with
   with Python. Requires CMake 3.20+, a C++17 compiler and Eigen 3.4+.
 - [DataFlash audit](docs/dataflash-audit.md) and [offline replay](docs/imu-replay.md):
   optional decoder setup, timing inspection and explicit log-segment selection.
+- [Bench recording guide](docs/bench-acquisition.md): preparation, independent
+  static references and a session record template for the next acquisition.
 - [CI guide](docs/ci.md): full Python/C++ checks, synthetic DataFlash fixtures,
   web tests and production build. The Python-only command above skips C++
   integration tests unless `MERIDIAN_CPP_BINARY` points to the built executable.

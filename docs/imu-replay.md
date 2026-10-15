@@ -155,8 +155,9 @@ integer-origin invariance. Tests require no historical recording. Compare all
 seven output files from two runs in separate new directories to check reproducibility.
 
 A new documented bench acquisition with the drone disarmed and propellers removed
-remains required. Use known static poses with reference uncertainty, then slow
-manual roll with pauses. Keep Meridian outside the control loop. Without an
-independent reference, report observed agreement and repeatability; neither
+remains required. The [bench procedure and session template](bench-acquisition.md)
+cover preparation and acquisition records. Use known static poses with reference
+uncertainty, then slow manual roll with pauses. Keep Meridian outside the control
+loop. Without an independent reference, report observed agreement and repeatability; neither
 historical replay nor ArduPilot attitude establishes angle accuracy, embedded
 performance or flight validation.
