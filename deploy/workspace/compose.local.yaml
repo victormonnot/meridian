@@ -1,0 +1,16 @@
+# A separate local ingress network; the production proxy is not needed.
+services:
+  api:
+    environment:
+      MERIDIAN_DEBUG: "1"
+      MERIDIAN_ALLOWED_HOSTS: localhost,127.0.0.1
+      MERIDIAN_CSRF_ORIGINS: http://localhost:8090,http://127.0.0.1:8090
+  web:
+    ports: [127.0.0.1:8090:8080]
+    labels:
+      traefik.enable: "false"
+networks:
+  proxy:
+    external: false
+    name: ${COMPOSE_PROJECT_NAME:-meridian-workspace-local}-ingress
+    driver: bridge

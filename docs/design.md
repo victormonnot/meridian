@@ -7,6 +7,8 @@ The [professional workspace roadmap](professional-estimation-roadmap.md)
 prioritizes VIO and state estimation without reliable GNSS. A
 [local OpenVINS reference](vio-reference.md) now runs calibrated stereo/IMU data,
 evaluates trajectories independently, and records reproducible execution evidence.
+The [project workspace](hosted-workspace.md) adds Django/PostgreSQL accounts,
+private projects and catalog metadata through a separate Vite entry point.
 Hosted execution, general 3D estimator development, broader visual-inertial
 development, and engineering automation remain planned work.
 
@@ -268,7 +270,8 @@ inside it. Full-run RMSE, mean NIS and the downloaded artifact remain unchanged.
 Model bands, individual NIS values and their means do not establish statistical
 consistency or physical accuracy. No uncertainty or NIS is invented for the gyro
 and complementary baselines. Neither the estimator core
-nor raw sensor logs enter the browser. No backend or hosting provider is configured.
+nor raw sensor logs enter this explorer. It remains a static application; the
+separate project workspace has its own authenticated metadata backend.
 Later interactive settings, if implemented, should invoke the same simulation and
 estimator core rather than duplicate algorithms in the presentation layer.
 

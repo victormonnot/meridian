@@ -1,0 +1,107 @@
+services:
+  db:
+    image: postgres:17.11-bookworm@sha256:3645570cccdfa447589da9f57dd740faa29b30938e861289a5574b6ca6b03826
+    user: "999:999"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: meridian_admin
+      POSTGRES_DB: postgres
+      POSTGRES_PASSWORD: ${MERIDIAN_DATABASE_ADMIN_PASSWORD:?Set a distinct bootstrap password}
+      MERIDIAN_DATABASE_PASSWORD: ${MERIDIAN_DATABASE_PASSWORD:?Set the application database password}
+      PGDATA: /var/lib/postgresql/data/pgdata
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
+    command: [postgres, -c, max_connections=40, -c, shared_buffers=64MB]
+    volumes:
+      - database:/var/lib/postgresql/data
+      - ./init-database.sh:/docker-entrypoint-initdb.d/10-meridian.sh:ro
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+      - /var/run/postgresql:size=8m,uid=999,gid=999,mode=0770
+    networks: [backend]
+    mem_limit: 512m
+    cpus: 0.5
+    pids_limit: 128
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U "$${POSTGRES_USER}" -d postgres']
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
+    logging: &logging
+      driver: json-file
+      options: {max-size: 10m, max-file: "3"}
+
+  api:
+    image: ${MERIDIAN_API_IMAGE:-meridian-workspace-api:local}
+    build: {context: ../.., dockerfile: deploy/workspace/Dockerfile.api}
+    user: "10001:10001"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    restart: unless-stopped
+    environment:
+      MERIDIAN_DEBUG: "0"
+      MERIDIAN_DOMAIN: ${MERIDIAN_DOMAIN:?Set the canonical hostname}
+      MERIDIAN_SECRET_KEY: ${MERIDIAN_SECRET_KEY:?Set a random Django secret key}
+      MERIDIAN_ALLOWED_HOSTS: ${MERIDIAN_DOMAIN}
+      MERIDIAN_CSRF_ORIGINS: https://${MERIDIAN_DOMAIN}
+      MERIDIAN_REGISTRATION_OPEN: ${MERIDIAN_REGISTRATION_OPEN:-1}
+      DATABASE_URL: postgresql://meridian:${MERIDIAN_DATABASE_PASSWORD}@db:5432/meridian
+    tmpfs: ["/tmp:size=32m,mode=1777"]
+    networks: [backend]
+    depends_on: {db: {condition: service_healthy}}
+    mem_limit: 512m
+    cpus: 0.75
+    pids_limit: 128
+    healthcheck:
+      test: [CMD, python, -c, 'import os,urllib.request; urllib.request.urlopen(urllib.request.Request("http://127.0.0.1:8000/api/health",headers={"Host":os.environ["MERIDIAN_DOMAIN"],"X-Forwarded-Proto":"https"}),timeout=4).read()']
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    logging: *logging
+
+  web:
+    image: ${MERIDIAN_WEB_IMAGE:-meridian-workspace-web:local}
+    build: {context: ../.., dockerfile: deploy/workspace/Dockerfile.web}
+    user: "101:101"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    restart: unless-stopped
+    environment: {MERIDIAN_DOMAIN: '${MERIDIAN_DOMAIN}'}
+    tmpfs: ["/tmp:size=16m,mode=1777"]
+    networks: [backend, proxy]
+    depends_on: {api: {condition: service_healthy}}
+    mem_limit: 128m
+    cpus: 0.25
+    pids_limit: 64
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: coolify
+      traefik.http.routers.meridian-workspace-http.rule: Host(`${MERIDIAN_DOMAIN}`)
+      traefik.http.routers.meridian-workspace-http.entrypoints: http
+      traefik.http.routers.meridian-workspace-http.middlewares: meridian-workspace-https
+      traefik.http.middlewares.meridian-workspace-https.redirectscheme.scheme: https
+      traefik.http.middlewares.meridian-workspace-https.redirectscheme.permanent: "true"
+      traefik.http.routers.meridian-workspace-https.rule: Host(`${MERIDIAN_DOMAIN}`)
+      traefik.http.routers.meridian-workspace-https.entrypoints: https
+      traefik.http.routers.meridian-workspace-https.tls: "true"
+      traefik.http.routers.meridian-workspace-https.tls.certresolver: letsencrypt
+      traefik.http.routers.meridian-workspace-https.service: meridian-workspace
+      traefik.http.services.meridian-workspace.loadbalancer.server.port: "8080"
+    healthcheck:
+      test: [CMD, wget, -q, -O, /dev/null, 'http://127.0.0.1:8080/healthz']
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    logging: *logging
+
+networks:
+  backend: {internal: true}
+  proxy: {external: true, name: coolify}
+volumes:
+  database:

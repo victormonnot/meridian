@@ -17,3 +17,9 @@ __pycache__/
 
 # Experiment outputs; selected published results are kept in results/.
 /outputs/
+
+# Hosted workspace secrets and local development state.
+.env
+.env.*
+!.env.example
+/server/*.sqlite3

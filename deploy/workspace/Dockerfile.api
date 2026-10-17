@@ -1,0 +1,15 @@
+FROM python:3.12.15-slim-bookworm@sha256:34386ef0cb081344d7ec1c103ba398e6e9f64e9ab3a1509accc92a4e24a07258
+
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PIP_DISABLE_PIP_VERSION_CHECK=1
+WORKDIR /app/server
+COPY server/requirements.lock ./requirements.lock
+RUN pip install --no-cache-dir -r requirements.lock \
+    && groupadd --gid 10001 meridian \
+    && useradd --uid 10001 --gid 10001 --no-create-home --shell /usr/sbin/nologin meridian
+COPY server/manage.py ./manage.py
+COPY server/config ./config
+COPY server/workspace ./workspace
+COPY server/catalog/room1.json ./catalog/room1.json
+USER 10001:10001
+EXPOSE 8000
+CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "2", "--timeout", "30", "--worker-tmp-dir", "/tmp", "--access-logfile", "-", "--error-logfile", "-"]

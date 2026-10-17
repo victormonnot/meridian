@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Private Meridian projects and calibrated visual-inertial reference data.">
+    <meta name="theme-color" content="#1c1e1c">
+    <style>
+      html { color-scheme: dark; background: #1c1e1c; }
+      html[data-theme=light] { color-scheme: light; background: #f4f2eb; }
+    </style>
+    <script id="theme-bootstrap">
+      try {
+        document.documentElement.dataset.theme = window.localStorage.getItem('meridian-theme') === 'light' ? 'light' : 'dark';
+      } catch {
+        // Appearance is optional; private workspace data is never stored here.
+      }
+    </script>
+    <link rel="stylesheet" href="/src/workspace.css">
+    <title>Meridian — Workspace</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#content">Skip to workspace</a>
+    <header class="header">
+      <a class="identity" href="#projects" aria-label="Meridian projects"><span class="brand">MERIDIAN</span><span>State estimation</span></a>
+      <div class="header-tools">
+        <div class="appearance-control"><label for="appearance">Appearance</label>
+          <select id="appearance"><option value="dark">Dark</option><option value="light">Light</option></select>
+        </div>
+        <span id="account" class="account" hidden></span>
+        <button id="logout" type="button" class="quiet" hidden>Sign out</button>
+      </div>
+    </header>
+    <main id="content" tabindex="-1">
+      <div id="notice" role="status" hidden></div>
+      <div id="app"><p class="loading" role="status">Connecting to your workspace…</p></div>
+      <noscript><p class="notice">JavaScript is required to sign in and manage projects.</p></noscript>
+    </main>
+    <footer class="footer"><span>Meridian · Visual-inertial estimation</span><a href="./index.html">Simulation explorer <span aria-hidden="true">↗</span></a></footer>
+    <script type="module" src="/src/workspace.js"></script>
+  </body>
+</html>

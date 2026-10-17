@@ -1,10 +1,12 @@
 # Part 1: hosted workspace and reference VIO workflow
 
-**Status: increment 1.1 completed on 2026-10-17; increments 1.2–1.8 remain planned.**
+**Status: increments 1.1–1.2 completed on 2026-10-17; increments 1.3–1.8 remain planned.**
 This plan details part 1 of the [development roadmap](professional-estimation-roadmap.md).
 The current [implementation](../README.md) includes the qualified
 [local VIO reference](../results/vio-reference/README.md), the original single-axis
-study and its static results explorer. A hosted backend is not implemented yet.
+study and its static results explorer. The [project workspace](hosted-workspace.md)
+adds accounts, private projects and catalog metadata; hosted VIO computation
+remains planned.
 
 ## Outcome and scope
 
@@ -71,13 +73,13 @@ and multi-user operational limits have not been measured yet.
 
 ## Minimal architecture and contracts
 
-The proposed stack retains useful Vite/D3 components, adds a Python API, PostgreSQL
-metadata and a durable job queue, private artifact storage, and a separate
-containerized computation worker. FastAPI is the initial API candidate. Choose
-the deployment provider and concrete resource limits from increment 1 measurements
-before increment 2 deployment. Keep the application and API on the same origin
-where practical, with an established authentication integration and server-side
-authorization. Begin with individually owned projects.
+The stack retains useful Vite/D3 components. Increment 1.2 uses Django for the
+Python metadata API and its established authentication/session integration, with
+PostgreSQL persistence and individually owned projects. Django replaces the initial
+FastAPI candidate. Application and API share an origin behind a dedicated Nginx
+service on an existing VPS; the [deployment guide](workspace-deployment.md) records
+the isolated services and limits. Durable jobs, private artifact storage and a
+separate containerized computation worker remain later increments.
 
 The browser submits an experiment specification and follows its progress. The
 API persists it, checks ownership and quotas, and queues work. A worker executes
@@ -124,7 +126,7 @@ under the documented retention policy.
 
 Every increment includes its relevant UI states, failure handling, checks, and
 documentation. Later integration testing does not defer those responsibilities.
-Increment 1.1 is complete; all later increments are pending.
+Increments 1.1 and 1.2 are complete; all later increments are pending.
 
 ### 1.1 — Executable reference and evaluation protocol
 
@@ -169,6 +171,11 @@ the next increments. Failed qualification leads to a recorded reference revision
 not a placeholder trajectory presented as a result.
 
 ### 1.2 — Private hosted projects and initial interface
+
+**Completed:** [application contract](hosted-workspace.md),
+[deployment recipe](workspace-deployment.md), and
+[validation evidence](../results/workspace/README.md). The requirements below
+remain the access and persistence contract for subsequent increments.
 
 **Dependency:** 1.1, including resource measurements and reference metadata.
 

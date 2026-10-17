@@ -1,11 +1,13 @@
 # Continuous integration
 
 The [CI workflow](../.github/workflows/ci.yml) runs on pushes, pull requests and
-manual dispatch. Two independent jobs check the numerical implementation and the
-web application on Ubuntu 24.04. A newer run cancels an older run for the same ref.
+manual dispatch. Three independent jobs check the numerical implementation,
+project workspace and web application on Ubuntu 24.04. A newer run cancels an
+older run for the same ref.
 
 | Job | Environment | Checks |
 | --- | --- | --- |
+| Hosted workspace and PostgreSQL | Python 3.12, isolated PostgreSQL 17.11 | Install the separate server lock, check migration drift, then test authentication, ownership, sessions, validation and concurrent database limits. |
 | Python and C++ | Python 3.12, C++17, CMake, Eigen | Install the Python and DataFlash locks, check dependency consistency, build Release targets, run native CTest checks, then the complete Python suite with the built replay executable. |
 | Web | Node.js 22 | Install from `web/package-lock.json`, run the Node tests, check the recorded parameter-study export, then build the Vite application. |
 
@@ -60,8 +62,13 @@ tracked-source snapshot. Hosted checks are recorded in the
 [GitHub Actions history](https://github.com/victormonnot/meridian/actions).
 
 The jobs exercise numerical behavior, Python/C++ agreement, synthetic log handling,
-web data/logic and compilation. Node tests do not run a browser. The limited
-interactive checks described in the [web guide](web-explorer.md) remain separate.
+web data/logic, compilation and private project access. The workspace commands
+were also checked locally against PostgreSQL, including simultaneous requests;
+the new hosted workflow run remains pending until the repository is pushed.
+Node tests do not run a browser. The separate
+[workspace browser checks](../results/workspace/README.md) cover the hosted
+application and regression checks of the original explorer. Earlier interactive
+checks remain documented in the [web guide](web-explorer.md).
 Bench acquisition, real-reference accuracy, embedded timing and flight behavior
 are outside this CI. The workflow builds the site without deploying it, uploading
 result artifacts or publishing packages. It uses a read-only repository token

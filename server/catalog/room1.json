@@ -1,0 +1,107 @@
+{
+  "schema_version": 1,
+  "id": "tumvi-room1-512-16-v1",
+  "name": "TUM-VI room1",
+  "version": "512_16-calibrated-v1",
+  "description": "Calibrated stereo-camera and IMU recording for reproducible visual-inertial estimator integration and configuration comparisons.",
+  "acquisition": "handheld",
+  "duration_s": 141.004463474,
+  "duration_basis": "Elapsed time between the first and last paired camera samples.",
+  "camera_count": 2,
+  "camera_resolution": [512, 512],
+  "camera_pairs": 2821,
+  "imu_samples": 28122,
+  "sensor_types": ["stereo_camera", "gyroscope", "accelerometer"],
+  "timestamps": {
+    "unit": "ns",
+    "encoding": "Decimal integer strings preserve absolute timestamps beyond JavaScript's safe integer range.",
+    "first_camera_timestamp_ns": "1520530308199447626",
+    "last_camera_timestamp_ns": "1520530449203911100",
+    "stereo_pairing": "Identical timestamps in the two camera streams."
+  },
+  "calibration": {
+    "camera_model": "pinhole",
+    "distortion_model": "equidistant",
+    "body_frame": "imu",
+    "camera_extrinsics_convention": "T_cam_imu transforms IMU-frame coordinates into camera-frame coordinates.",
+    "pose_convention": "Position in metres; unit Hamilton xyzw quaternion rotating the IMU/body frame into the reference world frame.",
+    "dataset_preprocessing": "The calibrated export already corrects IMU scaling/alignment and synchronizes clocks. These corrections must not be applied a second time.",
+    "initial_camera_imu_offset_s": 0.0,
+    "qualified_baseline_modes": {
+      "camera_intrinsics": "estimated_online_from_provided_initial_calibration",
+      "camera_imu_extrinsics": "estimated_online_from_provided_initial_calibration",
+      "camera_imu_offset": "estimated_online_from_zero_initial_offset",
+      "imu_intrinsics": "fixed_after_dataset_calibration",
+      "gravity_magnitude": "fixed"
+    },
+    "image_conversion": "The qualified adapter converts uint16 PNG samples to uint8 with the fixed scale 255/65535 before tracking.",
+    "source_url": "docs/vio-reference.md#configuration-and-available-diagnostics",
+    "files": [
+      {
+        "role": "camera_imu_calibration",
+        "url": "integrations/openvins/config/kalibr_imucam_chain.yaml",
+        "sha256": "072d26e3dd20844ae7402f508c51cf7e899a401634ba6b0db0e08cd2880b7dab"
+      },
+      {
+        "role": "imu_model_and_noise_assumptions",
+        "url": "integrations/openvins/config/kalibr_imu_chain.yaml",
+        "sha256": "cb598952ee3766492a332eaae8567fe2b63a9bf6d63b9c0a7b9d988471600a3d"
+      },
+      {
+        "role": "qualified_estimator_configuration",
+        "url": "integrations/openvins/config/estimator_config.yaml",
+        "sha256": "10c37c00c52a07ba5a86ce3d6d2846c2430397d6fa6a9e190dfdc47aa10c2045"
+      }
+    ]
+  },
+  "reference": {
+    "type": "motion_capture",
+    "samples": 16541,
+    "body_frame": "imu",
+    "purpose": "Independent evaluation only; never an estimator input or initialization source.",
+    "first_timestamp_ns": "1520530308189679351",
+    "last_timestamp_ns": "1520530449214678351",
+    "maximum_gap_s": 1.058333,
+    "supported_camera_samples": 2756,
+    "unsupported_camera_samples": 65,
+    "coverage_fraction": 0.9769585253456221,
+    "coverage_basis": "Reference support over all 2821 paired camera timestamps under evaluation protocol version 1; distinct from estimator-output coverage.",
+    "bracket_rule": {
+      "evaluation_protocol_version": 1,
+      "maximum_bracket_width_s": 0.02,
+      "exact_timestamp_matches": "accepted",
+      "position_interpolation": "linear",
+      "orientation_interpolation": "shortest_arc_slerp",
+      "extrapolation": false,
+      "time_offset_fitting": false
+    }
+  },
+  "provenance": {
+    "qualified_dataset_id": "tum-vi-room1-512-16",
+    "dataset_url": "https://cvg.cit.tum.de/data/datasets/visual-inertial-dataset",
+    "archive_url": "https://vision.in.tum.de/tumvi/exported/euroc/512_16/dataset-room1_512_16.tar",
+    "archive_sha256": "20354392eab5cc82c9770ed29cf0130c5acce0db54a257571499008fb34c398f",
+    "archive_size_bytes": 1707110400,
+    "prepared_manifest_sha256": "e55f0480533611fc1e198d16b181814a8d34752cb748becbfeec7bcb4908ba6d",
+    "license": "CC-BY-4.0",
+    "license_url": "https://creativecommons.org/licenses/by/4.0/",
+    "attribution": "TUM VI Benchmark: David Schubert, Thore Goll, Nikolaus Demmel, Vladyslav Usenko, Joerg Stueckler, Daniel Cremers (2018).",
+    "qualification_date": "2026-10-17",
+    "qualification_source_commit": "1b6a42a23c26c2d9e9233165c48bd466bf8da4c6",
+    "qualification_summary_sha256": "fc6ffe279db776deab4525a0d57153e6e651ed52be4b89fd357dc8a66db8d3ba"
+  },
+  "capabilities": {
+    "supported": ["stereo_vio"],
+    "scope": "Recording compatibility and completed local reference qualification."
+  },
+  "limitations": [
+    "Handheld recording; the local qualification does not establish drone-flight, embedded, or real-time performance.",
+    "Motion-capture support has gaps: 65 camera timestamps cannot be evaluated under the declared interpolation rule.",
+    "The qualification covers the OpenVINS baseline on room1 only; configuration variants and room2 are not evaluated.",
+    "Reference evaluation uses a global rigid alignment with fixed scale; aligned orientation error does not independently validate absolute gravity alignment.",
+    "Catalog metadata does not establish hosted recording availability or enable server-side execution."
+  ],
+  "source_qualification_url": "results/vio-reference/README.md",
+  "source_qualification_summary_url": "results/vio-reference/summary.json",
+  "repository_link_base": "Repository root; relative source links identify public files, not hosted dataset-download endpoints."
+}

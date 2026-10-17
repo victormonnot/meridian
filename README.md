@@ -6,29 +6,40 @@ Meridian is a state-estimation engineering project for autonomous drones,
 prioritizing visual-inertial odometry (VIO) and operation without reliable GNSS.
 Its first executable VIO reference integrates OpenVINS with calibrated stereo/IMU
 recordings, independent trajectory evaluation, and reproducible local execution.
-The planned hosted workspace will connect these capabilities to a browser workflow.
+The [project workspace](docs/hosted-workspace.md) adds accounts, private projects
+and reference-data metadata. Hosted VIO execution remains planned.
 
 The repository also contains the original single-axis roll/bias study: Python
 and C++ filters, simulations, and recorded IMU replay. Its static explorer remains
 available below. The VIO reference currently runs through the command line.
 
-![Meridian explorer showing simulated roll, the estimated tilt and comparisons between four filters](docs/media/explorer.png)
+![Meridian private project workspace showing calibrated TUM-VI stereo and IMU metadata and independent reference coverage](docs/media/workspace.png)
 
-*The current explorer, showing a saved simulation. The dotted gyro curve drifts
-away from the reference as errors accumulate. [Screenshot details](docs/media/README.md).*
+*The project workspace, with a fictional project and the qualified recording's
+actual metadata. [Screenshot details](docs/media/README.md).*
 
-[Try the explorer](#try-the-explorer) · [Results](#experiments-and-results) ·
+[Open the hosted preview](https://meridian.151.80.144.150.sslip.io/) ·
+[Results](#experiments-and-results) ·
 [Technical setup](#technical-setup) · [Design notes](docs/design.md)
 
 The [development roadmap](docs/professional-estimation-roadmap.md) targets a
 professional hosted workspace for visual-inertial odometry (VIO) and state
 estimation without reliable GNSS. It covers estimator development, external
 implementations, and automated engineering workflows. The
-[local VIO reference](docs/vio-reference.md) completes its first increment;
-hosted execution and the broader development workflows remain planned.
+[local VIO reference](docs/vio-reference.md) and private project workspace complete
+its first two increments. Hosted execution and the
+broader development workflows remain planned.
+
+The hosted preview supports registration and private project metadata on a
+temporary HTTPS address. Password recovery, recording uploads and VIO jobs are
+not available yet. [Workspace validation](results/workspace/README.md) records
+the deployed scope, checks and operational limits.
 
 ## What exists so far
 
+- A Django/PostgreSQL workspace with session authentication, private project
+  persistence and a calibrated TUM-VI reference catalog, plus a separate Vite
+  interface. It does not launch VIO jobs yet.
 - A pinned, ROS-free OpenVINS reference running real TUM-VI stereo/IMU inputs
   in an isolated container, with independent evaluation, provenance and
   [three repeatable qualification runs](results/vio-reference/README.md).
@@ -81,6 +92,7 @@ The simulations include known motion for comparison; the historical log does not
 
 | Study | What it looks at |
 | --- | --- |
+| [Hosted workspace validation](results/workspace/README.md) | Authentication, project ownership, browser behavior and deployment persistence. |
 | [VIO reference qualification](results/vio-reference/README.md) | OpenVINS on real stereo/IMU data, independent trajectory errors, coverage, repeatability and host resource measurements. |
 | [Gyro drift](results/gyro-drift/README.md) | How noise and sensor bias accumulate into angle error. |
 | [Linear Kalman filter](results/linear-kalman/README.md) | An initial reference using synthetic angle measurements. |
@@ -99,6 +111,10 @@ log is not included in this repository; its report contains aggregate results.
 
 The numerical core uses Python/NumPy and C++17/Eigen. The explorer uses
 JavaScript, Vite and D3, separately from the estimation code.
+
+The project workspace has its own [setup and access contract](docs/hosted-workspace.md).
+Its Django dependencies are locked separately in `server/requirements.lock`;
+they are not needed for numerical experiments or the original static explorer.
 
 ### Python experiments
 

@@ -6,7 +6,8 @@ and operation without reliable GNSS. The major parts below describe planned
 work. Part 1 has a [detailed implementation plan](part-1-hosted-vio-workspace.md);
 later parts remain at outcome level. The [README](../README.md) and
 [design notes](design.md) describe the implementation available today. The first
-[local VIO reference](vio-reference.md) is implemented and qualified; hosted
+[local VIO reference](vio-reference.md) is implemented and qualified, and a
+[private project workspace](hosted-workspace.md) is deployed. Hosted
 computation, general estimator integration/development, and AI engineering agents
 remain planned.
 
@@ -124,8 +125,9 @@ The initial professional reference workflow should use an existing VIO
 implementation with a prepared camera/IMU dataset. Its revision, configuration,
 calibration, timing conventions, and reproducible outputs must be pinned.
 This provides an engineering task before developing every numerical component
-inside Meridian. Selecting the reference requires a compatibility and license
-review; no external estimator is selected by this roadmap alone.
+inside Meridian. Increment 1.1 selected and qualified OpenVINS on TUM-VI room1;
+its [integration guide](vio-reference.md) records the pinned implementation,
+compatibility checks, notices and limitations.
 
 Meridian's own numerical development should include 3D inertial propagation and
 EKF support for orientation, velocity, position, and biases, with observation
@@ -147,7 +149,8 @@ External estimators should coexist with Meridian's components. Filtering and
 optimization-based VIO must not be forced into a single EKF state/API design.
 Published systems such as [OpenVINS](https://docs.openvins.com/) and
 [VINS-Fusion](https://github.com/HKUST-Aerial-Robotics/VINS-Fusion) illustrate
-these different approaches; neither is yet an adopted dependency.
+these different approaches. OpenVINS supplies the first reference integration;
+VINS-Fusion remains an example, not an adopted dependency.
 
 Longer-term localization work includes loss/recovery of visual tracking,
 relocalization, map constraints, and additional measurements where they address
@@ -260,9 +263,10 @@ state/covariance, events, configuration changes, and code differences where avai
 views should expose failures, budgets, progress, and reproducible run manifests.
 Automation should be reviewable through the resulting artifacts and executions.
 
-Provider, frontend framework, database, and queue choices remain open. The
-current static frontend can supply reusable plotting and interaction components;
-its fixed simulation data contract is unsuitable as the general execution API.
+The initial metadata workspace now uses Vite, Django and PostgreSQL on an isolated
+shared-VPS deployment. Queue and worker integration remain planned. The original
+static frontend supplies reusable plotting and interaction components; its fixed
+simulation data contract is unsuitable as the general execution API.
 
 ## Major development parts
 
@@ -297,7 +301,8 @@ can support infrastructure checks but does not constitute the VIO milestone.
 The [part 1 implementation plan](part-1-hosted-vio-workspace.md) divides the first
 hosted workflow into eight sequential increments. Increment 1.1 has
 [qualified the local OpenVINS/TUM-VI reference](../results/vio-reference/README.md).
-The seven remaining increments, including hosted execution, are planned.
+Increment 1.2 adds a [validated hosted private workspace](../results/workspace/README.md).
+The six remaining increments, including hosted execution, are planned.
 
 ## Existing tools and research
 
@@ -322,11 +327,12 @@ engineers. No source review establishes that any feature is unique.
 
 ## Decisions still required
 
-For the remaining part 1 work, choose hosting and operational limits using the
-qualified reference's measured resource use and stated limitations. Preserve its
+For the remaining part 1 work, define versioned configurations and worker limits
+using the qualified reference's measured resource use and stated limitations.
+The metadata service is deployed; VIO execution is not yet hosted. Preserve its
 evaluation protocol and reserved sequence. Numerical formulations,
 additional formats/sensors, and automation tasks will be specified with their
 corresponding parts, using the evidence available then.
 
-Hosted deployment, broader estimator development and hardware integration remain
+Hosted computation, broader estimator development and hardware integration remain
 future work. The existing technical reports remain evidence for their stated scope.
