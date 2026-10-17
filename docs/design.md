@@ -3,6 +3,10 @@
 **Work in progress. V1 isn't ready yet.** The sections below describe the current
 experiments and the validation still needed.
 
+The [professional workspace proposal](professional-estimation-roadmap.md)
+describes a broader future direction. Its hosted execution, 3D estimation, and
+engineering automation capabilities are proposed work, not current behavior.
+
 Python gyro integration, accelerometer tilt, complementary fusion, and the
 angle/bias Kalman reference are implemented, with tests and
 [paired nominal/disturbed simulations](../results/accelerometer-fusion/README.md).

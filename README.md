@@ -19,6 +19,11 @@ away from the reference as errors accumulate. [Screenshot details](docs/media/RE
 [Try the explorer](#try-the-explorer) · [Results](#experiments-and-results) ·
 [Technical setup](#technical-setup) · [Design notes](docs/design.md)
 
+A [proposed roadmap](docs/professional-estimation-roadmap.md) describes a hosted
+workspace for developing and evaluating drone state estimators, including
+external implementations and automated engineering workflows. It is a future
+direction; the capabilities below describe what is implemented today.
+
 ## What exists so far
 
 - Python experiments comparing gyro integration, a complementary filter and
