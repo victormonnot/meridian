@@ -3,7 +3,8 @@
 **Status: development roadmap, 2026-10-17.** The product direction prioritizes
 professional state-estimation engineering with visual-inertial odometry (VIO)
 and operation without reliable GNSS. The major parts below describe planned
-work; their detailed designs remain open. The [README](../README.md) and
+work. Part 1 has a [detailed implementation plan](part-1-hosted-vio-workspace.md);
+later parts remain at outcome level. The [README](../README.md) and
 [design notes](design.md) describe the implementation available today. Hosted
 computation, 3D navigation, VIO, external-estimator execution, and AI engineering
 agents are not implemented by this documentation change.
@@ -292,6 +293,11 @@ parts 2 and 3 extend it from observed requirements. This avoids a universal
 plugin framework before multiple concrete integrations exist. The roll study
 can support infrastructure checks but does not constitute the VIO milestone.
 
+The [part 1 implementation plan](part-1-hosted-vio-workspace.md) divides the first
+hosted workflow into eight sequential increments, beginning with qualification
+of an OpenVINS/TUM-VI reference. These are planned increments, not implemented
+capabilities.
+
 ## Existing tools and research
 
 The following primary sources were inspected on 2026-10-17. They establish a
@@ -315,12 +321,12 @@ engineers. No source review establishes that any feature is unique.
 
 ## Decisions still required
 
-For part 1, select the professional VIO task, external implementation, prepared
-camera/IMU dataset, evaluation reference, and acceptance protocol. Evaluate
-dependency licenses and integration costs before adoption, and establish hosted
-data handling and realistic compute limits. Numerical formulations, additional
-formats/sensors, and automation tasks will be specified with their corresponding
-parts, using the evidence available then.
+For part 1, qualify the proposed OpenVINS/TUM-VI reference, pin the exact runtime
+and data, and fix evaluation conventions before inspecting the reserved sequence.
+Evaluate dependency licenses and integration costs before adoption, and choose
+hosting and compute limits from actual measurements. Numerical formulations,
+additional formats/sensors, and automation tasks will be specified with their
+corresponding parts, using the evidence available then.
 
 Implementation changes, dependency selection, hosted deployment, and hardware
 integration remain future work. The existing technical reports remain evidence
