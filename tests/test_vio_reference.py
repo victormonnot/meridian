@@ -1,8 +1,10 @@
 """Exercise isolation, failed execution, qualification, and artifact integrity."""
 
 import csv
+import hashlib
 import json
 from pathlib import Path
+import shutil
 import subprocess
 
 import numpy as np
@@ -10,6 +12,7 @@ import pytest
 
 from meridian import vio_reference as reference
 from meridian.vio_evaluation import TRAJECTORY_COLUMNS
+from meridian.vio_specification import DATASET_ID, build_specification, specification_sha256
 
 
 def _poses(path, *, offset=0.0):
@@ -260,3 +263,232 @@ def test_cleanup_failure_preserves_original_timeout_and_failure_record(tmp_path,
     assert {"run-spec.json", "runner.log", "trajectory.csv", "status.json"} <= set(result["artifacts"])
     assert not (output / "evaluation.json").exists()
     assert any(command[:2] == ["docker", "kill"] for command in commands)
+
+
+@pytest.mark.parametrize("points", [100, 200, 400])
+def test_rendered_configuration_changes_only_allowlisted_line_and_preserves_baseline(tmp_path, points):
+    source = Path(__file__).resolve().parents[1] / "integrations/openvins/config"
+    before = {path.name: path.read_bytes() for path in source.iterdir()}
+    rendered = tmp_path / "rendered"
+    rendered.mkdir()
+    spec = build_specification(DATASET_ID, {"num_pts": points})
+    reference._render_configuration(source, rendered, spec)
+    assert {path.name: path.read_bytes() for path in source.iterdir()} == before
+    for name, original in before.items():
+        content = (rendered / name).read_bytes()
+        expected = original.replace(b"num_pts: 200\n", f"num_pts: {points}\n".encode()) if name == "estimator_config.yaml" else original
+        assert content == expected
+        assert hashlib.sha256(content).hexdigest() == spec["configuration"]["rendered_files"][name]["sha256"]
+
+
+def test_renderer_rejects_modified_baseline_instead_of_inheriting_unsupported_settings(tmp_path):
+    source = tmp_path / "baseline"
+    shutil.copytree(Path(__file__).resolve().parents[1] / "integrations/openvins/config", source)
+    config = source / "estimator_config.yaml"
+    config.write_bytes(config.read_bytes().replace(b"fast_threshold: 20", b"fast_threshold: 99"))
+    rendered = tmp_path / "rendered"
+    rendered.mkdir()
+    with pytest.raises(ValueError, match="configuration"):
+        reference._render_configuration(source, rendered, build_specification(DATASET_ID, {}))
+    assert not list(rendered.iterdir())
+
+
+@pytest.mark.parametrize("raw", ['{"schema_version":1,"schema_version":1}',
+                                  '{"schema_version":NaN}', '[]'])
+def test_specification_file_rejects_ambiguous_or_invalid_json(tmp_path, raw):
+    path = tmp_path / "specification.json"
+    path.write_text(raw)
+    with pytest.raises(ValueError):
+        reference._load_specification(path)
+
+
+def test_invalid_specification_fails_before_input_or_runtime_access(tmp_path, monkeypatch):
+    def forbidden(*_args):
+        pytest.fail("invalid specification must not inspect inputs or Docker")
+    monkeypatch.setattr(reference, "verify_prepared", forbidden)
+    monkeypatch.setattr(reference, "_image_identity", forbidden)
+    spec = build_specification(DATASET_ID, {})
+    spec["parameters"]["num_pts"] = True
+    with pytest.raises(ValueError):
+        reference.run_reference(tmp_path / "missing", "fixture", tmp_path / "out", specification=spec)
+    assert not (tmp_path / "out").exists()
+
+
+def test_conflicting_resource_override_fails_before_dataset_or_runtime_access(tmp_path, monkeypatch):
+    prepared = tmp_path / "prepared"
+    prepared.mkdir()
+    def forbidden(*_args):
+        pytest.fail("conflicting resources must not inspect inputs or Docker")
+    monkeypatch.setattr(reference, "verify_prepared", forbidden)
+    monkeypatch.setattr(reference, "_image_identity", forbidden)
+    with pytest.raises(ValueError, match="resource overrides"):
+        reference.run_reference(prepared, "fixture", tmp_path / "out", cpus=1.0,
+                                specification=build_specification(DATASET_ID, {}))
+    assert not (tmp_path / "out").exists()
+
+
+def test_wrong_dataset_fails_before_docker_inspection_or_execution(tmp_path, monkeypatch):
+    prepared, _ = _runtime(tmp_path, monkeypatch)
+    def forbidden(*_args):
+        pytest.fail("a different dataset must not inspect or execute Docker")
+    monkeypatch.setattr(reference, "_image_identity", forbidden)
+    with pytest.raises(ValueError, match="prepared dataset"):
+        reference.run_reference(prepared, "fixture", tmp_path / "out",
+                                specification=build_specification(DATASET_ID, {}))
+    assert not (tmp_path / "out").exists()
+
+
+def test_wrong_image_fails_before_runtime_version_probe_or_job(tmp_path, monkeypatch):
+    prepared, _ = _runtime(tmp_path, monkeypatch)
+    spec = build_specification(DATASET_ID, {})
+    original_sha = reference._sha
+    monkeypatch.setattr(reference, "_sha", lambda p: spec["dataset"]["prepared_manifest_sha256"]
+                        if p == prepared / "manifest.json" else original_sha(p))
+    def forbidden(*_args):
+        pytest.fail("an unpinned image must not run even a version probe")
+    monkeypatch.setattr(reference, "_runtime_version", forbidden)
+    with pytest.raises(ValueError, match="runtime image"):
+        reference.run_reference(prepared, "wrong-image", tmp_path / "out", specification=spec)
+    assert not (tmp_path / "out").exists()
+
+
+def _pinned_execution_fixture(tmp_path, monkeypatch, *, timeout=False):
+    """Isolate execution/materialization; separate tests exercise preflight pins."""
+    prepared, commands = _runtime(tmp_path, monkeypatch, timeout=timeout)
+    source = Path(__file__).resolve().parents[1] / "integrations/openvins/config"
+    shutil.copytree(source, prepared / "config", dirs_exist_ok=True)
+    spec = build_specification(DATASET_ID, {"num_pts": 100})
+    original_sha = reference._sha
+    monkeypatch.setattr(reference, "_sha", lambda p: spec["dataset"]["prepared_manifest_sha256"]
+                        if p == prepared / "manifest.json" else original_sha(p))
+    monkeypatch.setattr(reference, "_image_identity", lambda _: spec["runtime"]["image_id"])
+    monkeypatch.setattr(reference, "_validate_experiment_inputs", lambda *_: None)
+    return prepared, commands, spec
+
+
+def test_explicit_specification_executes_with_separate_configuration_and_exact_identity(tmp_path, monkeypatch):
+    prepared, commands, spec = _pinned_execution_fixture(tmp_path, monkeypatch)
+    before = json.dumps(spec, sort_keys=True)
+    output = tmp_path / "run"
+    result = reference.run_reference(prepared, "fixture", output, specification=spec)
+    assert result["state"] == "complete"
+    assert json.dumps(spec, sort_keys=True) == before
+    assert json.loads((output / "experiment-specification.json").read_text()) == spec
+    assert result["experiment_specification_sha256"] == specification_sha256(spec)
+    recorded = json.loads((output / "run-spec.json").read_text())
+    assert recorded["experiment_specification_sha256"] == specification_sha256(spec)
+    assert recorded["rendered_configuration_files"] == spec["configuration"]["rendered_files"]
+    for name, identity in spec["configuration"]["rendered_files"].items():
+        assert result["artifacts"]["config-" + name] == identity
+    command = commands[0]
+    config_mount = next(part for part in command if ",dst=/config" in part)
+    temporary = Path(config_mount.removeprefix("type=bind,src=").split(",dst=")[0])
+    assert temporary != prepared / "config" and not temporary.is_relative_to(output)
+    assert config_mount.endswith(",readonly")
+    assert not temporary.exists()
+    assert b"num_pts: 200\n" in (prepared / "config/estimator_config.yaml").read_bytes()
+    assert b"num_pts: 100\n" in (output / "config-estimator_config.yaml").read_bytes()
+
+
+def test_explicit_specification_timeout_retains_identity_and_removes_temporary_configuration(tmp_path, monkeypatch):
+    prepared, commands, spec = _pinned_execution_fixture(tmp_path, monkeypatch, timeout=True)
+    output = tmp_path / "run"
+    with pytest.raises(subprocess.TimeoutExpired):
+        reference.run_reference(prepared, "fixture", output, specification=spec)
+    result = json.loads((output / "result.json").read_text())
+    assert result["state"] == "failed"
+    assert result["experiment_specification_sha256"] == specification_sha256(spec)
+    assert json.loads((output / "experiment-specification.json").read_text()) == spec
+    config_mount = next(part for part in commands[0] if ",dst=/config" in part)
+    assert not Path(config_mount.removeprefix("type=bind,src=").split(",dst=")[0]).exists()
+
+
+@pytest.mark.parametrize("target", ["experiment-specification.json", "config-estimator_config.yaml", "run-spec.json"])
+def test_runtime_cannot_silently_change_specification_or_archived_configuration(tmp_path, monkeypatch, target):
+    prepared, _, spec = _pinned_execution_fixture(tmp_path, monkeypatch)
+    original_process = reference.subprocess.Popen
+    output = tmp_path / "run"
+    def corrupt(command, **kwargs):
+        process = original_process(command, **kwargs)
+        (output / target).write_text("{}\n")
+        return process
+    monkeypatch.setattr(reference.subprocess, "Popen", corrupt)
+    with pytest.raises(ValueError):
+        reference.run_reference(prepared, "fixture", output, specification=spec)
+    result = json.loads((output / "result.json").read_text())
+    assert result["state"] == "failed" and result["error"]["type"] == "ValueError"
+
+
+def test_cli_passes_the_exact_specification_to_the_reference_runner(tmp_path, monkeypatch, capsys):
+    path = tmp_path / "specification.json"
+    spec = build_specification(DATASET_ID, {"num_pts": 400})
+    path.write_text(json.dumps(spec))
+    received = []
+    monkeypatch.setattr(reference, "run_reference", lambda *args, **kwargs:
+                        received.append(kwargs["specification"]) or {"qualification": {"passed": True}})
+    assert reference.main(["run", "--prepared", str(tmp_path / "prepared"), "--output", str(tmp_path / "out"),
+                           "--specification", str(path)]) == 0
+    assert received == [spec]
+    assert json.loads(capsys.readouterr().out)["qualification"]["passed"]
+
+
+@pytest.mark.parametrize("changed", [None, "dataset_id", "archive", "reference", "calibration",
+                                     "timeline", "imu_count", "image", "adapter", "binary",
+                                     "evaluator", "criteria", "resources"])
+def test_preflight_rejects_each_changed_input_or_runtime_identity(tmp_path, monkeypatch, changed):
+    spec = build_specification(DATASET_ID, {})
+    prepared = tmp_path / "prepared"
+    prepared.mkdir()
+    # This isolated preflight fixture substitutes tiny provenance contents.
+    # The complete published pins are exercised by actual native qualifications.
+    provenance = {"dependency-versions.txt": "fixture dependencies", "binary-sha256.txt": "fixture binaries"}
+    spec["runtime"]["provenance_sha256"] = {
+        name: hashlib.sha256(content.encode()).hexdigest() for name, content in provenance.items()
+    }
+    manifest = {
+        "dataset_id": spec["dataset"]["prepared_dataset_id"],
+        "source": {"sha256": spec["dataset"]["archive_sha256"]},
+        "files": {"config/" + name: dict(identity) for name, identity in spec["configuration"]["baseline_files"].items()},
+        "streams": {"imu0": {"samples": spec["interval"]["imu_samples"]}},
+    }
+    manifest["files"]["reference/trajectory.csv"] = {"sha256": spec["dataset"]["reference_sha256"]}
+    start = int(spec["interval"]["first_camera_timestamp_ns"])
+    expected = [start + i * 50_000_000 for i in range(spec["interval"]["camera_pairs"])]
+    expected[-1] = int(spec["interval"]["last_camera_timestamp_ns"])
+    image, version = spec["runtime"]["image_id"], dict(spec["runtime"]["version"])
+    limits = dict(spec["resources"])
+    original_sha = reference._sha
+    def identity(path):
+        if path == prepared / "manifest.json":
+            return spec["dataset"]["prepared_manifest_sha256"]
+        if changed == "evaluator" and path.name == "vio_evaluation.py":
+            return "0" * 64
+        return original_sha(path)
+    monkeypatch.setattr(reference, "_sha", identity)
+    if changed == "dataset_id":
+        manifest["dataset_id"] = "different-recording"
+    elif changed == "archive":
+        manifest["source"]["sha256"] = "0" * 64
+    elif changed == "reference":
+        manifest["files"]["reference/trajectory.csv"]["sha256"] = "0" * 64
+    elif changed == "calibration":
+        manifest["files"]["config/kalibr_imucam_chain.yaml"]["sha256"] = "0" * 64
+    elif changed == "timeline":
+        expected = expected[1:]
+    elif changed == "imu_count":
+        manifest["streams"]["imu0"]["samples"] -= 1
+    elif changed == "image":
+        image = "sha256:" + "0" * 64
+    elif changed == "adapter":
+        version["adapter_sha256"] = "0" * 64
+    elif changed == "binary":
+        provenance["binary-sha256.txt"] = "different binaries"
+    elif changed == "criteria":
+        monkeypatch.setattr(reference, "GATES", {**reference.GATES, "minimum_coverage_fraction": 0.1})
+    elif changed == "resources":
+        limits["cpus"] = 100.0
+    if changed is None:
+        reference._validate_experiment_inputs(spec, prepared, manifest, expected, image, version, provenance, limits)
+    else:
+        with pytest.raises(ValueError):
+            reference._validate_experiment_inputs(spec, prepared, manifest, expected, image, version, provenance, limits)

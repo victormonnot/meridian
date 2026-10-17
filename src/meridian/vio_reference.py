@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import argparse
+from contextlib import ExitStack
+from copy import deepcopy
 import hashlib
 import json
 import math
@@ -11,6 +13,7 @@ from pathlib import Path
 import platform
 import re
 import subprocess
+from tempfile import TemporaryDirectory
 import time
 import uuid
 
@@ -20,6 +23,7 @@ from meridian.vio_dataset import (
     camera_timestamps_ns, download_dataset, prepare_dataset, verify_prepared,
 )
 from meridian.vio_evaluation import evaluate_trajectory, read_trajectory
+from meridian.vio_specification import specification_sha256, validate_specification
 
 
 UPSTREAM_REVISION = "69488123ed9362dd44b6f28e7f4680abbff1442b"
@@ -109,11 +113,11 @@ def _mount(source: Path, destination: str, *, readonly: bool) -> list[str]:
 
 
 def container_command(prepared: Path, output: Path, image_id: str, name: str,
-                      limits: dict) -> list[str]:
+                      limits: dict, *, configuration: Path | None = None) -> list[str]:
     """Only sensor/config directories enter the runtime; the reference never does."""
     return (["docker", "run", "--name", name, *_container_options(limits)]
             + _mount(prepared / "sensors", "/sensors", readonly=True)
-            + _mount(prepared / "config", "/config", readonly=True)
+            + _mount(configuration if configuration is not None else prepared / "config", "/config", readonly=True)
             + _mount(output, "/output", readonly=False)
             + [image_id, "--dataset", "/sensors", "--config",
                "/config/estimator_config.yaml", "--output", "/output"])
@@ -208,9 +212,91 @@ def _artifacts(output: Path, *, strict: bool = True) -> dict:
     return artifacts
 
 
+def _load_specification(path: Path) -> dict:
+    """Read an immutable specification without ambiguous duplicate JSON keys."""
+    def unique_object(pairs):
+        result = {}
+        for key, value in pairs:
+            if key in result:
+                raise ValueError(f"duplicate specification key: {key}")
+            result[key] = value
+        return result
+
+    def invalid_constant(value):
+        raise ValueError(f"non-finite specification value: {value}")
+
+    try:
+        value = json.loads(Path(path).read_text(encoding="utf-8"),
+                           object_pairs_hook=unique_object, parse_constant=invalid_constant)
+    except RecursionError as exc:
+        raise ValueError("specification JSON is too deeply nested") from exc
+    validate_specification(value)
+    return value
+
+
+def _validate_experiment_inputs(experiment: dict, prepared: Path, manifest: dict,
+                                expected: list[int], image_id: str, version: dict,
+                                provenance: dict, limits: dict) -> None:
+    """Bind the validated profile to actual local inputs before creating output."""
+    dataset, interval = experiment["dataset"], experiment["interval"]
+    if (_sha(prepared / "manifest.json") != dataset["prepared_manifest_sha256"]
+            or manifest["dataset_id"] != dataset["prepared_dataset_id"]
+            or manifest["source"]["sha256"] != dataset["archive_sha256"]
+            or manifest["files"]["reference/trajectory.csv"]["sha256"] != dataset["reference_sha256"]):
+        raise ValueError("prepared dataset does not match the immutable specification")
+    if (len(expected) != interval["camera_pairs"]
+            or str(expected[0]) != interval["first_camera_timestamp_ns"]
+            or str(expected[-1]) != interval["last_camera_timestamp_ns"]
+            or manifest["streams"]["imu0"]["samples"] != interval["imu_samples"]):
+        raise ValueError("camera/IMU timeline does not match the full-recording specification")
+    configuration = {name.removeprefix("config/"): identity for name, identity in manifest["files"].items()
+                     if name.startswith("config/")}
+    if configuration != experiment["configuration"]["baseline_files"]:
+        raise ValueError("baseline configuration does not match the immutable specification")
+    if (image_id != experiment["runtime"]["image_id"]
+            or _digest(version) != _digest(experiment["runtime"]["version"])):
+        raise ValueError("runtime image or native adapter differs from the immutable specification")
+    provenance_hashes = {name: hashlib.sha256(value.encode()).hexdigest() for name, value in provenance.items()}
+    if provenance_hashes != experiment["runtime"]["provenance_sha256"]:
+        raise ValueError("runtime binary/dependency provenance differs from the immutable specification")
+    if _digest(limits) != _digest(experiment["resources"]):
+        raise ValueError("resource overrides differ from the immutable specification")
+    if (_sha(Path(__file__).with_name("vio_evaluation.py")) != experiment["evaluation"]["evaluator_sha256"]
+            or _digest(GATES) != _digest(experiment["evaluation"]["qualification_criteria"])):
+        raise ValueError("evaluator or qualification criteria differ from the immutable specification")
+
+
+def _verify_configuration(directory: Path, identities: dict, *, prefix: str = "") -> None:
+    for name, identity in identities.items():
+        path = directory / (prefix + name)
+        if (path.is_symlink() or not path.is_file() or path.stat().st_size != identity["size_bytes"]
+                or _sha(path) != identity["sha256"]):
+            raise ValueError("effective configuration differs from the immutable specification")
+
+
+def _render_configuration(source: Path, destination: Path, experiment: dict) -> None:
+    """Change only the exact num_pts line, with hashes checked before and after."""
+    configuration = experiment["configuration"]
+    _verify_configuration(source, configuration["baseline_files"])
+    for name in configuration["baseline_files"]:
+        content = (source / name).read_bytes()
+        if name == "estimator_config.yaml":
+            original = b"num_pts: 200\n"
+            if content.count(original) != 1:
+                raise ValueError("pinned baseline must contain exactly one num_pts line")
+            content = content.replace(original, f'num_pts: {experiment["parameters"]["num_pts"]}\n'.encode("ascii"))
+        (destination / name).write_bytes(content)
+    _verify_configuration(destination, configuration["rendered_files"])
+
+
 def run_reference(prepared: Path, image: str, output: Path, *, cpus: float = 2.0,
-                  memory_mb: int = 4096, timeout_s: float = 900.0) -> dict:
+                  memory_mb: int = 4096, timeout_s: float = 900.0,
+                  specification: dict | None = None) -> dict:
     """Run one bounded local qualification attempt and retain its actual outcome."""
+    experiment = None
+    if specification is not None:
+        validate_specification(specification)
+        experiment = deepcopy(specification)
     if Path(output).exists() or Path(output).is_symlink():
         raise FileExistsError(f"output directory already exists: {output}")
     prepared = Path(prepared).resolve(strict=True)
@@ -220,11 +306,20 @@ def run_reference(prepared: Path, image: str, output: Path, *, cpus: float = 2.0
     if output.is_relative_to(prepared):
         raise ValueError("execution output must be outside the prepared dataset")
     limits = _limits(cpus, memory_mb, timeout_s)
+    if experiment is not None and _digest(limits) != _digest(experiment["resources"]):
+        raise ValueError("resource overrides differ from the immutable specification")
     manifest = verify_prepared(prepared)
     expected = camera_timestamps_ns(prepared)
+    if experiment is not None and _sha(prepared / "manifest.json") != experiment["dataset"]["prepared_manifest_sha256"]:
+        raise ValueError("prepared dataset does not match the immutable specification")
     image_id = _image_identity(image)
+    if experiment is not None and image_id != experiment["runtime"]["image_id"]:
+        raise ValueError("runtime image differs from the immutable specification")
     version = _runtime_version(image_id, limits)
     provenance = _runtime_provenance(image_id, limits)
+    if experiment is not None:
+        _validate_experiment_inputs(experiment, prepared, manifest, expected,
+                                    image_id, version, provenance, limits)
     spec = {"schema_version": 1, "dataset_manifest_sha256": _sha(prepared / "manifest.json"),
             "runtime_image_id": image_id, "runtime_version": version, "limits": limits,
             "runtime_provenance_sha256": {key: hashlib.sha256(value.encode()).hexdigest()
@@ -232,20 +327,41 @@ def run_reference(prepared: Path, image: str, output: Path, *, cpus: float = 2.0
             "evaluation_protocol_version": 1, "qualification_criteria": GATES,
             "evaluator_sha256": _sha(Path(__file__).with_name("vio_evaluation.py")),
             "runner_sha256": _sha(Path(__file__)), "input_manifest": manifest}
+    if experiment is not None:
+        spec["experiment_specification_sha256"] = specification_sha256(experiment)
+        spec["rendered_configuration_files"] = experiment["configuration"]["rendered_files"]
+    with ExitStack() as cleanup:
+        configuration = None
+        if experiment is not None:
+            configuration = Path(cleanup.enter_context(TemporaryDirectory(prefix="meridian-vio-config-")))
+            _render_configuration(prepared / "config", configuration, experiment)
+        return _execute_reference(prepared, output, image_id, limits, provenance, spec,
+                                  expected, configuration=configuration, experiment=experiment)
+
+
+def _execute_reference(prepared: Path, output: Path, image_id: str, limits: dict,
+                       provenance: dict, spec: dict, expected: list[int], *,
+                       configuration: Path | None = None, experiment: dict | None = None) -> dict:
     output.mkdir(parents=True)
     _json(output / "run-spec.json", spec)
+    if experiment is not None:
+        _json(output / "experiment-specification.json", experiment)
+        for filename in experiment["configuration"]["rendered_files"]:
+            (output / ("config-" + filename)).write_bytes((configuration / filename).read_bytes())
     for name, content in provenance.items():
         (output / name).write_text(content, encoding="utf-8")
     name = f"meridian-vio-{uuid.uuid4().hex}"
-    command = container_command(prepared, output, image_id, name, limits)
+    command = container_command(prepared, output, image_id, name, limits, configuration=configuration)
     result = {"schema_version": 1, "state": "failed", "run_spec_sha256": _digest(spec),
               "host": _host(), "error": None}
+    if experiment is not None:
+        result["experiment_specification_sha256"] = spec["experiment_specification_sha256"]
     started = time.monotonic()
     try:
         with (output / "runner.log").open("wb") as log:
             process = subprocess.Popen(command, stdout=log, stderr=subprocess.STDOUT)
             try:
-                returncode = process.wait(timeout=timeout_s)
+                returncode = process.wait(timeout=limits["timeout_s"])
             except BaseException:
                 try:
                     stopped = subprocess.run(["docker", "kill", name], capture_output=True, timeout=30)
@@ -274,8 +390,21 @@ def run_reference(prepared: Path, image: str, output: Path, *, cpus: float = 2.0
         verify_prepared(prepared)
         if _sha(prepared / "manifest.json") != spec["dataset_manifest_sha256"]:
             raise ValueError("prepared inputs changed during execution")
+        evaluation_options = {}
+        if experiment is not None:
+            recorded = _load_specification(output / "experiment-specification.json")
+            if specification_sha256(recorded) != spec["experiment_specification_sha256"]:
+                raise ValueError("experiment specification changed during execution")
+            if _digest(_parse_json((output / "run-spec.json").read_text())) != result["run_spec_sha256"]:
+                raise ValueError("run specification changed during execution")
+            _verify_configuration(configuration, experiment["configuration"]["rendered_files"])
+            _verify_configuration(output, experiment["configuration"]["rendered_files"], prefix="config-")
+            evaluation_options = {
+                "max_reference_gap_ns": experiment["evaluation"]["maximum_reference_bracket_ns"],
+                "max_estimate_timestamp_error_ns": experiment["evaluation"]["maximum_estimate_timestamp_error_ns"],
+            }
         evaluation = evaluate_trajectory(output / "trajectory.csv", prepared / "reference" / "trajectory.csv",
-                                         expected_timestamps_ns=expected)
+                                         expected_timestamps_ns=expected, **evaluation_options)
         _json(output / "evaluation.json", evaluation)
         result["qualification"] = qualification(evaluation)
         result["state"] = "complete"
@@ -352,6 +481,8 @@ def main(argv: list[str] | None = None) -> int:
     run.add_argument("--cpus", type=float, default=2.0)
     run.add_argument("--memory-mb", type=int, default=4096)
     run.add_argument("--timeout-s", type=float, default=900.0)
+    run.add_argument("--specification", type=Path,
+                     help="consume an exact pinned experiment specification; conflicting resource/image overrides fail")
     repeats = commands.add_parser("compare-repeats", help="check completed runs for reproducibility")
     repeats.add_argument("--runs", type=Path, nargs="+", required=True)
     repeats.add_argument("--output", type=Path, required=True)
@@ -363,7 +494,8 @@ def main(argv: list[str] | None = None) -> int:
             result = prepare_dataset(args.archive, args.output, args.config)
         elif args.command == "run":
             result = run_reference(args.prepared, args.image, args.output, cpus=args.cpus,
-                                   memory_mb=args.memory_mb, timeout_s=args.timeout_s)
+                                   memory_mb=args.memory_mb, timeout_s=args.timeout_s,
+                                   specification=_load_specification(args.specification) if args.specification else None)
         else:
             if args.output.exists():
                 raise FileExistsError(f"output already exists: {args.output}")

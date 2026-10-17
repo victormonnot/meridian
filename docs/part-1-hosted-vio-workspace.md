@@ -1,12 +1,12 @@
 # Part 1: hosted workspace and reference VIO workflow
 
-**Status: increments 1.1–1.2 completed on 2026-10-17; increments 1.3–1.8 remain planned.**
+**Status: increments 1.1–1.3 completed on 2026-10-17; increments 1.4–1.8 remain planned.**
 This plan details part 1 of the [development roadmap](professional-estimation-roadmap.md).
 The current [implementation](../README.md) includes the qualified
 [local VIO reference](../results/vio-reference/README.md), the original single-axis
 study and its static results explorer. The [project workspace](hosted-workspace.md)
-adds accounts, private projects and catalog metadata; hosted VIO computation
-remains planned.
+adds accounts, private projects, catalog metadata and versioned experiments;
+hosted VIO computation remains planned.
 
 ## Outcome and scope
 
@@ -126,7 +126,7 @@ under the documented retention policy.
 
 Every increment includes its relevant UI states, failure handling, checks, and
 documentation. Later integration testing does not defer those responsibilities.
-Increments 1.1 and 1.2 are complete; all later increments are pending.
+Increments 1.1–1.3 are complete; all later increments are pending.
 
 ### 1.1 — Executable reference and evaluation protocol
 
@@ -197,6 +197,11 @@ connected to the later execution service; existing reference outputs are labeled
 with their actual origin.
 
 ### 1.3 — Versioned experiments and configurations
+
+**Completed:** [specification and API contract](versioned-experiments.md) and
+[validation evidence](../results/experiments/README.md). The initial profile
+supports the qualified full room1 recording and feature budgets 100, 200 and 400.
+Hosted execution remains the next increment.
 
 **Dependency:** 1.2 and the qualified configuration contract from 1.1.
 

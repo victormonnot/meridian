@@ -7,7 +7,7 @@ older run for the same ref.
 
 | Job | Environment | Checks |
 | --- | --- | --- |
-| Hosted workspace and PostgreSQL | Python 3.12, isolated PostgreSQL 17.11 | Install the separate server lock, check migration drift, then test authentication, ownership, sessions, validation and concurrent database limits. |
+| Hosted workspace and PostgreSQL | Python 3.12, isolated PostgreSQL 17.11 | Install the separate server lock, check migration drift, then test authentication, ownership, immutable experiment revisions, validation and concurrent database limits. |
 | Python and C++ | Python 3.12, C++17, CMake, Eigen | Install the Python and DataFlash locks, check dependency consistency, build Release targets, run native CTest checks, then the complete Python suite with the built replay executable. |
 | Web | Node.js 22 | Install from `web/package-lock.json`, run the Node tests, check the recorded parameter-study export, then build the Vite application. |
 
@@ -63,10 +63,11 @@ tracked-source snapshot. Hosted checks are recorded in the
 
 The jobs exercise numerical behavior, Python/C++ agreement, synthetic log handling,
 web data/logic, compilation and private project access. The workspace commands
-were also checked locally against PostgreSQL, including simultaneous requests;
-the new hosted workflow run remains pending until the repository is pushed.
+were also checked locally against PostgreSQL, including simultaneous requests.
+The linked Actions history records the outcome for each pushed revision.
 Node tests do not run a browser. The separate
-[workspace browser checks](../results/workspace/README.md) cover the hosted
+[experiment browser checks](../results/experiments/README.md) extend the
+[workspace checks](../results/workspace/README.md) and cover the hosted
 application and regression checks of the original explorer. Earlier interactive
 checks remain documented in the [web guide](web-explorer.md).
 Bench acquisition, real-reference accuracy, embedded timing and flight behavior

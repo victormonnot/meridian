@@ -13,15 +13,17 @@ export function createApiClient(fetchImpl = globalThis.fetch) {
   let csrfToken = '';
   return {
     setCsrfToken(value) { csrfToken = typeof value === 'string' ? value : ''; },
-    async request(path, { method = 'GET', body, signal } = {}) {
+    async request(path, { method = 'GET', body, signal, query } = {}) {
       // API paths are application-owned. Never send session state to another origin.
       if (!path.startsWith('/') || path.startsWith('//') || /[\\?#]/.test(path)) throw new TypeError('Invalid API path');
+      if (query && Object.values(query).some(value => !Number.isSafeInteger(value) || value < 1)) throw new TypeError('Query selectors must be positive integers');
       const headers = { Accept: 'application/json' };
       if (method !== 'GET') {
         headers['Content-Type'] = 'application/json';
         headers['X-CSRFToken'] = csrfToken;
       }
-      const response = await fetchImpl(`/api/v1${path}`, {
+      const suffix = query ? `?${new URLSearchParams(query)}` : '';
+      const response = await fetchImpl(`/api/v1${path}${suffix}`, {
         method, headers, credentials: 'same-origin', cache: 'no-store', signal,
         ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
       });
@@ -44,7 +46,14 @@ export function escapeHtml(value) {
 
 export function parseRoute(hash) {
   if (!hash || hash === '#' || hash === '#projects') return { page: 'projects' };
-  const match = /^#project\/([a-f\d]{8}-[a-f\d]{4}-[a-f\d]{4}-[a-f\d]{4}-[a-f\d]{12})\/(data|experiments|results|settings)$/i.exec(hash);
+  const uuid = '[a-f\\d]{8}-[a-f\\d]{4}-[a-f\\d]{4}-[a-f\\d]{4}-[a-f\\d]{12}';
+  const experiment = new RegExp(`^#project/(${uuid})/experiments/(${uuid})(?:/revisions/([1-9]\\d*))?$`, 'i').exec(hash);
+  if (experiment) {
+    const version = experiment[3] === undefined ? undefined : Number(experiment[3]);
+    if (version !== undefined && !Number.isSafeInteger(version)) return { page: 'not-found' };
+    return { page: 'project', id: experiment[1], section: 'experiments', experimentId: experiment[2], ...(version === undefined ? {} : { version }) };
+  }
+  const match = new RegExp(`^#project/(${uuid})/(data|experiments|results|settings)$`, 'i').exec(hash);
   return match ? { page: 'project', id: match[1], section: match[2] } : { page: 'not-found' };
 }
 

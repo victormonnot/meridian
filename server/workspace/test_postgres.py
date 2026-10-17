@@ -14,12 +14,10 @@ from django.db import close_old_connections, connection, connections, transactio
 from django.test import Client, TransactionTestCase, override_settings
 
 from .api import rate_budget
-from .models import AuthWindow, Project
+from .models import AuthWindow, Experiment, ExperimentRevision, Project
 
 
-@skipUnless(connection.vendor == "postgresql", "Requires independent PostgreSQL transactions and row locks")
-@override_settings(MERIDIAN_PROJECT_LIMIT=20)
-class PostgreSQLConcurrencyTests(TransactionTestCase):
+class ConcurrentDatabaseWorkers:
     """Use committed fixtures and real connections, with bounded lock waits."""
 
     @contextmanager
@@ -68,6 +66,9 @@ class PostgreSQLConcurrencyTests(TransactionTestCase):
             sleep(0.01)
         self.fail("Both PostgreSQL requests did not reach a lock wait within four seconds.")
 
+@skipUnless(connection.vendor == "postgresql", "Requires independent PostgreSQL transactions and row locks")
+@override_settings(MERIDIAN_PROJECT_LIMIT=20)
+class PostgreSQLConcurrencyTests(ConcurrentDatabaseWorkers, TransactionTestCase):
     def test_concurrent_creations_cannot_both_claim_the_last_project_slot(self):
         password = "Rosette!River-84-Valve"
         owner = get_user_model().objects.create_user("concurrent.engineer", password=password)
@@ -144,3 +145,83 @@ class PostgreSQLConcurrencyTests(TransactionTestCase):
         self.assertEqual(sum(wait > 0 for wait in waits), 1, waits)
         self.assertEqual(AuthWindow.objects.count(), 1)
         self.assertEqual(AuthWindow.objects.get().count, 1)
+
+
+@skipUnless(connection.vendor == "postgresql", "Requires independent PostgreSQL transactions and row locks")
+@override_settings(MERIDIAN_EXPERIMENT_LIMIT=2, MERIDIAN_REVISION_LIMIT=2)
+class PostgreSQLExperimentConcurrencyTests(ConcurrentDatabaseWorkers, TransactionTestCase):
+    def setUp(self):
+        self.owner = get_user_model().objects.create_user("concurrent.experiments", password="Rosette!River-84-Valve")
+        self.project = Project.objects.create(owner=self.owner, name="Concurrent configurations",
+                                              dataset_id="tumvi-room1-512-16-v1")
+        self.url = f"/api/v1/projects/{self.project.pk}/experiments"
+        client = Client(enforce_csrf_checks=True)
+        client.force_login(self.owner)
+        self.csrf_token = client.get("/api/v1/session").json()["csrf_token"]
+        self.cookies = deepcopy(client.cookies)
+        created = self.send("post", self.url, self.creation("Baseline"))
+        self.assertEqual(created.status_code, 201, created.content)
+        self.baseline = created.json()["experiment"]
+
+    def creation(self, name):
+        return {"schema_version": 1, "name": name, "dataset_id": self.project.dataset_id, "parameters": {}}
+
+    def send(self, method, url, data):
+        client = Client(enforce_csrf_checks=True)
+        client.cookies = deepcopy(self.cookies)
+        return getattr(client, method)(url, data=json.dumps(data), content_type="application/json",
+                                       HTTP_X_CSRFTOKEN=self.csrf_token)
+
+    def race_under_project_lock(self, operation):
+        with self.workers(operation) as (futures, pids, start):
+            with transaction.atomic():
+                Project.objects.select_for_update().get(pk=self.project.pk)
+                start.wait(timeout=5)
+                self.wait_for_both_database_locks(pids, futures)
+            return [future.result(timeout=12) for future in futures]
+
+    def test_simultaneous_edits_from_same_base_append_exactly_one_revision(self):
+        def edit(index):
+            return self.send("patch", f"{self.url}/{self.baseline['id']}", {
+                "schema_version": 1, "base_version": 1, "name": f"Candidate {index}",
+                "parameters": {"num_pts": 100 if index == 0 else 400},
+            })
+
+        results = self.race_under_project_lock(edit)
+        self.assertEqual(sorted(result.status_code for result in results), [200, 409],
+                         [result.content for result in results])
+        conflict = next(result for result in results if result.status_code == 409)
+        self.assertEqual(conflict.json()["error"]["code"], "version_conflict")
+        accepted = next(result for result in results if result.status_code == 200).json()
+        self.assertEqual(Experiment.objects.get().current_version, 2)
+        self.assertEqual(Experiment.objects.get().parameters, accepted["experiment"]["parameters"])
+        self.assertEqual(list(ExperimentRevision.objects.values_list("version", flat=True)), [2, 1])
+        self.assertEqual(ExperimentRevision.objects.get(version=1).specification["parameters"], {"num_pts": 200})
+
+    def test_create_and_duplicate_cannot_both_claim_last_experiment_slot(self):
+        def create(index):
+            if index == 0:
+                return self.send("post", self.url, self.creation("New experiment"))
+            return self.send("post", f"{self.url}/{self.baseline['id']}/duplicate",
+                             {"schema_version": 1, "source_version": 1, "name": "Copied experiment"})
+
+        results = self.race_under_project_lock(create)
+        self.assertEqual(sorted(result.status_code for result in results), [201, 409],
+                         [result.content for result in results])
+        rejected = next(result for result in results if result.status_code == 409)
+        self.assertEqual(rejected.json()["error"]["code"], "experiment_limit")
+        self.assertEqual(Experiment.objects.filter(project=self.project).count(), 2)
+        self.assertEqual(ExperimentRevision.objects.count(), 2)
+
+    def test_project_deletion_serializes_with_experiment_creation_and_cascades(self):
+        def mutate(index):
+            if index == 0:
+                return self.send("delete", f"/api/v1/projects/{self.project.pk}", {})
+            return self.send("post", self.url, self.creation("Concurrent child"))
+
+        results = self.race_under_project_lock(mutate)
+        self.assertEqual(results[0].status_code, 200, results[0].content)
+        self.assertIn(results[1].status_code, [201, 404], results[1].content)
+        self.assertFalse(Project.objects.filter(pk=self.project.pk).exists())
+        self.assertFalse(Experiment.objects.exists())
+        self.assertFalse(ExperimentRevision.objects.exists())

@@ -1,0 +1,249 @@
+{
+  "schema_version": 1,
+  "checked_on": "2026-10-17",
+  "purpose": "Versioned specification and local runner integration; not a hosted execution or optimization campaign.",
+  "runs": [
+    {
+      "num_pts": 200,
+      "specification_file": "specification-200.json",
+      "specification_origin": "constructed from the maintained specification profile",
+      "specification_sha256": "521227054edeac5226ec9ab25e6a9190475affc62c64ce96057b5402bbf73677",
+      "run_spec_sha256": "795af3c1590e8b757d10a6d10abc4b322dcce3757c51c54b805021604c0be9a4",
+      "runner_sha256": "352368ec65b846c5e8216a8724295d9b686edf811c6105344c1062b16edd05be",
+      "runtime_image_id": "sha256:73e1213d073ce52a9a509decb15628a7c043e0690609171c4b9382ed0c2730da",
+      "host": {
+        "cpu_model": "12th Gen Intel(R) Core(TM) i5-12400F",
+        "kernel": "6.18.33.2-microsoft-standard-WSL2",
+        "logical_cpus": 12,
+        "machine": "x86_64",
+        "numpy": "2.5.3",
+        "python": "3.12.3",
+        "system": "Linux"
+      },
+      "native_timing": {
+        "cpu_seconds": 46.089241,
+        "peak_rss_kib": 81688,
+        "wall_seconds": 46.116195832
+      },
+      "counts": {
+        "estimate_samples": 2689,
+        "evaluated_camera_samples": 2624,
+        "expected_camera_samples": 2821,
+        "missing_initial_camera_samples": 132,
+        "missing_interior_camera_samples": 0,
+        "missing_trailing_camera_samples": 0,
+        "reference_samples": 16541,
+        "reference_supported_camera_samples": 2756
+      },
+      "metrics": {
+        "ate_rmse_m": 0.0612163695742259,
+        "orientation_error_max_deg": 4.307316076259924,
+        "orientation_error_mean_deg": 1.2005629690623147,
+        "orientation_rmse_deg": 1.3255413925517476,
+        "orientation_rmse_rad": 0.023135061671498636,
+        "position_error_max_m": 0.109949022489596,
+        "position_error_mean_m": 0.05697479331128086
+      },
+      "coverage_fraction": 0.9532080822403403,
+      "evaluated_fraction": 0.9301666075859625,
+      "initialization_delay_s": 6.600339685000001,
+      "qualification": {
+        "checks": {
+          "estimate_coverage": true,
+          "evaluated_coverage": true,
+          "evaluated_samples": true,
+          "evaluation_ok": true,
+          "initialization_delay": true,
+          "orientation_error": true,
+          "position_error": true,
+          "reference_coverage": true
+        },
+        "criteria": {
+          "maximum_ate_rmse_m": 0.5,
+          "maximum_initialization_delay_s": 10.0,
+          "maximum_orientation_rmse_deg": 15.0,
+          "minimum_coverage_fraction": 0.9,
+          "minimum_evaluated_fraction": 0.9,
+          "minimum_evaluated_samples": 100,
+          "minimum_reference_coverage_fraction": 0.95
+        },
+        "passed": true
+      },
+      "artifact_identities": {
+        "binary-sha256.txt": {
+          "sha256": "7b66a083c7d5c69c6e85721e3357def42fbc1a125a5b13735f3e55ee3ad28070",
+          "size_bytes": 204
+        },
+        "config-estimator_config.yaml": {
+          "sha256": "10c37c00c52a07ba5a86ce3d6d2846c2430397d6fa6a9e190dfdc47aa10c2045",
+          "size_bytes": 3689
+        },
+        "config-kalibr_imu_chain.yaml": {
+          "sha256": "cb598952ee3766492a332eaae8567fe2b63a9bf6d63b9c0a7b9d988471600a3d",
+          "size_bytes": 1351
+        },
+        "config-kalibr_imucam_chain.yaml": {
+          "sha256": "072d26e3dd20844ae7402f508c51cf7e899a401634ba6b0db0e08cd2880b7dab",
+          "size_bytes": 1530
+        },
+        "config-mask_tumvi0.png": {
+          "sha256": "62dfc1053f336d1adb4ae01519579532370d1b211894566a7a4ec167dd8c3f4f",
+          "size_bytes": 12277
+        },
+        "config-mask_tumvi1.png": {
+          "sha256": "67ff644599f862f2437026d9c43ef0a0887907470179a53e34447fb95cbd35ba",
+          "size_bytes": 11930
+        },
+        "dependency-versions.txt": {
+          "sha256": "92d76ee986a1ff4508a96fb3f2c26439d99cb446a546f8e0d795f56d69e7023e",
+          "size_bytes": 17909
+        },
+        "evaluation.json": {
+          "sha256": "d26ee4fa4d3a4445b8b8dc758687ed8197d66731c71dcd2e4f2abe75e72e5201",
+          "size_bytes": 215032
+        },
+        "experiment-specification.json": {
+          "sha256": "f8450550c77b615690904395b1eead2236166b744f4ab7c5f5325d126eae2614",
+          "size_bytes": 5820
+        },
+        "run-spec.json": {
+          "sha256": "6e8327deb20b22d2c70187c6d0ad504c521129f512bfe2945c0baa902243e890",
+          "size_bytes": 1032416
+        },
+        "runner.log": {
+          "sha256": "11f97616a5b994ea142234bf276d6922481d1632d3784644d66b217400fd1cb5",
+          "size_bytes": 35
+        },
+        "status.json": {
+          "sha256": "bbeae5fdc4353eeed320aec159cc7e80cd37c46c5266b2d0d411425d57bd261a",
+          "size_bytes": 962
+        },
+        "trajectory.csv": {
+          "sha256": "d2a59ed328807d54af0a930006b7c2e850998c2dc7d6f89debd1c195ca4ed764",
+          "size_bytes": 441094
+        }
+      }
+    },
+    {
+      "num_pts": 100,
+      "specification_file": "specification-100.json",
+      "specification_origin": "retrieved unchanged from a persisted PostgreSQL revision through the local HTTP API",
+      "specification_sha256": "98e780babbc5fd1b8214a3afbe65e5b5dbe39196017a83361b93f7f7cd3e5f73",
+      "run_spec_sha256": "f1433cdeddd67a092434ddd72c01926d0249d86406a08652f76664c470c6acc6",
+      "runner_sha256": "352368ec65b846c5e8216a8724295d9b686edf811c6105344c1062b16edd05be",
+      "runtime_image_id": "sha256:73e1213d073ce52a9a509decb15628a7c043e0690609171c4b9382ed0c2730da",
+      "host": {
+        "cpu_model": "12th Gen Intel(R) Core(TM) i5-12400F",
+        "kernel": "6.18.33.2-microsoft-standard-WSL2",
+        "logical_cpus": 12,
+        "machine": "x86_64",
+        "numpy": "2.5.3",
+        "python": "3.12.3",
+        "system": "Linux"
+      },
+      "native_timing": {
+        "cpu_seconds": 32.810748,
+        "peak_rss_kib": 81120,
+        "wall_seconds": 32.809687254
+      },
+      "counts": {
+        "estimate_samples": 2689,
+        "evaluated_camera_samples": 2624,
+        "expected_camera_samples": 2821,
+        "missing_initial_camera_samples": 132,
+        "missing_interior_camera_samples": 0,
+        "missing_trailing_camera_samples": 0,
+        "reference_samples": 16541,
+        "reference_supported_camera_samples": 2756
+      },
+      "metrics": {
+        "ate_rmse_m": 0.051132041394887494,
+        "orientation_error_max_deg": 4.428362220743539,
+        "orientation_error_mean_deg": 1.3471094574226026,
+        "orientation_rmse_deg": 1.532136616154553,
+        "orientation_rmse_rad": 0.026740828542261494,
+        "position_error_max_m": 0.11970868362413112,
+        "position_error_mean_m": 0.047872003451645086
+      },
+      "coverage_fraction": 0.9532080822403403,
+      "evaluated_fraction": 0.9301666075859625,
+      "initialization_delay_s": 6.600339685000001,
+      "qualification": {
+        "checks": {
+          "estimate_coverage": true,
+          "evaluated_coverage": true,
+          "evaluated_samples": true,
+          "evaluation_ok": true,
+          "initialization_delay": true,
+          "orientation_error": true,
+          "position_error": true,
+          "reference_coverage": true
+        },
+        "criteria": {
+          "maximum_ate_rmse_m": 0.5,
+          "maximum_initialization_delay_s": 10.0,
+          "maximum_orientation_rmse_deg": 15.0,
+          "minimum_coverage_fraction": 0.9,
+          "minimum_evaluated_fraction": 0.9,
+          "minimum_evaluated_samples": 100,
+          "minimum_reference_coverage_fraction": 0.95
+        },
+        "passed": true
+      },
+      "artifact_identities": {
+        "binary-sha256.txt": {
+          "sha256": "7b66a083c7d5c69c6e85721e3357def42fbc1a125a5b13735f3e55ee3ad28070",
+          "size_bytes": 204
+        },
+        "config-estimator_config.yaml": {
+          "sha256": "b20864246ac6c7d8d0b23b430568ba8860249fdc2207142f3a1095ca2a1f79f5",
+          "size_bytes": 3689
+        },
+        "config-kalibr_imu_chain.yaml": {
+          "sha256": "cb598952ee3766492a332eaae8567fe2b63a9bf6d63b9c0a7b9d988471600a3d",
+          "size_bytes": 1351
+        },
+        "config-kalibr_imucam_chain.yaml": {
+          "sha256": "072d26e3dd20844ae7402f508c51cf7e899a401634ba6b0db0e08cd2880b7dab",
+          "size_bytes": 1530
+        },
+        "config-mask_tumvi0.png": {
+          "sha256": "62dfc1053f336d1adb4ae01519579532370d1b211894566a7a4ec167dd8c3f4f",
+          "size_bytes": 12277
+        },
+        "config-mask_tumvi1.png": {
+          "sha256": "67ff644599f862f2437026d9c43ef0a0887907470179a53e34447fb95cbd35ba",
+          "size_bytes": 11930
+        },
+        "dependency-versions.txt": {
+          "sha256": "92d76ee986a1ff4508a96fb3f2c26439d99cb446a546f8e0d795f56d69e7023e",
+          "size_bytes": 17909
+        },
+        "evaluation.json": {
+          "sha256": "88e4ecf92b6c4e9d75d564ba36913bf0b9121b167b71863a78d9934d9b795aa3",
+          "size_bytes": 215324
+        },
+        "experiment-specification.json": {
+          "sha256": "d1d62cbdf7fba82086ba5fcb0b6b996a14aefaca7b638b9abb344f348204751a",
+          "size_bytes": 5820
+        },
+        "run-spec.json": {
+          "sha256": "3bf10df6550412c171e518cf36de68a9b1e5735040aa88041e854eb34e59baec",
+          "size_bytes": 1032416
+        },
+        "runner.log": {
+          "sha256": "11f97616a5b994ea142234bf276d6922481d1632d3784644d66b217400fd1cb5",
+          "size_bytes": 35
+        },
+        "status.json": {
+          "sha256": "eb8d9faa233f051a28fd1c5ad6332412cab0cdcf26d5f6304c8173a2900fa218",
+          "size_bytes": 962
+        },
+        "trajectory.csv": {
+          "sha256": "5640a2349c71c67c1ffeda44a59b0226cb8d5f9ea86ec58d068a78b30660462e",
+          "size_bytes": 441163
+        }
+      }
+    }
+  ]
+}

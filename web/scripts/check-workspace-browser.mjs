@@ -1,6 +1,7 @@
 /**
  * Exercise a running workspace through two newly registered QA accounts.
- * This deliberately creates accounts and creates/edits/deletes a test project.
+ * This deliberately creates accounts, a test project and versioned experiments,
+ * then exercises edits, historical copies, conflicts and deletions.
  * Run only against a deployment you are authorized to test. Created usernames
  * are recorded for administrator cleanup; passwords and cookies are not saved.
  * Requires an explicit workspace URL, output directory and installed Playwright.
@@ -67,6 +68,16 @@ async function register(target, user) {
 async function noOverflow(target, label) {
   check(label, await target.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth));
 }
+async function apiRequest(target, path, method = 'GET', body) {
+  return target.evaluate(async ({ path, method, body }) => {
+    const session = await (await fetch('/api/v1/session')).json();
+    const response = await fetch(`/api/v1${path}`, {
+      method, headers: { 'Content-Type': 'application/json', 'X-CSRFToken': session.csrf_token },
+      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+    });
+    return { status: response.status, payload: await response.json() };
+  }, { path, method, body });
+}
 try {
   const firstResponse = await page.goto(base);
   contentSecurityPolicy = await firstResponse.headerValue('content-security-policy');
@@ -99,7 +110,88 @@ try {
   await page.screenshot({ path: `${output}dataset-dark.png`, fullPage: true });
   await page.getByRole('link', { name: 'Experiments', exact: true }).click();
   await page.getByRole('heading', { name: 'No experiments in this project' }).waitFor();
-  check('experiments show an honest unavailable state', true);
+  check('new projects have an empty experiment collection', true);
+  const profile = (await apiRequest(page, '/configuration-profile')).payload.profile;
+  const parameterLabel = profile.parameters.num_pts.label;
+  await page.getByRole('button', { name: 'New experiment', exact: true }).click();
+  check('new experiment uses the API profile default', await page.getByLabel(parameterLabel, { exact: true }).inputValue() === String(profile.parameters.num_pts.default));
+  await page.locator('form[data-experiment-draft]').getByLabel('Experiment name', { exact: true }).fill('Stereo feature budget');
+  await page.getByLabel('Description', { exact: false }).fill('Pinned room1 recording and default tracking configuration.');
+  await page.getByRole('button', { name: 'Create experiment', exact: true }).click();
+  await page.getByRole('button', { name: 'Edit configuration', exact: true }).waitFor();
+  const experimentId = new URL(page.url()).hash.split('/')[3];
+  const experimentApi = `/projects/${projectId}/experiments/${experimentId}`;
+  const baseline = (await apiRequest(page, experimentApi)).payload.revision;
+  check('creating an experiment persists immutable version 1', baseline.version === 1 && baseline.specification.parameters.num_pts === 200);
+  await page.getByRole('button', { name: 'Edit configuration', exact: true }).click();
+  await page.getByLabel(parameterLabel, { exact: true }).selectOption('100');
+  await page.getByRole('button', { name: 'Save new version', exact: true }).click();
+  await page.getByRole('navigation', { name: 'Saved versions' }).getByRole('link', { name: /^Version 2/ }).waitFor();
+  check('editing creates version 2 and exact parameter differences', await page.locator('#comparison-result').innerText().then(text => text.includes('parameters.num_pts') && text.includes('200') && text.includes('100')));
+  const oldRevision = (await apiRequest(page, `${experimentApi}/revisions/1`)).payload.revision;
+  assert.deepEqual(oldRevision.specification, baseline.specification);
+  check('version 1 retains its exact original specification and hash', oldRevision.specification_sha256 === baseline.specification_sha256);
+  await page.getByRole('button', { name: 'Edit configuration', exact: true }).click();
+  await page.getByRole('button', { name: 'Save new version', exact: true }).click();
+  await page.getByText('No changes to save. Version 2 is unchanged.', { exact: true }).waitFor();
+  check('saving unchanged fields does not create a version', (await apiRequest(page, experimentApi)).payload.experiment.version === 2);
+  await page.getByRole('navigation', { name: 'Saved versions' }).getByRole('link', { name: /^Version 1/ }).click();
+  await page.getByText('Experiment · Historical version · read only', { exact: true }).waitFor();
+  check('historical revision is read only and retains its saved value', await page.getByRole('button', { name: 'Edit configuration', exact: true }).count() === 0 && await page.locator('.parameter-value').innerText() === '200');
+  await page.reload();
+  await page.getByText('Experiment · Historical version · read only', { exact: true }).waitFor();
+  check('historical version deep links survive refresh', new URL(page.url()).hash.endsWith('/revisions/1'));
+  await page.getByRole('button', { name: 'Duplicate version 1', exact: true }).click();
+  await page.getByRole('dialog').getByLabel('Experiment name', { exact: true }).fill('Reference configuration copy');
+  await page.getByRole('button', { name: 'Duplicate experiment', exact: true }).click();
+  await page.getByRole('heading', { name: 'Reference configuration copy', exact: true }).waitFor();
+  const copiedId = new URL(page.url()).hash.split('/')[3];
+  const copied = (await apiRequest(page, `/projects/${projectId}/experiments/${copiedId}`)).payload.revision;
+  check('duplication uses the selected historical version and records provenance', copied.version === 1 && copied.specification_sha256 === baseline.specification_sha256 && copied.copied_from.experiment_id === experimentId && copied.copied_from.version === 1);
+  await page.getByRole('button', { name: 'Delete experiment', exact: true }).click();
+  await page.getByRole('button', { name: 'Keep experiment', exact: true }).click();
+  check('experiment deletion has a cancellable confirmation', await page.getByRole('heading', { name: 'Reference configuration copy', exact: true }).isVisible());
+  await page.getByRole('button', { name: 'Delete experiment', exact: true }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Delete experiment', exact: true }).click();
+  await page.locator(`a[href="#project/${projectId}/experiments/${experimentId}"]`).waitFor();
+  check('deleting a copied experiment removes its revisions', (await apiRequest(page, `/projects/${projectId}/experiments/${copiedId}/revisions/1`)).status === 404);
+  await page.locator(`a[href="#project/${projectId}/experiments/${experimentId}"]`).click();
+  await page.getByRole('button', { name: 'Edit configuration', exact: true }).click();
+  await page.locator('form[data-experiment-draft]').getByLabel('Experiment name', { exact: true }).fill('Feature budget comparison');
+  await page.getByLabel('Description', { exact: false }).fill('Compare tracking density on the qualified room1 recording.');
+  await page.getByLabel(parameterLabel, { exact: true }).selectOption('400');
+  page.once('dialog', dialog => dialog.dismiss());
+  await page.getByRole('link', { name: 'Data', exact: true }).click();
+  check('cancelling unsaved navigation keeps the experiment draft', await page.locator('form[data-experiment-draft]').getByLabel('Experiment name', { exact: true }).inputValue() === 'Feature budget comparison');
+  const concurrent = await apiRequest(page, experimentApi, 'PATCH', { schema_version: 1, base_version: 2, name: 'Concurrent saved revision', description: 'Saved by another client.', parameters: { num_pts: 100 } });
+  check('a concurrent client saves version 3', concurrent.status === 200 && concurrent.payload.experiment.version === 3);
+  await page.getByRole('button', { name: 'Save new version', exact: true }).click();
+  await page.getByRole('button', { name: 'Review latest version', exact: true }).waitFor();
+  check('optimistic conflict preserves all draft fields', await page.locator('form[data-experiment-draft]').getByLabel('Experiment name', { exact: true }).inputValue() === 'Feature budget comparison' && await page.getByLabel(parameterLabel, { exact: true }).inputValue() === '400' && await page.getByLabel('Description', { exact: false }).inputValue() === 'Compare tracking density on the qualified room1 recording.');
+  await page.getByRole('button', { name: 'Review latest version', exact: true }).click();
+  await page.getByRole('button', { name: 'Use version 3 as base', exact: true }).click();
+  check('adopting a newer base refreshes the displayed history while preserving the draft', await page.getByRole('navigation', { name: 'Saved versions' }).getByRole('link', { name: /^Version 3/ }).isVisible() && await page.locator('form[data-experiment-draft]').getByLabel('Experiment name', { exact: true }).inputValue() === 'Feature budget comparison' && await page.getByLabel(parameterLabel, { exact: true }).inputValue() === '400');
+  await page.getByRole('button', { name: 'Save new version', exact: true }).click();
+  await page.getByRole('navigation', { name: 'Saved versions' }).getByRole('link', { name: /^Version 4/ }).waitFor();
+  const recovered = (await apiRequest(page, experimentApi)).payload;
+  check('explicit conflict recovery saves the retained draft as version 4', recovered.experiment.version === 4 && recovered.revision.name === 'Feature budget comparison' && recovered.revision.specification.parameters.num_pts === 400);
+  await page.getByLabel('From version', { exact: true }).selectOption('1');
+  await page.getByText('Exact changes · v1 → v4', { exact: true }).waitFor();
+  const changedFields = await page.locator('.comparison-table tbody th').allTextContents();
+  check('comparison identifies every changed supported field', ['name', 'description', 'parameters.num_pts'].every(field => changedFields.includes(field)) && changedFields.length === 3);
+  check('experiment screens contain no execution control', await page.getByRole('button', { name: /run|launch|execute/i }).count() === 0);
+  await page.screenshot({ path: `${output}experiment-desktop-dark.png`, fullPage: true });
+  await page.getByLabel('Appearance', { exact: true }).selectOption('light');
+  await page.screenshot({ path: `${output}experiment-desktop-light.png`, fullPage: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await noOverflow(page, 'experiment history and comparison fit a 390 px viewport');
+  await page.screenshot({ path: `${output}experiment-mobile-light.png`, fullPage: true });
+  await page.getByText('Immutable specification and provenance', { exact: true }).click();
+  await noOverflow(page, 'expanded immutable specification fits a 390 px viewport');
+  await page.getByText('Immutable specification and provenance', { exact: true }).click();
+  check('private drafts are not persisted in browser storage', await page.evaluate(() => !JSON.stringify([Object.entries(localStorage), Object.entries(sessionStorage)]).includes('Feature budget comparison')));
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.getByLabel('Appearance', { exact: true }).selectOption('dark');
   await page.getByRole('link', { name: 'Results', exact: true }).click();
   await page.getByRole('heading', { name: 'No results in this project' }).waitFor();
   await page.screenshot({ path: `${output}results-dark.png`, fullPage: true });
@@ -137,6 +229,18 @@ try {
     return results;
   }, projectId);
   check('cross-account GET PATCH DELETE all return 404', ownership.every(status => status === 404));
+  const foreignExperimentChecks = [
+    [experimentApi, 'GET'],
+    [`${experimentApi}/revisions`, 'GET'],
+    [`${experimentApi}/revisions/1`, 'GET'],
+    [`${experimentApi}/compare?from=1&to=4`, 'GET'],
+    [experimentApi, 'PATCH', { schema_version: 1, base_version: 4, name: 'Unauthorized', description: '', parameters: { num_pts: 200 } }],
+    [`${experimentApi}/duplicate`, 'POST', { schema_version: 1, source_version: 1, name: 'Unauthorized copy' }],
+    [experimentApi, 'DELETE'],
+  ];
+  const foreignStatuses = [];
+  for (const [path, method, body] of foreignExperimentChecks) foreignStatuses.push((await apiRequest(peer, path, method, body)).status);
+  check('cross-account experiment reads mutations history comparison and duplication return 404', foreignStatuses.every(status => status === 404));
   const csrfCookie = (await context.cookies()).find(cookie => cookie.name === 'meridian_csrf');
   await context.addCookies([{ ...csrfCookie, value: 'a'.repeat(32) }]);
   await page.getByRole('button', { name: /New project/ }).click();

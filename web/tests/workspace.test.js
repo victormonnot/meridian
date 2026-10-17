@@ -43,6 +43,16 @@ test('API client rejects external and ambiguous paths before sending credentials
   assert.equal(calls, 0);
 });
 
+test('comparison selectors are encoded on the existing same-origin API path', async () => {
+  let calledUrl;
+  const client = createApiClient(async url => { calledUrl = url; return response({ schema_version: 1, changes: [] }); });
+  await client.request('/projects/id/experiments/id/compare', { query: { from: 1, to: 7 } });
+  assert.equal(calledUrl, '/api/v1/projects/id/experiments/id/compare?from=1&to=7');
+  for (const value of [0, -1, 1.5, NaN, Infinity, Number.MAX_SAFE_INTEGER + 1, 'https://other.example/', {}, null]) {
+    await assert.rejects(client.request('/projects/id/experiments/id/compare', { query: { from: value, to: 1 } }), TypeError);
+  }
+});
+
 test('API errors retain status and validation fields for honest inline feedback', async () => {
   const payload = { schema_version: 1, error: { code: 'validation_error', message: 'Invalid project.', fields: { name: ['This field is required.'] } } };
   const client = createApiClient(async () => response(payload, 400));
@@ -92,6 +102,17 @@ test('project deep links accept only UUID identifiers and available sections', (
   for (const hash of ['', '#', '#projects']) assert.deepEqual(parseRoute(hash), { page: 'projects' });
   for (const hash of ['#project/../../secret/data', '#project/<script>/data', `#project/${id}/run`, `#project/${id}/data?owner=someone`, '#unknown']) {
     assert.deepEqual(parseRoute(hash), { page: 'not-found' });
+  }
+});
+
+test('experiment and immutable revision deep links preserve exact identities', () => {
+  const id = '12345678-abcd-abcd-abcd-123456789abc';
+  const experimentId = '87654321-abcd-abcd-abcd-987654321abc';
+  const base = `#project/${id}/experiments/${experimentId}`;
+  assert.deepEqual(parseRoute(base), { page: 'project', id, section: 'experiments', experimentId });
+  assert.deepEqual(parseRoute(`${base}/revisions/3`), { page: 'project', id, section: 'experiments', experimentId, version: 3 });
+  for (const suffix of ['/revisions/0', '/revisions/-1', '/revisions/01', '/revisions/1.5', '/revisions/9007199254740992', '/revisions/3/extra', '/run', '?version=1']) {
+    assert.deepEqual(parseRoute(base + suffix), { page: 'not-found' });
   }
 });
 

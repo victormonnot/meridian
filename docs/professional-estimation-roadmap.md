@@ -302,7 +302,9 @@ The [part 1 implementation plan](part-1-hosted-vio-workspace.md) divides the fir
 hosted workflow into eight sequential increments. Increment 1.1 has
 [qualified the local OpenVINS/TUM-VI reference](../results/vio-reference/README.md).
 Increment 1.2 adds a [validated hosted private workspace](../results/workspace/README.md).
-The six remaining increments, including hosted execution, are planned.
+Increment 1.3 adds [versioned VIO experiments](versioned-experiments.md), with
+immutable specifications consumed unchanged by the local runner. The five
+remaining increments, including hosted execution, are planned.
 
 ## Existing tools and research
 
@@ -327,8 +329,8 @@ engineers. No source review establishes that any feature is unique.
 
 ## Decisions still required
 
-For the remaining part 1 work, define versioned configurations and worker limits
-using the qualified reference's measured resource use and stated limitations.
+For the remaining part 1 work, connect the versioned configurations to durable,
+isolated workers using the qualified reference's measured resource use and limits.
 The metadata service is deployed; VIO execution is not yet hosted. Preserve its
 evaluation protocol and reserved sequence. Numerical formulations,
 additional formats/sensors, and automation tasks will be specified with their

@@ -1,6 +1,7 @@
 # Reference visual-inertial replay
 
-**Status: local reference implementation, increment 1.1.** This document records
+**Status: local reference implementation from increment 1.1, with immutable
+experiment specifications added in increment 1.3.** This document records
 the execution contract and protocol fixed before the first reference execution.
 The [qualification report](../results/vio-reference/README.md) records the actual
 results. See also the [part 1 plan](part-1-hosted-vio-workspace.md).
@@ -119,6 +120,62 @@ The proposed initial choices are 100, 200 and 400; only the 200 baseline is
 qualified here. Changing the budget can trade computation against visual support.
 No variant or tuning campaign is claimed by this qualification.
 
+## Immutable experiment specifications
+
+The standard-library-only `meridian.vio_specification` module defines profile
+`openvins-tumvi-room1-v1`, specification schema version 1. Its builder accepts
+the catalog dataset ID `tumvi-room1-512-16-v1` and the single parameter `num_pts`,
+with integer choices 100, 200 and 400. An omitted parameter selects 200 when
+building a new specification. Already stored specifications must contain the
+normalized value explicitly; execution never fills a missing default or upgrades
+an unknown version. Booleans, fractional values, unknown keys and changed pins
+are rejected.
+
+The specification fixes the complete prepared recording and independent reference
+identities, baseline calibration and masks, upstream revision, native adapter
+source hash, runtime image content ID, binary/dependency provenance, scheduling,
+units and frames, resource caps, and the original evaluation protocol and source
+hash. Absolute timestamps are decimal strings. It also records the exact hashes
+of the effective configuration files. Its content identity is SHA-256 of sorted,
+compact ASCII JSON, independent of object-key order and display whitespace.
+Names, project ownership and revision numbers are separate workspace metadata.
+
+The saved specification object can be supplied unchanged to the local runner:
+
+```sh
+python -m meridian.vio_reference run \
+  --prepared outputs/vio-reference-data/prepared \
+  --output outputs/vio-reference/experiment-run \
+  --specification path/to/saved-specification.json
+```
+
+Supply the specification object itself, rather than a surrounding API response.
+The runner rejects a conflicting image before starting any image probe, and
+rejects conflicting resource overrides before inspecting Docker. Local files,
+runtime provenance and evaluator identity must match the fixed profile before
+the actual VIO execution begins. The qualified native image must still exist
+locally; a fresh image build is not silently accepted as the same runtime.
+
+Configuration rendering changes only the exact `num_pts: 200` line in the
+hash-verified baseline. Calibration, masks and all other estimator settings are
+copied unchanged to a separate temporary directory mounted read-only as
+`/config`. That directory is outside the writable output mount, and the prepared
+dataset is preserved. The baseline value 200 renders byte-identical files.
+
+Each execution stores the received object as `experiment-specification.json`,
+its canonical hash in both `run-spec.json` and `result.json`, and exact effective
+configuration copies as `config-*` artifacts. The execution manifest separately
+records the current Python wrapper hash; it does not pretend this wrapper is the
+original increment 1.1 source. After execution, specification, configuration and
+prepared-input integrity are checked again. Failure records retain the experiment
+identity, and temporary configuration directories are cleaned up.
+
+Running without `--specification` preserves the original reference workflow and
+artifact contract. A supported specification is neither an execution result nor
+a claim that its configuration passes the numerical gates. Each actual variant
+is evaluated independently on the same complete timeline. Hosted computation,
+custom intervals and configuration fields beyond `num_pts` remain unavailable.
+
 ## Reproduce the qualification
 
 Use the existing Python environment from the [README](../README.md) and a Linux
@@ -189,7 +246,7 @@ Run the focused checks without the acquired dataset or Docker:
 
 ```sh
 python -m pytest -q tests/test_vio_dataset.py tests/test_vio_evaluation.py \
-  tests/test_vio_reference.py
+  tests/test_vio_reference.py tests/test_vio_specification.py
 ```
 
 ## Sources and attribution

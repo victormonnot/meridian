@@ -1,7 +1,8 @@
 # Deploy the project workspace
 
-This deployment serves accounts, private project metadata and the reference
-catalog. It does not install OpenVINS, download sensor recordings or run VIO jobs.
+This deployment serves accounts, private projects, versioned experiment
+specifications and the reference catalog. It does not install OpenVINS, download
+sensor recordings or run VIO jobs.
 The [workspace contract](hosted-workspace.md) describes authentication, ownership
 and retention. The original static explorer is also served at `/index.html`.
 
@@ -60,19 +61,26 @@ docker compose --project-name meridian-workspace \
   -f deploy/workspace/compose.yaml build
 docker compose --project-name meridian-workspace \
   --env-file /srv/meridian-workspace/.env \
-  -f deploy/workspace/compose.yaml up -d --wait db
+  -f deploy/workspace/compose.yaml up -d --wait --no-recreate db
 docker compose --project-name meridian-workspace \
   --env-file /srv/meridian-workspace/.env \
   -f deploy/workspace/compose.yaml run --rm --no-deps api python manage.py migrate --noinput
 docker compose --project-name meridian-workspace \
   --env-file /srv/meridian-workspace/.env \
-  -f deploy/workspace/compose.yaml up -d --wait api web
+  -f deploy/workspace/compose.yaml up -d --wait --no-deps api web
 ```
 
 The database initialization script runs only on a new empty volume. Changing
 environment passwords does not rotate an existing PostgreSQL role's password;
 perform explicit role and secret rotation together. Migrations run as a separate
 deployment step, not once per Gunicorn worker.
+
+For an application-only upgrade, preserve the existing database container with
+`--no-recreate`; moving to a new source-release directory otherwise changes the
+initialization script's bind path and can recreate it unnecessarily. Keep the
+release directory supplying that existing bind mount. `--no-deps` on migration
+and API/web replacement prevents an implicit database replacement. A deliberate
+database image or configuration upgrade requires its own maintenance procedure.
 
 Verify HTTPS certificate validation, HTTP-to-HTTPS redirect, `/api/health`,
 registration, sign-in, cookies and cross-account access from a separate machine.
@@ -91,14 +99,14 @@ docker compose --project-name meridian-workspace-local \
   -f deploy/workspace/compose.yaml -f deploy/workspace/compose.local.yaml build
 docker compose --project-name meridian-workspace-local \
   --env-file build/workspace/local.env \
-  -f deploy/workspace/compose.yaml -f deploy/workspace/compose.local.yaml up -d --wait db
+  -f deploy/workspace/compose.yaml -f deploy/workspace/compose.local.yaml up -d --wait --no-recreate db
 docker compose --project-name meridian-workspace-local \
   --env-file build/workspace/local.env \
   -f deploy/workspace/compose.yaml -f deploy/workspace/compose.local.yaml \
   run --rm --no-deps api python manage.py migrate --noinput
 docker compose --project-name meridian-workspace-local \
   --env-file build/workspace/local.env \
-  -f deploy/workspace/compose.yaml -f deploy/workspace/compose.local.yaml up -d --wait api web
+  -f deploy/workspace/compose.yaml -f deploy/workspace/compose.local.yaml up -d --wait --no-deps api web
 ```
 
 Set `MERIDIAN_DOMAIN=localhost` in this local environment. The override creates

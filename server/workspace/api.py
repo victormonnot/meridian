@@ -216,23 +216,28 @@ def projects(request):
 
 @endpoint(["GET", "PATCH", "DELETE"])
 def project(request, project_id):
-    value = Project.objects.filter(pk=project_id, owner=request.user).first()
-    if value is None:
-        return not_found(request)
-    if request.method == "DELETE":
-        value.delete()
-        return response({"deleted": True})
-    if request.method == "PATCH":
-        data, failure = body(request, {"name", "description"})
-        if failure is not None:
-            return failure
-        failure = project_fields(data, creating=False)
-        if failure is not None:
-            return failure
-        for field, content in data.items():
-            setattr(value, field, content.strip() if field == "name" else content)
-        value.save(update_fields=[*data, "updated_at"])
-    return response({"project": project_payload(value)})
+    with transaction.atomic():
+        query = Project.objects.filter(pk=project_id, owner=request.user)
+        if request.method != "GET":
+            # Serialize deletion with child creation before Django collects cascades.
+            query = query.select_for_update()
+        value = query.first()
+        if value is None:
+            return not_found(request)
+        if request.method == "DELETE":
+            value.delete()
+            return response({"deleted": True})
+        if request.method == "PATCH":
+            data, failure = body(request, {"name", "description"})
+            if failure is not None:
+                return failure
+            failure = project_fields(data, creating=False)
+            if failure is not None:
+                return failure
+            for field, content in data.items():
+                setattr(value, field, content.strip() if field == "name" else content)
+            value.save(update_fields=[*data, "updated_at"])
+        return response({"project": project_payload(value)})
 
 
 @endpoint(["GET"], private=False)

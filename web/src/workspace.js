@@ -1,5 +1,6 @@
 import { initializeTheme } from './theme.js';
 import { ApiError, createApiClient, escapeHtml as e, errorMessage, parseRoute, safeExternalLink } from './workspace-api.js';
+import { revisionDraft, draftChanged, experimentPayload, experimentPath, createExperimentDialog, renderExperimentList, renderExperimentDetail, renderComparison, renderConflict } from './workspace-experiments.js';
 
 initializeTheme();
 const api = createApiClient();
@@ -15,6 +16,10 @@ let navigation = 0;
 let sessionEpoch = 0;
 let controller;
 let checkingSession = false;
+let experimentView = null;
+let draftState = null;
+let renderedHash = window.location.hash;
+let comparisonRequest = 0;
 
 const integer = value => new Intl.NumberFormat('en').format(value);
 const decimal = (value, digits = 2) => Number(value).toFixed(digits);
@@ -40,6 +45,8 @@ function setSession(value) {
   logout.hidden = !value.user;
   datasets = [];
   currentProject = null;
+  experimentView = null;
+  draftState = null;
 }
 
 function removePrivateState() {
@@ -48,6 +55,8 @@ function removePrivateState() {
   controller?.abort();
   datasets = [];
   currentProject = null;
+  experimentView = null;
+  draftState = null;
   app.replaceChildren();
   account.textContent = '';
   account.hidden = true;
@@ -69,8 +78,8 @@ function renderAuth() {
     <section class="auth-intro" aria-labelledby="workspace-heading">
       <p class="eyebrow">Visual-inertial estimation</p>
       <h1 id="workspace-heading">Your engineering workspace.</h1>
-      <p>Organize private projects around calibrated stereo and IMU recordings. Inspect the reference data, calibration and qualification evidence.</p>
-      <ul class="scope-list"><li><span>Private projects</span><span>Available</span></li><li><span>Reference catalog</span><span>TUM-VI</span></li><li><span>Experiment execution</span><span>Not yet available</span></li></ul>
+      <p>Organize private projects and versioned estimator configurations around calibrated stereo and IMU recordings.</p>
+      <ul class="scope-list"><li><span>Private projects</span><span>Available</span></li><li><span>Reference catalog</span><span>TUM-VI</span></li><li><span>Versioned configurations</span><span>Available</span></li><li><span>Experiment execution</span><span>Not yet available</span></li></ul>
     </section>
     <section class="surface auth-panel" aria-labelledby="auth-heading">
       <h2 id="auth-heading">${register ? 'Create an account' : 'Sign in'}</h2>
@@ -184,8 +193,8 @@ function renderSettings(project) {
     <p class="muted">Projects are retained until you delete them.</p><p class="form-error" role="alert"></p>
     <div class="form-actions"><button type="submit" class="primary">Save changes</button></div>
   </fieldset></form>
-  <div class="delete-panel"><h2>Delete project</h2><p>Remove this project and its saved description from your workspace.</p><button class="danger" data-action="delete-project" type="button">Delete project</button></div>
-  <dialog id="delete-dialog" aria-labelledby="delete-heading"><h2 id="delete-heading">Delete ${e(project.name)}?</h2><p>Permanently delete this project and its saved description?</p><form id="delete-project-form"><fieldset><p class="form-error" role="alert"></p><div class="form-actions"><button type="button" data-action="close-dialog" autofocus>Keep project</button><button type="submit" class="danger">Delete project</button></div></fieldset></form></dialog>
+  <div class="delete-panel"><h2>Delete project</h2><p>Remove this project, its experiments and all saved versions from your workspace.</p><button class="danger" data-action="delete-project" type="button">Delete project</button></div>
+  <dialog id="delete-dialog" aria-labelledby="delete-heading"><h2 id="delete-heading">Delete ${e(project.name)}?</h2><p>Permanently delete this project, its experiments and all saved versions?</p><form id="delete-project-form"><fieldset><p class="form-error" role="alert"></p><div class="form-actions"><button type="button" data-action="close-dialog" autofocus>Keep project</button><button type="submit" class="danger">Delete project</button></div></fieldset></form></dialog>
   </section>`;
 }
 
@@ -195,7 +204,7 @@ function renderProject(project, section) {
   let content;
   if (section === 'data') content = renderDataset(dataset);
   else if (section === 'settings') content = renderSettings(project);
-  else if (section === 'experiments') content = '<div class="empty"><p class="eyebrow">Experiments</p><h2>No experiments in this project</h2><p>Experiment configuration and execution are not available in this release. The Data view contains the recording, calibration and existing local qualification evidence.</p></div>';
+  else if (section === 'experiments') content = experimentView.experiment ? renderExperimentDetail(project, experimentView, draftState) : renderExperimentList(project, experimentView);
   else content = '<div class="empty"><p class="eyebrow">Results</p><h2>No results in this project</h2><p>No experiments have been run in this workspace. The reference qualification linked under Data was produced locally and is separate from project results.</p></div>';
   mount(`<nav class="breadcrumb" aria-label="Breadcrumb"><a href="#projects">Projects</a><span aria-hidden="true">/</span><span>${e(project.name)}</span></nav>
     <div class="page-heading project-heading"><div><p class="eyebrow">Private project</p><h1>${e(project.name)}</h1>${project.description ? `<p class="muted project-description">${e(project.description)}</p>` : ''}</div><span class="pill">Private to your account</span></div>
@@ -205,7 +214,8 @@ function renderProject(project, section) {
 function routeError(error) {
   const unavailable = error instanceof ApiError && error.status === 404;
   const csrf = error instanceof ApiError && error.status === 403;
-  mount(`<div class="empty error" role="alert"><h1>${unavailable ? 'Project unavailable' : 'Unable to load the workspace'}</h1><p>${unavailable ? 'This project does not exist or is not available to your account.' : e(errorMessage(error))}</p>${csrf ? '<button type="button" data-action="reload">Reload session</button>' : '<button type="button" data-action="retry">Try again</button>'} <a class="button" href="#projects">Return to Projects</a></div>`, 'Workspace unavailable', true);
+  const resource = parseRoute(window.location.hash).experimentId ? 'Experiment' : 'Project';
+  mount(`<div class="empty error" role="alert"><h1>${unavailable ? `${resource} unavailable` : 'Unable to load the workspace'}</h1><p>${unavailable ? `This ${resource.toLowerCase()} does not exist or is not available to your account.` : e(errorMessage(error))}</p>${csrf ? '<button type="button" data-action="reload">Reload session</button>' : '<button type="button" data-action="retry">Try again</button>'} <a class="button" href="#projects">Return to Projects</a></div>`, 'Workspace unavailable', true);
 }
 
 async function expireSession() {
@@ -222,6 +232,7 @@ async function renderRoute() {
   controller?.abort();
   controller = new AbortController();
   currentProject = null;
+  experimentView = null;
   mount('<p class="loading" role="status">Loading workspace…</p>', 'Workspace');
   try {
     const route = parseRoute(window.location.hash);
@@ -235,7 +246,31 @@ async function renderRoute() {
     if (id !== navigation) return;
     datasets = catalog.datasets;
     if (route.page === 'projects') renderProjects(resource.projects);
-    else { currentProject = resource.project; renderProject(currentProject, route.section); }
+    else {
+      if (route.section === 'experiments') {
+        const path = `/projects/${route.id}/experiments`;
+        const tasks = [api.request('/configuration-profile', { signal: controller.signal }), api.request(path, { signal: controller.signal })];
+        if (route.experimentId) {
+          tasks.push(api.request(`${path}/${route.experimentId}`, { signal: controller.signal }));
+          tasks.push(api.request(`${path}/${route.experimentId}/revisions`, { signal: controller.signal }));
+          if (route.version !== undefined) tasks.push(api.request(`${path}/${route.experimentId}/revisions/${route.version}`, { signal: controller.signal }));
+        }
+        const [profile, list, detail, history, historical] = await Promise.all(tasks);
+        if (id !== navigation) return;
+        const view = { profile: profile.profile, experiments: list.experiments, limits: list.limits };
+        if (detail) {
+          view.experiment = detail.experiment;
+          view.revision = historical?.revision || detail.revision;
+          view.revisions = history.revisions;
+          view.comparison = await api.request(`${path}/${route.experimentId}/compare`, { query: { from: Math.max(1, view.revision.version - 1), to: view.revision.version }, signal: controller.signal });
+        }
+        if (id !== navigation) return;
+        experimentView = view;
+      }
+      currentProject = resource.project;
+      renderProject(currentProject, route.section);
+    }
+    renderedHash = window.location.hash;
   } catch (error) {
     if (id !== navigation || error.name === 'AbortError') return;
     if (error.status === 401) await expireSession();
@@ -260,12 +295,111 @@ async function initialize(clearNotice = true) {
 function showFormError(form, error) {
   const field = form.querySelector('.form-error');
   field.textContent = errorMessage(error);
+  for (const target of form.querySelectorAll('[data-field-error]')) {
+    const messages = error.fields?.[target.dataset.fieldError];
+    target.textContent = messages ? (Array.isArray(messages) ? messages.join(' ') : String(messages)) : '';
+    const input = target.parentElement.querySelector('input, textarea, select');
+    if (input) input.setAttribute('aria-invalid', String(Boolean(messages)));
+  }
   if (error.status === 403) {
     const button = document.createElement('button');
     button.type = 'button';
     button.dataset.action = 'reload';
     button.textContent = 'Reload session';
     field.append(document.createElement('br'), button);
+  }
+}
+
+function hasUnsavedDraft() {
+  return draftState && draftChanged(draftState.baseline, draftState.values);
+}
+
+function discardDraft() {
+  if (hasUnsavedDraft() && !window.confirm('Discard unsaved experiment changes?')) return false;
+  draftState = null;
+  return true;
+}
+
+async function navigateTo(hash) {
+  if (window.location.hash === hash) await renderRoute();
+  else window.location.hash = hash;
+}
+
+function openNewExperiment() {
+  const values = revisionDraft(null, experimentView.profile);
+  draftState = { kind: 'create', baseline: { ...values }, values };
+  app.insertAdjacentHTML('beforeend', createExperimentDialog(currentProject, experimentView.profile, values));
+  const dialog = app.querySelector('#experiment-dialog');
+  dialog.addEventListener('close', () => { if (draftState?.kind === 'create') draftState = null; dialog.remove(); }, { once: true });
+  dialog.showModal();
+}
+
+async function submitExperiment(form, data, epoch) {
+  const submittedNavigation = navigation;
+  const projectId = currentProject.id;
+  const path = `/projects/${projectId}/experiments`;
+  const experimentId = experimentView.experiment?.id;
+  const selectedVersion = experimentView.revision?.version;
+  let response;
+  if (form.id === 'create-experiment-form') {
+    response = await api.request(path, { method: 'POST', body: experimentPayload(data, experimentView.profile, { datasetId: currentProject.dataset_id }) });
+  } else if (form.id === 'edit-experiment-form') {
+    response = await api.request(`${path}/${experimentId}`, { method: 'PATCH', body: experimentPayload(data, experimentView.profile, { baseVersion: draftState.baseVersion }) });
+  } else if (form.id === 'duplicate-experiment-form') {
+    response = await api.request(`${path}/${experimentId}/duplicate`, { method: 'POST', body: { schema_version: 1, source_version: selectedVersion, name: data.name } });
+  } else if (form.id === 'delete-experiment-form') {
+    await api.request(`${path}/${experimentId}`, { method: 'DELETE' });
+    if (epoch !== sessionEpoch || submittedNavigation !== navigation) return;
+    draftState = null;
+    await navigateTo(`#project/${projectId}/experiments`);
+    announce('Experiment and its saved versions deleted.');
+    return;
+  }
+  if (epoch !== sessionEpoch || submittedNavigation !== navigation) return;
+  draftState = null;
+  await navigateTo(experimentPath(response.experiment.project_id, response.experiment.id));
+  announce(response.unchanged ? `No changes to save. Version ${response.experiment.version} is unchanged.` : `Version ${response.experiment.version} saved. No computation was started.`);
+}
+
+async function reviewLatestExperiment() {
+  const id = navigation;
+  const form = app.querySelector('#edit-experiment-form');
+  const panel = app.querySelector('#experiment-conflict');
+  const path = `/projects/${currentProject.id}/experiments/${experimentView.experiment.id}`;
+  try {
+    const [response, history] = await Promise.all([
+      api.request(path, { signal: controller.signal }),
+      api.request(`${path}/revisions`, { signal: controller.signal }),
+    ]);
+    if (id !== navigation || !draftState || !form.isConnected) return;
+    draftState.latest = response.revision;
+    draftState.latestExperiment = response.experiment;
+    draftState.latestHistory = history.revisions;
+    panel.innerHTML = renderConflict(response.revision, draftState.values, experimentView.profile);
+    panel.hidden = false;
+  } catch (error) {
+    if (id !== navigation || error.name === 'AbortError') return;
+    if (error.status === 401) await expireSession();
+    else showFormError(form, error);
+  }
+}
+
+async function compareSelectedVersions() {
+  const id = ++comparisonRequest;
+  const currentNavigation = navigation;
+  const target = app.querySelector('#comparison-result');
+  const path = `/projects/${currentProject.id}/experiments/${experimentView.experiment.id}/compare`;
+  const query = { from: Number(app.querySelector('#compare-from').value), to: Number(app.querySelector('#compare-to').value) };
+  target.textContent = 'Loading version differences…';
+  try {
+    const comparison = await api.request(path, { query, signal: controller.signal });
+    if (id !== comparisonRequest || currentNavigation !== navigation || !target.isConnected) return;
+    experimentView.comparison = comparison;
+    target.innerHTML = renderComparison(comparison);
+  } catch (error) {
+    if (id !== comparisonRequest || currentNavigation !== navigation || error.name === 'AbortError') return;
+    if (error.status === 401) await expireSession();
+    else target.textContent = errorMessage(error);
   }
 }
 
@@ -281,7 +415,9 @@ app.addEventListener('submit', async event => {
   form.querySelector('.form-error').textContent = '';
   announce();
   try {
-    if (form.id === 'auth-form') {
+    if (['create-experiment-form', 'edit-experiment-form', 'duplicate-experiment-form', 'delete-experiment-form'].includes(form.id)) {
+      await submitExperiment(form, data, epoch);
+    } else if (form.id === 'auth-form') {
       const value = await api.request(`/auth/${authMode === 'register' && session.registration_open !== false ? 'register' : 'login'}`, { method: 'POST', body: data });
       if (epoch !== sessionEpoch) return;
       setSession(value);
@@ -307,7 +443,14 @@ app.addEventListener('submit', async event => {
   } catch (error) {
     if (epoch !== sessionEpoch) return;
     if (error.status === 401 && form.id !== 'auth-form') await expireSession();
-    else if (form.isConnected) showFormError(form, error);
+    else if (form.isConnected) {
+      showFormError(form, error);
+      if (form.id === 'edit-experiment-form' && error.code === 'version_conflict') {
+        const panel = app.querySelector('#experiment-conflict');
+        panel.hidden = false;
+        panel.innerHTML = '<h3>A newer version was saved</h3><p>Your draft has been preserved. Review the latest saved version before continuing.</p><button type="button" data-action="review-latest-experiment">Review latest version</button>';
+      }
+    }
   } finally {
     fields.disabled = false;
   }
@@ -324,13 +467,47 @@ app.addEventListener('click', event => {
       break;
     case 'new-project': app.querySelector('#project-dialog').showModal(); break;
     case 'delete-project': app.querySelector('#delete-dialog').showModal(); break;
-    case 'close-dialog': button.closest('dialog').close(); break;
+    case 'close-dialog':
+      if (button.closest('dialog').querySelector('[data-experiment-draft]') && !discardDraft()) break;
+      button.closest('dialog').close();
+      break;
+    case 'new-experiment': openNewExperiment(); break;
+    case 'edit-experiment': {
+      const values = revisionDraft(experimentView.revision, experimentView.profile);
+      draftState = { kind: 'edit', baseline: { ...values }, values, baseVersion: experimentView.experiment.version };
+      renderProject(currentProject, 'experiments');
+      app.querySelector('#edit-experiment-name').focus();
+      break;
+    }
+    case 'cancel-experiment-edit': if (discardDraft()) renderProject(currentProject, 'experiments'); break;
+    case 'duplicate-experiment':
+      if (!discardDraft()) break;
+      renderProject(currentProject, 'experiments');
+      app.querySelector('#duplicate-experiment-dialog').showModal();
+      break;
+    case 'delete-experiment':
+      if (!discardDraft()) break;
+      renderProject(currentProject, 'experiments');
+      app.querySelector('#delete-experiment-dialog').showModal();
+      break;
+    case 'review-latest-experiment': reviewLatestExperiment(); break;
+    case 'rebase-experiment':
+      draftState.baseVersion = draftState.latest.version;
+      draftState.baseline = revisionDraft(draftState.latest, experimentView.profile);
+      experimentView.experiment = draftState.latestExperiment;
+      experimentView.revision = draftState.latest;
+      experimentView.revisions = draftState.latestHistory;
+      renderProject(currentProject, 'experiments');
+      app.querySelector('#edit-experiment-name').focus();
+      announce(`Draft preserved. Its next save will use version ${draftState.baseVersion} as the base.`);
+      break;
     case 'reload': window.location.reload(); break;
     case 'retry': session?.user ? renderRoute() : initialize(); break;
   }
 });
 
 logout.addEventListener('click', async () => {
+  if (!discardDraft()) return;
   logout.disabled = true;
   try {
     const value = await api.request('/auth/logout', { method: 'POST', body: {} });
@@ -378,7 +555,30 @@ async function recheckSession() {
   } finally { checkingSession = false; }
 }
 
-window.addEventListener('hashchange', () => { announce(); renderRoute(); });
+app.addEventListener('input', event => {
+  const form = event.target.closest('form[data-experiment-draft]');
+  if (form && draftState) draftState.values = Object.fromEntries(new FormData(form));
+});
+app.addEventListener('change', event => {
+  if (event.target.matches('#compare-from, #compare-to')) compareSelectedVersions();
+});
+app.addEventListener('cancel', event => {
+  if (event.target.querySelector('fieldset:disabled')) { event.preventDefault(); return; }
+  if (event.target.querySelector('[data-experiment-draft]') && !discardDraft()) event.preventDefault();
+}, true);
+document.addEventListener('click', event => {
+  const link = event.target.closest('a[href]');
+  if (!link || link.target === '_blank' || event.ctrlKey || event.metaKey || event.shiftKey || link.getAttribute('href') === window.location.hash) return;
+  if (hasUnsavedDraft() && !discardDraft()) event.preventDefault();
+}, true);
+window.addEventListener('beforeunload', event => {
+  if (hasUnsavedDraft()) { event.preventDefault(); event.returnValue = ''; }
+});
+window.addEventListener('hashchange', () => {
+  if (!discardDraft()) { window.history.replaceState(null, '', renderedHash || '#projects'); return; }
+  announce();
+  renderRoute();
+});
 window.addEventListener('focus', recheckSession);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') recheckSession(); });
 window.addEventListener('pageshow', event => { if (event.persisted) { removePrivateState(); initialize(); } });

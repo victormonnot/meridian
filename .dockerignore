@@ -8,6 +8,10 @@
 !server/workspace/**
 !server/catalog/
 !server/catalog/room1.json
+!src/
+!src/meridian/
+!src/meridian/__init__.py
+!src/meridian/vio_specification.py
 !web/
 !web/package.json
 !web/package-lock.json

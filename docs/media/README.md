@@ -1,5 +1,20 @@
 # Interface screenshots
 
+## Versioned experiments
+
+[`experiments.png`](experiments.png) captures the real local application on
+2026-10-17 in Chromium, with a 1440 × 1000 viewport, light theme and a full-page
+capture. The fictional account `vio-reviewer` owns `Indoor VIO validation` and
+the `Stereo feature budget` experiment. Versions one and two were saved through
+the API with budgets 200 and 400. The comparison shows their exact parameter
+difference. The page was reloaded before capture; no image pixels or values were
+edited, and no estimator execution or result is represented.
+
+To reproduce, create a private project and experiment, save a different supported
+feature budget, and compare versions one and two. See the
+[experiment contract](../versioned-experiments.md). This capture documents the
+interface, not numerical performance or hosted availability.
+
 ## Private project workspace
 
 [`workspace.png`](workspace.png) captures the real local application on

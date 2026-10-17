@@ -1,28 +1,32 @@
 # Private project workspace
 
-Increment 1.2 adds accounts, persistent private projects and a versioned reference
-catalog. It does not execute VIO jobs. The qualified OpenVINS runner remains a
-separate local capability; experiment configuration and hosted computation belong
-to increments 1.3 and 1.4.
+The workspace provides accounts, persistent private projects and a versioned
+reference catalog. [Versioned experiments](versioned-experiments.md) add supported
+OpenVINS configurations, historical snapshots, duplication and exact differences.
+The qualified OpenVINS runner remains a separate local capability; hosted
+computation belongs to increment 1.4.
 
 The [hosted preview](https://meridian.151.80.144.150.sslip.io/) is available on a
-temporary HTTPS hostname. The [validation report](../results/workspace/README.md)
-records its checked release and limits.
+temporary HTTPS hostname. The [initial workspace report](../results/workspace/README.md)
+and [experiment validation](../results/experiments/README.md) record the checked
+releases and limits.
 
 ## Application boundary
 
 The Vite workspace is a separate entry point, `web/workspace.html`. The original
 roll explorer remains at `web/index.html`. The deployment serves the workspace
 at `/`, the original explorer at `/index.html`, and the metadata API at `/api/v1`.
-Projects expose Data, Experiments, Results and Settings views. Empty experiment
-and result views do not imply a queued job or show a fabricated result.
+Projects expose Data, Experiments, Results and Settings views. Experiments contain
+saved configurations and history. Empty result views do not imply a queued job or
+show a fabricated result.
 
 Django 5.2 LTS supplies authentication, password validation/hashing, server-side
 sessions, CSRF protection and database migrations. This replaces the earlier
 FastAPI candidate for the initial metadata service. PostgreSQL persists accounts,
-sessions, projects and authentication budgets. The numerical Python/C++ modules
-are not imported by the HTTP service. The API image contains neither the VIO
-runtime nor sensor recordings, Docker access, host repositories or private notes.
+sessions, projects, experiments and authentication budgets. The HTTP service
+imports only the shared standard-library specification contract from the numerical
+package. The API image contains neither the VIO runtime nor sensor recordings,
+Docker access, host repositories or private notes.
 
 The reference catalog describes the exact calibrated TUM-VI room1 variant
 qualified in increment 1.1. It distinguishes motion-capture coverage from

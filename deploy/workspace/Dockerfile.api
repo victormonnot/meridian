@@ -10,6 +10,7 @@ COPY server/manage.py ./manage.py
 COPY server/config ./config
 COPY server/workspace ./workspace
 COPY server/catalog/room1.json ./catalog/room1.json
+COPY src/meridian/__init__.py src/meridian/vio_specification.py /app/src/meridian/
 USER 10001:10001
 EXPOSE 8000
 CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "2", "--timeout", "30", "--worker-tmp-dir", "/tmp", "--access-logfile", "-", "--error-logfile", "-"]

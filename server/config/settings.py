@@ -1,9 +1,15 @@
 """Same-origin workspace with database-backed authentication and projects."""
 import os
+import sys
 from pathlib import Path
 from urllib.parse import unquote, urlparse
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+# The API shares only the stdlib VIO specification contract with the local runner.
+# Production copies that module alone; numerical dependencies are not installed.
+SOURCE_ROOT = BASE_DIR.parent / "src"
+if SOURCE_ROOT.is_dir():
+    sys.path.insert(0, str(SOURCE_ROOT))
 DEBUG = os.environ.get("MERIDIAN_DEBUG") == "1"
 SECRET_KEY = os.environ.get("MERIDIAN_SECRET_KEY", "")
 if not SECRET_KEY:

@@ -9,6 +9,9 @@ prioritizes VIO and state estimation without reliable GNSS. A
 evaluates trajectories independently, and records reproducible execution evidence.
 The [project workspace](hosted-workspace.md) adds Django/PostgreSQL accounts,
 private projects and catalog metadata through a separate Vite entry point.
+[Versioned experiments](versioned-experiments.md) preserve supported OpenVINS
+configurations, immutable revisions and exact differences; their specification
+contract is shared with the local runner.
 Hosted execution, general 3D estimator development, broader visual-inertial
 development, and engineering automation remain planned work.
 

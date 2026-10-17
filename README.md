@@ -6,17 +6,18 @@ Meridian is a state-estimation engineering project for autonomous drones,
 prioritizing visual-inertial odometry (VIO) and operation without reliable GNSS.
 Its first executable VIO reference integrates OpenVINS with calibrated stereo/IMU
 recordings, independent trajectory evaluation, and reproducible local execution.
-The [project workspace](docs/hosted-workspace.md) adds accounts, private projects
-and reference-data metadata. Hosted VIO execution remains planned.
+The [project workspace](docs/hosted-workspace.md) adds accounts, private projects,
+reference-data metadata and versioned VIO configurations. Hosted VIO execution
+remains planned.
 
 The repository also contains the original single-axis roll/bias study: Python
 and C++ filters, simulations, and recorded IMU replay. Its static explorer remains
 available below. The VIO reference currently runs through the command line.
 
-![Meridian private project workspace showing calibrated TUM-VI stereo and IMU metadata and independent reference coverage](docs/media/workspace.png)
+![Meridian experiment workspace showing saved OpenVINS configurations, immutable revision history and exact parameter differences](docs/media/experiments.png)
 
-*The project workspace, with a fictional project and the qualified recording's
-actual metadata. [Screenshot details](docs/media/README.md).*
+*A versioned experiment and its configuration differences, with a fictional
+project and real saved configurations. [Screenshot details](docs/media/README.md).*
 
 [Open the hosted preview](https://meridian.151.80.144.150.sslip.io/) ·
 [Results](#experiments-and-results) ·
@@ -26,11 +27,12 @@ The [development roadmap](docs/professional-estimation-roadmap.md) targets a
 professional hosted workspace for visual-inertial odometry (VIO) and state
 estimation without reliable GNSS. It covers estimator development, external
 implementations, and automated engineering workflows. The
-[local VIO reference](docs/vio-reference.md) and private project workspace complete
-its first two increments. Hosted execution and the
+[local VIO reference](docs/vio-reference.md), private project workspace and
+[versioned experiments](docs/versioned-experiments.md) complete its first three
+increments. Hosted execution and the
 broader development workflows remain planned.
 
-The hosted preview supports registration and private project metadata on a
+The hosted preview supports registration, private projects and experiments on a
 temporary HTTPS address. Password recovery, recording uploads and VIO jobs are
 not available yet. [Workspace validation](results/workspace/README.md) records
 the deployed scope, checks and operational limits.
@@ -40,6 +42,9 @@ the deployed scope, checks and operational limits.
 - A Django/PostgreSQL workspace with session authentication, private project
   persistence and a calibrated TUM-VI reference catalog, plus a separate Vite
   interface. It does not launch VIO jobs yet.
+- Private experiments with immutable configuration history, duplication and
+  exact parameter differences. Their stored specifications can be passed
+  unchanged to the local reference runner.
 - A pinned, ROS-free OpenVINS reference running real TUM-VI stereo/IMU inputs
   in an isolated container, with independent evaluation, provenance and
   [three repeatable qualification runs](results/vio-reference/README.md).
@@ -92,6 +97,7 @@ The simulations include known motion for comparison; the historical log does not
 
 | Study | What it looks at |
 | --- | --- |
+| [Versioned experiment validation](results/experiments/README.md) | Immutable configurations, concurrent edits, browser workflows and unchanged API specifications executed by the local VIO runner. |
 | [Hosted workspace validation](results/workspace/README.md) | Authentication, project ownership, browser behavior and deployment persistence. |
 | [VIO reference qualification](results/vio-reference/README.md) | OpenVINS on real stereo/IMU data, independent trajectory errors, coverage, repeatability and host resource measurements. |
 | [Gyro drift](results/gyro-drift/README.md) | How noise and sensor bias accumulate into angle error. |
