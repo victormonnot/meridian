@@ -1,0 +1,140 @@
+{
+  "artifacts": {
+    "monitor.sh": {
+      "sha256": "9ca09f4fdce2f270707c136f769ca9a59b592d74a3f465c9cf4679361783c37a",
+      "size_bytes": 687
+    },
+    "probe.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    "runner.log": {
+      "sha256": "11f97616a5b994ea142234bf276d6922481d1632d3784644d66b217400fd1cb5",
+      "size_bytes": 35
+    },
+    "status.json": {
+      "sha256": "f8f2f7206ca11ad47608b63edcb95610469592723797b1ecd41c6f482325ca05",
+      "size_bytes": 962
+    },
+    "tmpfs-samples.txt": {
+      "sha256": "6bc73916e32480bfe8c3625b083e5f7d53748c265794b8f4fbec428027c974a3",
+      "size_bytes": 8172
+    },
+    "trajectory.csv": {
+      "sha256": "d2a59ed328807d54af0a930006b7c2e850998c2dc7d6f89debd1c195ca4ed764",
+      "size_bytes": 441094
+    }
+  },
+  "baseline_trajectory_byte_identical": true,
+  "container_wall_seconds_including_probe": 45.78172524900583,
+  "kind": "supplemental_tmpfs_resource_probe",
+  "limitations": [
+    "Sampled maximum occupancy can miss transients shorter than the observation interval.",
+    "Monitoring adds shell, date, df, tail and sleep overhead; timings are not baseline performance measurements.",
+    "Only /tmp occupancy is measured; the /output bind mount and filesystem cache are excluded."
+  ],
+  "measurement": {
+    "allocated_cap_bytes": 134217728,
+    "observed_duration_seconds": 45.483146417,
+    "observed_final_used_bytes": 0,
+    "observed_initial_used_bytes": 0,
+    "observed_interval_seconds": {
+      "maximum": 0.20735746100000002,
+      "median": 0.202861018,
+      "minimum": 0.004405050000000001
+    },
+    "observed_maximum_used_bytes": 0,
+    "requested_sample_period_seconds": 0.2,
+    "sample_count": 226
+  },
+  "method": "df --block-size=1 --output=size,used /tmp, before/during/after native execution",
+  "native_exit_code": 0,
+  "native_status": {
+    "counts": {
+      "cam0_input": 2821,
+      "cam1_input": 2821,
+      "camera_pairs_processed": 2821,
+      "camera_pairs_without_imu_bracket": 0,
+      "imu_input": 28122,
+      "imu_processed": 28117,
+      "trajectory_states": 2689
+    },
+    "error": null,
+    "first_camera_timestamp_ns": 1520530308199447626,
+    "first_estimate_timestamp_ns": 1520530314799787311,
+    "ground_truth_access": "no reference input or initialization",
+    "image_conversion": "uint16 to uint8: OpenCV convertTo scale 255/65535; uint8 unchanged",
+    "initialization_delay_s": 6.600339685000001,
+    "initialized_timestamp_ns": 1520530313799825469,
+    "last_camera_timestamp_ns": 1520530449203911100,
+    "last_estimate_timestamp_ns": 1520530449203911100,
+    "orientation": "Hamilton xyzw, IMU-body to local-world",
+    "schema_version": 1,
+    "state": "complete",
+    "timing": {
+      "cpu_seconds": 45.454951,
+      "peak_rss_kib": 84068,
+      "wall_seconds": 45.391669373
+    },
+    "upstream_revision": "69488123ed9362dd44b6f28e7f4680abbff1442b"
+  },
+  "probe_result_sha256": "7902c5f61c77795c8c4d611c25226cb5c8a8a0d1e368fc19413956c7063b8ee2",
+  "provenance": {
+    "baseline_run_spec_sha256": "ebe6853071cc4fa3075aa6c63a1643b2dac27c5da10e962dc41fede23c437446",
+    "configuration_files": {
+      "config/estimator_config.yaml": {
+        "sha256": "10c37c00c52a07ba5a86ce3d6d2846c2430397d6fa6a9e190dfdc47aa10c2045",
+        "size_bytes": 3689
+      },
+      "config/kalibr_imu_chain.yaml": {
+        "sha256": "cb598952ee3766492a332eaae8567fe2b63a9bf6d63b9c0a7b9d988471600a3d",
+        "size_bytes": 1351
+      },
+      "config/kalibr_imucam_chain.yaml": {
+        "sha256": "072d26e3dd20844ae7402f508c51cf7e899a401634ba6b0db0e08cd2880b7dab",
+        "size_bytes": 1530
+      },
+      "config/mask_tumvi0.png": {
+        "sha256": "62dfc1053f336d1adb4ae01519579532370d1b211894566a7a4ec167dd8c3f4f",
+        "size_bytes": 12277
+      },
+      "config/mask_tumvi1.png": {
+        "sha256": "67ff644599f862f2437026d9c43ef0a0887907470179a53e34447fb95cbd35ba",
+        "size_bytes": 11930
+      }
+    },
+    "host": {
+      "cpu_model": "12th Gen Intel(R) Core(TM) i5-12400F",
+      "kernel": "6.18.33.2-microsoft-standard-WSL2",
+      "logical_cpus": 12,
+      "machine": "x86_64",
+      "numpy": "2.5.3",
+      "python": "3.12.3",
+      "system": "Linux"
+    },
+    "prepared_manifest_sha256": "e55f0480533611fc1e198d16b181814a8d34752cb748becbfeec7bcb4908ba6d",
+    "probe_source_sha256": "5ef6abe838d16d06e6bbbab40f15e24a5b0e5754cb2d20f95bdfadd415e03ec5",
+    "runtime_image_id": "sha256:73e1213d073ce52a9a509decb15628a7c043e0690609171c4b9382ed0c2730da",
+    "runtime_limits": {
+      "cpus": 2.0,
+      "memory_mb": 4096,
+      "network": "none",
+      "pids": 128,
+      "rootfs": "read-only",
+      "timeout_s": 900.0,
+      "tmp_mb": 128
+    },
+    "runtime_version": {
+      "adapter": "meridian-openvins",
+      "adapter_sha256": "a577f358c893ac9171cad6a71bc2a65a49b9d90ab3dc426865d89b6ad2c8b782",
+      "opencv_version": "4.6.0",
+      "protocol_version": 1,
+      "schema_version": 1,
+      "upstream_revision": "69488123ed9362dd44b6f28e7f4680abbff1442b"
+    },
+    "shell_script_sha256": "9ca09f4fdce2f270707c136f769ca9a59b592d74a3f465c9cf4679361783c37a"
+  },
+  "schema_version": 1,
+  "state": "complete",
+  "trajectory_sha256": "d2a59ed328807d54af0a930006b7c2e850998c2dc7d6f89debd1c195ca4ed764"
+}

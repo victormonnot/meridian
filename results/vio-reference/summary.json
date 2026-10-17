@@ -1,0 +1,506 @@
+{
+  "configuration_files": {
+    "config/estimator_config.yaml": {
+      "sha256": "10c37c00c52a07ba5a86ce3d6d2846c2430397d6fa6a9e190dfdc47aa10c2045",
+      "size_bytes": 3689
+    },
+    "config/kalibr_imu_chain.yaml": {
+      "sha256": "cb598952ee3766492a332eaae8567fe2b63a9bf6d63b9c0a7b9d988471600a3d",
+      "size_bytes": 1351
+    },
+    "config/kalibr_imucam_chain.yaml": {
+      "sha256": "072d26e3dd20844ae7402f508c51cf7e899a401634ba6b0db0e08cd2880b7dab",
+      "size_bytes": 1530
+    },
+    "config/mask_tumvi0.png": {
+      "sha256": "62dfc1053f336d1adb4ae01519579532370d1b211894566a7a4ec167dd8c3f4f",
+      "size_bytes": 12277
+    },
+    "config/mask_tumvi1.png": {
+      "sha256": "67ff644599f862f2437026d9c43ef0a0887907470179a53e34447fb95cbd35ba",
+      "size_bytes": 11930
+    }
+  },
+  "dataset": {
+    "dataset_id": "tum-vi-room1-512-16",
+    "license": {
+      "attribution": "TUM VI Benchmark: David Schubert, Thore Goll, Nikolaus Demmel, Vladyslav Usenko, Joerg Stueckler, Daniel Cremers (2018)",
+      "dataset_url": "https://cvg.cit.tum.de/data/datasets/visual-inertial-dataset",
+      "spdx": "CC-BY-4.0",
+      "url": "https://creativecommons.org/licenses/by/4.0/"
+    },
+    "reference": {
+      "body_frame": "imu",
+      "path": "reference/trajectory.csv",
+      "quaternion": "xyzw",
+      "rotation": "body_to_world",
+      "source_path": "dataset-room1_512_16/mav0/mocap0/data.csv",
+      "timestamp_unit": "ns",
+      "transformation": "Reorder q_RS from wxyz to xyzw; no time, frame, or scale correction."
+    },
+    "source": {
+      "archive_name": "dataset-room1_512_16.tar",
+      "md5": "51d2b8d93ee4ada47ec0b2d10115dcf8",
+      "sha256": "20354392eab5cc82c9770ed29cf0130c5acce0db54a257571499008fb34c398f",
+      "size_bytes": 1707110400,
+      "url": "https://vision.in.tum.de/tumvi/exported/euroc/512_16/dataset-room1_512_16.tar"
+    },
+    "streams": {
+      "cam0": {
+        "first_timestamp_ns": 1520530308199447626,
+        "last_timestamp_ns": 1520530449203911100,
+        "samples": 2821
+      },
+      "cam1": {
+        "first_timestamp_ns": 1520530308199447626,
+        "last_timestamp_ns": 1520530449203911100,
+        "samples": 2821
+      },
+      "imu0": {
+        "first_timestamp_ns": 1520530308181901469,
+        "last_timestamp_ns": 1520530449232329469,
+        "samples": 28122
+      },
+      "reference": {
+        "first_timestamp_ns": 1520530308189679351,
+        "last_timestamp_ns": 1520530449214678351,
+        "samples": 16541
+      }
+    }
+  },
+  "host": {
+    "cpu_model": "12th Gen Intel(R) Core(TM) i5-12400F",
+    "kernel": "6.18.33.2-microsoft-standard-WSL2",
+    "logical_cpus": 12,
+    "machine": "x86_64",
+    "numpy": "2.5.3",
+    "python": "3.12.3",
+    "system": "Linux"
+  },
+  "limitations": [
+    "One handheld integration sequence; room2 not evaluated.",
+    "Global rigid alignment fits rotation and translation, never scale or time offset.",
+    "RSS is native process memory, not total container memory or filesystem cache.",
+    "Temporary filesystem occupancy is sampled in a supplemental probe; shorter transients can be missed.",
+    "Repeat orientation calculation has arccos roundoff even for identical stored quaternions."
+  ],
+  "prepared_file_bytes": 1696791755,
+  "prepared_manifest_sha256": "e55f0480533611fc1e198d16b181814a8d34752cb748becbfeec7bcb4908ba6d",
+  "qualification_criteria": {
+    "maximum_ate_rmse_m": 0.5,
+    "maximum_initialization_delay_s": 10.0,
+    "maximum_orientation_rmse_deg": 15.0,
+    "minimum_coverage_fraction": 0.9,
+    "minimum_evaluated_fraction": 0.9,
+    "minimum_evaluated_samples": 100,
+    "minimum_reference_coverage_fraction": 0.95
+  },
+  "qualification_date": "2026-10-17",
+  "reference_camera_samples_without_support": 65,
+  "reference_maximum_gap_s": 1.058333,
+  "repeatability": {
+    "comparisons": [
+      {
+        "identical_timestamps": true,
+        "maximum_orientation_difference_deg": 2.4148365394514667e-06,
+        "maximum_position_difference_m": 0.0,
+        "passed": true,
+        "repeat_index": 1,
+        "trajectory_bytes_identical": true
+      },
+      {
+        "identical_timestamps": true,
+        "maximum_orientation_difference_deg": 2.4148365394514667e-06,
+        "maximum_position_difference_m": 0.0,
+        "passed": true,
+        "repeat_index": 2,
+        "trajectory_bytes_identical": true
+      }
+    ],
+    "orientation_tolerance_deg": 0.001,
+    "passed": true,
+    "position_tolerance_m": 0.001,
+    "run_count": 3,
+    "run_spec_sha256": "ebe6853071cc4fa3075aa6c63a1643b2dac27c5da10e962dc41fede23c437446",
+    "schema_version": 1
+  },
+  "runs": [
+    {
+      "artifact_bytes_excluding_result_manifest": 1706779,
+      "artifacts": {
+        "binary-sha256.txt": {
+          "sha256": "7b66a083c7d5c69c6e85721e3357def42fbc1a125a5b13735f3e55ee3ad28070",
+          "size_bytes": 204
+        },
+        "dependency-versions.txt": {
+          "sha256": "92d76ee986a1ff4508a96fb3f2c26439d99cb446a546f8e0d795f56d69e7023e",
+          "size_bytes": 17909
+        },
+        "evaluation.json": {
+          "sha256": "d26ee4fa4d3a4445b8b8dc758687ed8197d66731c71dcd2e4f2abe75e72e5201",
+          "size_bytes": 215032
+        },
+        "run-spec.json": {
+          "sha256": "e6e76fa354b16e86f39f0edb588736a6f31ca63fd8cf0f41dc5613c5f00fb49c",
+          "size_bytes": 1031543
+        },
+        "runner.log": {
+          "sha256": "11f97616a5b994ea142234bf276d6922481d1632d3784644d66b217400fd1cb5",
+          "size_bytes": 35
+        },
+        "status.json": {
+          "sha256": "b8351ea7af5954dd024a0ac41a871bc9ece106bff64a7fe96b3c19c6744579b4",
+          "size_bytes": 962
+        },
+        "trajectory.csv": {
+          "sha256": "d2a59ed328807d54af0a930006b7c2e850998c2dc7d6f89debd1c195ca4ed764",
+          "size_bytes": 441094
+        }
+      },
+      "container_wall_seconds": 49.424724320997484,
+      "counts": {
+        "estimate_samples": 2689,
+        "evaluated_camera_samples": 2624,
+        "expected_camera_samples": 2821,
+        "missing_initial_camera_samples": 132,
+        "missing_interior_camera_samples": 0,
+        "missing_trailing_camera_samples": 0,
+        "reference_samples": 16541,
+        "reference_supported_camera_samples": 2756
+      },
+      "coverage_fraction": 0.9532080822403403,
+      "evaluated_fraction": 0.9301666075859625,
+      "index": 1,
+      "initialization_delay_s": 6.600339685000001,
+      "metrics": {
+        "ate_rmse_m": 0.0612163695742259,
+        "orientation_error_max_deg": 4.307316076259924,
+        "orientation_error_mean_deg": 1.2005629690623147,
+        "orientation_rmse_deg": 1.3255413925517476,
+        "orientation_rmse_rad": 0.023135061671498636,
+        "position_error_max_m": 0.109949022489596,
+        "position_error_mean_m": 0.05697479331128086
+      },
+      "native_status": {
+        "counts": {
+          "cam0_input": 2821,
+          "cam1_input": 2821,
+          "camera_pairs_processed": 2821,
+          "camera_pairs_without_imu_bracket": 0,
+          "imu_input": 28122,
+          "imu_processed": 28117,
+          "trajectory_states": 2689
+        },
+        "error": null,
+        "first_camera_timestamp_ns": 1520530308199447626,
+        "first_estimate_timestamp_ns": 1520530314799787311,
+        "ground_truth_access": "no reference input or initialization",
+        "image_conversion": "uint16 to uint8: OpenCV convertTo scale 255/65535; uint8 unchanged",
+        "initialization_delay_s": 6.600339685000001,
+        "initialized_timestamp_ns": 1520530313799825469,
+        "last_camera_timestamp_ns": 1520530449203911100,
+        "last_estimate_timestamp_ns": 1520530449203911100,
+        "orientation": "Hamilton xyzw, IMU-body to local-world",
+        "schema_version": 1,
+        "state": "complete",
+        "timing": {
+          "cpu_seconds": 48.973828,
+          "peak_rss_kib": 83880,
+          "wall_seconds": 49.096824926
+        },
+        "upstream_revision": "69488123ed9362dd44b6f28e7f4680abbff1442b"
+      },
+      "qualification": {
+        "checks": {
+          "estimate_coverage": true,
+          "evaluated_coverage": true,
+          "evaluated_samples": true,
+          "evaluation_ok": true,
+          "initialization_delay": true,
+          "orientation_error": true,
+          "position_error": true,
+          "reference_coverage": true
+        },
+        "criteria": {
+          "maximum_ate_rmse_m": 0.5,
+          "maximum_initialization_delay_s": 10.0,
+          "maximum_orientation_rmse_deg": 15.0,
+          "minimum_coverage_fraction": 0.9,
+          "minimum_evaluated_fraction": 0.9,
+          "minimum_evaluated_samples": 100,
+          "minimum_reference_coverage_fraction": 0.95
+        },
+        "passed": true
+      },
+      "reference_coverage_fraction": 0.9769585253456221,
+      "run_spec_sha256": "ebe6853071cc4fa3075aa6c63a1643b2dac27c5da10e962dc41fede23c437446"
+    },
+    {
+      "artifact_bytes_excluding_result_manifest": 1706779,
+      "artifacts": {
+        "binary-sha256.txt": {
+          "sha256": "7b66a083c7d5c69c6e85721e3357def42fbc1a125a5b13735f3e55ee3ad28070",
+          "size_bytes": 204
+        },
+        "dependency-versions.txt": {
+          "sha256": "92d76ee986a1ff4508a96fb3f2c26439d99cb446a546f8e0d795f56d69e7023e",
+          "size_bytes": 17909
+        },
+        "evaluation.json": {
+          "sha256": "d26ee4fa4d3a4445b8b8dc758687ed8197d66731c71dcd2e4f2abe75e72e5201",
+          "size_bytes": 215032
+        },
+        "run-spec.json": {
+          "sha256": "e6e76fa354b16e86f39f0edb588736a6f31ca63fd8cf0f41dc5613c5f00fb49c",
+          "size_bytes": 1031543
+        },
+        "runner.log": {
+          "sha256": "11f97616a5b994ea142234bf276d6922481d1632d3784644d66b217400fd1cb5",
+          "size_bytes": 35
+        },
+        "status.json": {
+          "sha256": "951bb4fc655e9dc27057c340ae97d5ba66364fc618e0e921b05063ceb89ac586",
+          "size_bytes": 962
+        },
+        "trajectory.csv": {
+          "sha256": "d2a59ed328807d54af0a930006b7c2e850998c2dc7d6f89debd1c195ca4ed764",
+          "size_bytes": 441094
+        }
+      },
+      "container_wall_seconds": 48.84122104099879,
+      "counts": {
+        "estimate_samples": 2689,
+        "evaluated_camera_samples": 2624,
+        "expected_camera_samples": 2821,
+        "missing_initial_camera_samples": 132,
+        "missing_interior_camera_samples": 0,
+        "missing_trailing_camera_samples": 0,
+        "reference_samples": 16541,
+        "reference_supported_camera_samples": 2756
+      },
+      "coverage_fraction": 0.9532080822403403,
+      "evaluated_fraction": 0.9301666075859625,
+      "index": 2,
+      "initialization_delay_s": 6.600339685000001,
+      "metrics": {
+        "ate_rmse_m": 0.0612163695742259,
+        "orientation_error_max_deg": 4.307316076259924,
+        "orientation_error_mean_deg": 1.2005629690623147,
+        "orientation_rmse_deg": 1.3255413925517476,
+        "orientation_rmse_rad": 0.023135061671498636,
+        "position_error_max_m": 0.109949022489596,
+        "position_error_mean_m": 0.05697479331128086
+      },
+      "native_status": {
+        "counts": {
+          "cam0_input": 2821,
+          "cam1_input": 2821,
+          "camera_pairs_processed": 2821,
+          "camera_pairs_without_imu_bracket": 0,
+          "imu_input": 28122,
+          "imu_processed": 28117,
+          "trajectory_states": 2689
+        },
+        "error": null,
+        "first_camera_timestamp_ns": 1520530308199447626,
+        "first_estimate_timestamp_ns": 1520530314799787311,
+        "ground_truth_access": "no reference input or initialization",
+        "image_conversion": "uint16 to uint8: OpenCV convertTo scale 255/65535; uint8 unchanged",
+        "initialization_delay_s": 6.600339685000001,
+        "initialized_timestamp_ns": 1520530313799825469,
+        "last_camera_timestamp_ns": 1520530449203911100,
+        "last_estimate_timestamp_ns": 1520530449203911100,
+        "orientation": "Hamilton xyzw, IMU-body to local-world",
+        "schema_version": 1,
+        "state": "complete",
+        "timing": {
+          "cpu_seconds": 48.638029,
+          "peak_rss_kib": 84076,
+          "wall_seconds": 48.497950916
+        },
+        "upstream_revision": "69488123ed9362dd44b6f28e7f4680abbff1442b"
+      },
+      "qualification": {
+        "checks": {
+          "estimate_coverage": true,
+          "evaluated_coverage": true,
+          "evaluated_samples": true,
+          "evaluation_ok": true,
+          "initialization_delay": true,
+          "orientation_error": true,
+          "position_error": true,
+          "reference_coverage": true
+        },
+        "criteria": {
+          "maximum_ate_rmse_m": 0.5,
+          "maximum_initialization_delay_s": 10.0,
+          "maximum_orientation_rmse_deg": 15.0,
+          "minimum_coverage_fraction": 0.9,
+          "minimum_evaluated_fraction": 0.9,
+          "minimum_evaluated_samples": 100,
+          "minimum_reference_coverage_fraction": 0.95
+        },
+        "passed": true
+      },
+      "reference_coverage_fraction": 0.9769585253456221,
+      "run_spec_sha256": "ebe6853071cc4fa3075aa6c63a1643b2dac27c5da10e962dc41fede23c437446"
+    },
+    {
+      "artifact_bytes_excluding_result_manifest": 1706779,
+      "artifacts": {
+        "binary-sha256.txt": {
+          "sha256": "7b66a083c7d5c69c6e85721e3357def42fbc1a125a5b13735f3e55ee3ad28070",
+          "size_bytes": 204
+        },
+        "dependency-versions.txt": {
+          "sha256": "92d76ee986a1ff4508a96fb3f2c26439d99cb446a546f8e0d795f56d69e7023e",
+          "size_bytes": 17909
+        },
+        "evaluation.json": {
+          "sha256": "d26ee4fa4d3a4445b8b8dc758687ed8197d66731c71dcd2e4f2abe75e72e5201",
+          "size_bytes": 215032
+        },
+        "run-spec.json": {
+          "sha256": "e6e76fa354b16e86f39f0edb588736a6f31ca63fd8cf0f41dc5613c5f00fb49c",
+          "size_bytes": 1031543
+        },
+        "runner.log": {
+          "sha256": "11f97616a5b994ea142234bf276d6922481d1632d3784644d66b217400fd1cb5",
+          "size_bytes": 35
+        },
+        "status.json": {
+          "sha256": "a59cd0e3ada0452e88abe661f092325e2620e7a157581a594faf1301db1987e4",
+          "size_bytes": 962
+        },
+        "trajectory.csv": {
+          "sha256": "d2a59ed328807d54af0a930006b7c2e850998c2dc7d6f89debd1c195ca4ed764",
+          "size_bytes": 441094
+        }
+      },
+      "container_wall_seconds": 48.849677320999035,
+      "counts": {
+        "estimate_samples": 2689,
+        "evaluated_camera_samples": 2624,
+        "expected_camera_samples": 2821,
+        "missing_initial_camera_samples": 132,
+        "missing_interior_camera_samples": 0,
+        "missing_trailing_camera_samples": 0,
+        "reference_samples": 16541,
+        "reference_supported_camera_samples": 2756
+      },
+      "coverage_fraction": 0.9532080822403403,
+      "evaluated_fraction": 0.9301666075859625,
+      "index": 3,
+      "initialization_delay_s": 6.600339685000001,
+      "metrics": {
+        "ate_rmse_m": 0.0612163695742259,
+        "orientation_error_max_deg": 4.307316076259924,
+        "orientation_error_mean_deg": 1.2005629690623147,
+        "orientation_rmse_deg": 1.3255413925517476,
+        "orientation_rmse_rad": 0.023135061671498636,
+        "position_error_max_m": 0.109949022489596,
+        "position_error_mean_m": 0.05697479331128086
+      },
+      "native_status": {
+        "counts": {
+          "cam0_input": 2821,
+          "cam1_input": 2821,
+          "camera_pairs_processed": 2821,
+          "camera_pairs_without_imu_bracket": 0,
+          "imu_input": 28122,
+          "imu_processed": 28117,
+          "trajectory_states": 2689
+        },
+        "error": null,
+        "first_camera_timestamp_ns": 1520530308199447626,
+        "first_estimate_timestamp_ns": 1520530314799787311,
+        "ground_truth_access": "no reference input or initialization",
+        "image_conversion": "uint16 to uint8: OpenCV convertTo scale 255/65535; uint8 unchanged",
+        "initialization_delay_s": 6.600339685000001,
+        "initialized_timestamp_ns": 1520530313799825469,
+        "last_camera_timestamp_ns": 1520530449203911100,
+        "last_estimate_timestamp_ns": 1520530449203911100,
+        "orientation": "Hamilton xyzw, IMU-body to local-world",
+        "schema_version": 1,
+        "state": "complete",
+        "timing": {
+          "cpu_seconds": 48.610517,
+          "peak_rss_kib": 84180,
+          "wall_seconds": 48.497198798
+        },
+        "upstream_revision": "69488123ed9362dd44b6f28e7f4680abbff1442b"
+      },
+      "qualification": {
+        "checks": {
+          "estimate_coverage": true,
+          "evaluated_coverage": true,
+          "evaluated_samples": true,
+          "evaluation_ok": true,
+          "initialization_delay": true,
+          "orientation_error": true,
+          "position_error": true,
+          "reference_coverage": true
+        },
+        "criteria": {
+          "maximum_ate_rmse_m": 0.5,
+          "maximum_initialization_delay_s": 10.0,
+          "maximum_orientation_rmse_deg": 15.0,
+          "minimum_coverage_fraction": 0.9,
+          "minimum_evaluated_fraction": 0.9,
+          "minimum_evaluated_samples": 100,
+          "minimum_reference_coverage_fraction": 0.95
+        },
+        "passed": true
+      },
+      "reference_coverage_fraction": 0.9769585253456221,
+      "run_spec_sha256": "ebe6853071cc4fa3075aa6c63a1643b2dac27c5da10e962dc41fede23c437446"
+    }
+  ],
+  "runtime": {
+    "evaluator_sha256": "539f07a0e3dbabe5fd3b4874b42218db1938e5f3733d8ac3bd9c714900a8cca6",
+    "limits": {
+      "cpus": 2.0,
+      "memory_mb": 4096,
+      "network": "none",
+      "pids": 128,
+      "rootfs": "read-only",
+      "timeout_s": 900.0,
+      "tmp_mb": 128
+    },
+    "runner_sha256": "88fb6c906c2fe2e53a30c946c7e294735516d1b1b936c280d31db1402d05c230",
+    "runtime_image_id": "sha256:73e1213d073ce52a9a509decb15628a7c043e0690609171c4b9382ed0c2730da",
+    "runtime_provenance_sha256": {
+      "binary-sha256.txt": "7b66a083c7d5c69c6e85721e3357def42fbc1a125a5b13735f3e55ee3ad28070",
+      "dependency-versions.txt": "92d76ee986a1ff4508a96fb3f2c26439d99cb446a546f8e0d795f56d69e7023e"
+    },
+    "runtime_version": {
+      "adapter": "meridian-openvins",
+      "adapter_sha256": "a577f358c893ac9171cad6a71bc2a65a49b9d90ab3dc426865d89b6ad2c8b782",
+      "opencv_version": "4.6.0",
+      "protocol_version": 1,
+      "schema_version": 1,
+      "upstream_revision": "69488123ed9362dd44b6f28e7f4680abbff1442b"
+    }
+  },
+  "schema_version": 1,
+  "scope": "local TUM-VI room1 integration; no hosted, embedded or flight validation",
+  "supplemental_tmpfs_probe": {
+    "baseline_trajectory_byte_identical": true,
+    "measurement": {
+      "allocated_cap_bytes": 134217728,
+      "observed_duration_seconds": 45.483146417,
+      "observed_final_used_bytes": 0,
+      "observed_initial_used_bytes": 0,
+      "observed_interval_seconds": {
+        "maximum": 0.20735746100000002,
+        "median": 0.202861018,
+        "minimum": 0.004405050000000001
+      },
+      "observed_maximum_used_bytes": 0,
+      "requested_sample_period_seconds": 0.2,
+      "sample_count": 226
+    },
+    "measurement_file": "tmpfs-measurement.json",
+    "sha256": "8b59d0b0b2e7b1827b47c5b82b5ad169660ea39ca259d7284f588e9b13fd3924"
+  }
+}

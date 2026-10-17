@@ -4,9 +4,11 @@
 experiments and the validation still needed.
 
 The [professional workspace roadmap](professional-estimation-roadmap.md)
-prioritizes VIO and state estimation without reliable GNSS. Its hosted execution,
-3D estimation, visual-inertial development, and engineering automation are planned
-work, not current behavior.
+prioritizes VIO and state estimation without reliable GNSS. A
+[local OpenVINS reference](vio-reference.md) now runs calibrated stereo/IMU data,
+evaluates trajectories independently, and records reproducible execution evidence.
+Hosted execution, general 3D estimator development, broader visual-inertial
+development, and engineering automation remain planned work.
 
 Python gyro integration, accelerometer tilt, complementary fusion, and the
 angle/bias Kalman reference are implemented, with tests and
@@ -54,8 +56,9 @@ evidence and a documented bench acquisition and replay.
 
 The core will remain independent of any vehicle software. The development
 roadmap prioritizes 3D visual-inertial estimation and localization without
-reliable GNSS. These capabilities are not implemented yet; the validation
-described here applies to the current single-axis study.
+reliable GNSS. The separate [VIO reference qualification](../results/vio-reference/README.md)
+covers its stated integration scope. The numerical model and validation described
+below apply to the original single-axis study.
 
 ## Estimation model
 

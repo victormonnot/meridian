@@ -2,14 +2,15 @@
 
 **Work in progress. V1 isn't ready yet.**
 
-Meridian is my state estimation and sensor fusion project. I'm starting with a
-drone's roll angle, meaning how far it tilts to either side, using gyroscope and
-accelerometer measurements.
+Meridian is a state-estimation engineering project for autonomous drones,
+prioritizing visual-inertial odometry (VIO) and operation without reliable GNSS.
+Its first executable VIO reference integrates OpenVINS with calibrated stereo/IMU
+recordings, independent trajectory evaluation, and reproducible local execution.
+The planned hosted workspace will connect these capabilities to a browser workflow.
 
-A small error in the gyroscope adds up over time. The accelerometer can help
-correct it, but movement can also make that correction wrong. I'm comparing
-filters in simulation and on recorded sensor data to see where each one works
-and where it fails.
+The repository also contains the original single-axis roll/bias study: Python
+and C++ filters, simulations, and recorded IMU replay. Its static explorer remains
+available below. The VIO reference currently runs through the command line.
 
 ![Meridian explorer showing simulated roll, the estimated tilt and comparisons between four filters](docs/media/explorer.png)
 
@@ -22,11 +23,15 @@ away from the reference as errors accumulate. [Screenshot details](docs/media/RE
 The [development roadmap](docs/professional-estimation-roadmap.md) targets a
 professional hosted workspace for visual-inertial odometry (VIO) and state
 estimation without reliable GNSS. It covers estimator development, external
-implementations, and automated engineering workflows. These are planned
-capabilities; the sections below describe what is implemented today.
+implementations, and automated engineering workflows. The
+[local VIO reference](docs/vio-reference.md) completes its first increment;
+hosted execution and the broader development workflows remain planned.
 
 ## What exists so far
 
+- A pinned, ROS-free OpenVINS reference running real TUM-VI stereo/IMU inputs
+  in an isolated container, with independent evaluation, provenance and
+  [three repeatable qualification runs](results/vio-reference/README.md).
 - Python experiments comparing gyro integration, a complementary filter and
   Kalman filters on the same measurements, including cases where they fail.
 - A browser interface to replay the saved simulations, inspect errors and
@@ -36,14 +41,14 @@ capabilities; the sections below describe what is implemented today.
 - Tools to inspect recorded drone sensor data and replay a selected log segment
   through the filters offline.
 
-The first study is still incomplete. A new bench recording with known angles
-is needed to check the estimates against a physical reference. The historical
+The original roll study still needs a new bench recording with known angles
+to check the estimates against a physical reference. The historical
 recording used so far has no independent angle reference, so it cannot tell us
 the filters' real accuracy.
 
-This is currently a single-axis study. Meridian has not been validated onboard,
-in real time or in flight. The planned bench work keeps the drone disarmed, with
-propellers removed and the estimator outside the flight-control loop.
+The VIO reference was qualified on a handheld benchmark. Meridian has not been
+validated onboard, in real time or in flight. The planned bench work keeps the
+drone disarmed, with propellers removed and the estimator outside the flight-control loop.
 
 ## Try the explorer
 
@@ -76,6 +81,7 @@ The simulations include known motion for comparison; the historical log does not
 
 | Study | What it looks at |
 | --- | --- |
+| [VIO reference qualification](results/vio-reference/README.md) | OpenVINS on real stereo/IMU data, independent trajectory errors, coverage, repeatability and host resource measurements. |
 | [Gyro drift](results/gyro-drift/README.md) | How noise and sensor bias accumulate into angle error. |
 | [Linear Kalman filter](results/linear-kalman/README.md) | An initial reference using synthetic angle measurements. |
 | [Accelerometer fusion](results/accelerometer-fusion/README.md) | Combining gyro and accelerometer data, with and without a translation disturbance. |

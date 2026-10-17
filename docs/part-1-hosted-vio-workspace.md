@@ -1,15 +1,15 @@
 # Part 1: hosted workspace and reference VIO workflow
 
-**Status: implementation plan, 2026-10-17. No increment is implemented yet.**
+**Status: increment 1.1 completed on 2026-10-17; increments 1.2–1.8 remain planned.**
 This plan details part 1 of the [development roadmap](professional-estimation-roadmap.md).
-The current [implementation](../README.md) remains a single-axis estimation study
-and a static results explorer. No VIO execution, hosted backend, or new numerical
-result is established by this document.
+The current [implementation](../README.md) includes the qualified
+[local VIO reference](../results/vio-reference/README.md), the original single-axis
+study and its static results explorer. A hosted backend is not implemented yet.
 
 ## Outcome and scope
 
-An engineer can open the hosted site, create a private project, select a prepared
-camera/IMU recording, run a reference VIO implementation, change a supported
+At completion of part 1, an engineer can open the hosted site, create a private
+project, select a prepared camera/IMU recording, run a reference VIO implementation, change a supported
 parameter, inspect and compare actual results, and export a reproducible
 experiment. Using the hosted application requires no local Meridian installation.
 The reference recording is an engineering benchmark with traceable calibration
@@ -43,9 +43,9 @@ loop. Meridian remains independent of ARGOS.
 [OpenVINS](https://docs.openvins.com/) supplies a concrete EKF-based VIO reference.
 Its [ROS-free interface](https://docs.openvins.com/gs-installing-free.html) requires
 the caller to feed buffered image and IMU data. The inspected revision,
-`69488123ed9362dd44b6f28e7f4680abbff1442b`, is a candidate for qualification, not
-a version already built or validated by Meridian. A real-recording adapter is
-work to perform; the non-ROS simulation executable is not that adapter.
+`69488123ed9362dd44b6f28e7f4680abbff1442b`, is now built and qualified on room1
+through Meridian's [real-recording adapter](../integrations/openvins/README.md).
+The upstream non-ROS simulation executable does not provide that recording path.
 
 The upstream
 [serial runner at that revision](https://github.com/rpng/open_vins/blob/69488123ed9362dd44b6f28e7f4680abbff1442b/ov_msckf/src/ros1_serial_msckf.cpp)
@@ -64,9 +64,10 @@ document the adapter and distribution arrangement, notices, and source obligatio
 before distributing a runtime. No general licensing compatibility conclusion is
 implied by selecting a candidate.
 
-If the candidate cannot meet the qualification gate, record the failed evidence
-and revise the reference choice before building dependent services. No accuracy,
-runtime, or deployment-cost estimate has been measured yet.
+The [qualification report](../results/vio-reference/README.md) records the measured
+accuracy, coverage, repeatability and host resources. Future reference revisions
+must meet the same declared gate or record a protocol change. Deployment cost
+and multi-user operational limits have not been measured yet.
 
 ## Minimal architecture and contracts
 
@@ -123,9 +124,13 @@ under the documented retention policy.
 
 Every increment includes its relevant UI states, failure handling, checks, and
 documentation. Later integration testing does not defer those responsibilities.
-All increments are pending.
+Increment 1.1 is complete; all later increments are pending.
 
 ### 1.1 — Executable reference and evaluation protocol
+
+**Completed:** [implementation/protocol](vio-reference.md) and
+[qualification evidence](../results/vio-reference/README.md). The requirements
+below are retained as the acceptance contract for future reference revisions.
 
 **Dependency:** none beyond the existing repository and a usable development
 environment.
