@@ -19,10 +19,11 @@ away from the reference as errors accumulate. [Screenshot details](docs/media/RE
 [Try the explorer](#try-the-explorer) · [Results](#experiments-and-results) ·
 [Technical setup](#technical-setup) · [Design notes](docs/design.md)
 
-A [proposed roadmap](docs/professional-estimation-roadmap.md) describes a hosted
-workspace for developing and evaluating drone state estimators, including
-external implementations and automated engineering workflows. It is a future
-direction; the capabilities below describe what is implemented today.
+The [development roadmap](docs/professional-estimation-roadmap.md) targets a
+professional hosted workspace for visual-inertial odometry (VIO) and state
+estimation without reliable GNSS. It covers estimator development, external
+implementations, and automated engineering workflows. These are planned
+capabilities; the sections below describe what is implemented today.
 
 ## What exists so far
 

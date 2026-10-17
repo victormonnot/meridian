@@ -1,16 +1,19 @@
 # Professional state-estimation workspace
 
-**Status: product and engineering proposal, 2026-10-17.** This document describes
-a proposed redesign. The [README](../README.md) and [design notes](design.md)
-describe the implementation available today. No hosted computation service,
-3D navigation estimator, external-estimator execution, or AI engineering agent
-has been implemented as part of this proposal.
+**Status: development roadmap, 2026-10-17.** The product direction prioritizes
+professional state-estimation engineering with visual-inertial odometry (VIO)
+and operation without reliable GNSS. The major parts below describe planned
+work; their detailed designs remain open. The [README](../README.md) and
+[design notes](design.md) describe the implementation available today. Hosted
+computation, 3D navigation, VIO, external-estimator execution, and AI engineering
+agents are not implemented by this documentation change.
 
 ## Product objective
 
 Meridian should help estimation engineers build, investigate, improve, and
-evaluate the state-estimation systems used in autonomous drones. The intended
-product is a hosted engineering workspace, optimized for professional work.
+evaluate the state-estimation systems used in autonomous drones. VIO and
+estimation when GNSS is absent, unreliable, or interrupted are central use cases.
+The intended product is a hosted engineering workspace, optimized for professional work.
 Its outputs should include executable estimator changes, configurations,
 calibration artifacts, reproducible experiments, and evidence for engineering
 decisions. Product examples should serve as benchmarks and integration fixtures.
@@ -25,11 +28,18 @@ Requirements + sensor data + estimator
   -> reusable implementation and evidence
 ```
 
-An initial user should be an engineer responsible for an inertial navigation
-pipeline, working with IMU and GNSS measurements and an existing codebase.
+The initial target user is an engineer developing a visual-inertial navigation
+pipeline from camera and IMU recordings, with an existing or new codebase.
+GNSS availability must not be required by the data or execution architecture.
+GNSS can remain an optional aid and a source for transition/comparison studies.
 Supporting broader teams requires interoperability across sensor setups and
 estimator implementations. Universal compatibility is an objective to work
 toward, not a release claim.
+
+The scope is estimation and localization engineering. Mission planning,
+obstacle avoidance, and flight control are downstream integrations rather than
+additional product workstreams. Supporting navigation without GNSS does not
+imply drift-free odometry or a globally referenced position under all conditions.
 
 The product's value must be measured against the engineer's existing workflow:
 time to investigate a regression, time to integrate a sensor model, quality of
@@ -83,6 +93,8 @@ score alone does not establish that a candidate meets the requirements.
 | --- | --- | --- |
 | Dataset and sensor workspace | Preserve original data and inspect units, frames, sensor instances, time domains, gaps, and calibration provenance. | Versioned dataset, explicit transformations, eligibility findings. |
 | Calibration and timing tools | Estimate supported calibration/time parameters and assess whether the acquisition constrains them. | Calibration artifact, assumptions, uncertainty or conditioning information, independent evaluation. |
+| Visual-inertial development | Inspect and modify image processing, feature tracking, initialization, inertial propagation, and visual-inertial fusion. | Executable VIO changes with traceable visual and estimator diagnostics. |
+| GNSS-independent localization | Evaluate tracking loss, drift, recovery, and supported map or additional-sensor constraints. | Condition-specific localization results and explicit availability limits. |
 | Estimator development | Configure a reference estimator or modify an external implementation and its sensor models. | Source/configuration diff, build artifact, numerical checks. |
 | Reproducible execution | Run the actual selected implementation against the same declared input semantics. | Input, code, configuration, environment, and output identities. |
 | Campaigns and optimization | Compare candidates across recordings and conditions, with bounded searches and declared tradeoffs. | Candidate settings, comparison results, independent evaluation. |
@@ -90,10 +102,13 @@ score alone does not establish that a candidate meets the requirements.
 | Engineering delivery | Export work into the team's codebase, automation, and target integration process. | Code/configuration, executable reproduction recipe, report, regression assets. |
 | Team workspace | Review results, share precise inspection states, and preserve decisions in private projects. | Versioned reviews and traceable experiment history. |
 
-Import formats should follow actual integrations. Existing DataFlash support is
-a starting asset; PX4 ULog and robotics recording formats such as MCAP/ROS bags
-are candidates, not an initial promise to decode every recording. A log that
-contains published attitude alone may be insufficient to rerun its estimator.
+Import formats should follow actual integrations, starting with a camera/IMU
+recording supported by a selected VIO reference. Existing DataFlash support is
+a useful separate asset; PX4 ULog and robotics recording formats such as
+MCAP/ROS bags are candidates, not a promise to decode every recording. Developing
+the visual pipeline requires images and their acquisition metadata, not just
+an exported pose trajectory. Required input availability must be checked before
+claiming that an estimator can be reproduced.
 
 External engineers must be able to evaluate their own code. The execution
 contract should cover input events and timing, initialization, state and
@@ -101,23 +116,44 @@ covariance conventions, diagnostic availability, configuration, and outputs.
 Missing internal diagnostics should remain explicitly unavailable. An adapter
 must not silently change an estimator's scheduling or measurement semantics.
 
-## Numerical direction and the EKF
+## Numerical direction, VIO, and the EKF
 
-The proposed reference direction is a 3D error-state EKF for inertial navigation,
-initially combining IMU and GNSS. Its state would include orientation, velocity,
-position, and inertial biases. State conventions, frames, gravity assumptions,
+The initial professional reference workflow should use an existing VIO
+implementation with a prepared camera/IMU dataset. Its revision, configuration,
+calibration, timing conventions, and reproducible outputs must be pinned.
+This provides an engineering task before developing every numerical component
+inside Meridian. Selecting the reference requires a compatibility and license
+review; no external estimator is selected by this roadmap alone.
+
+Meridian's own numerical development should include 3D inertial propagation and
+EKF support for orientation, velocity, position, and biases, with observation
+models appropriate to the selected use case. IMU-only propagation is not a
+complete position solution. Visual-inertial filtering may require additional
+state structure and consistency treatment; a generic inertial EKF is not a VIO
+implementation by itself. State conventions, frames, gravity assumptions,
 discretization, initialization, timestamps, sensor delays, and measurement models
 must be specified before implementation and tested independently.
 
-The reference provides a working estimation engine and a comparable baseline.
-It should coexist with external estimators. Further sensor integrations could
-include barometric altitude, magnetometers, range, and visual odometry. Direct
-camera processing and visual-inertial estimation introduce additional calibration,
-timing, compute, and validation requirements and should form distinct increments.
+VIO development covers the actual visual and inertial chain: camera models and
+calibration, image handling, feature tracking, initialization, propagation,
+fusion, and inspectable intermediate outputs. It must support changing the
+implementation and comparing the result, rather than only replaying a finished
+trajectory. Monocular/stereo support and the first filtering or optimization
+formulation will be selected when the corresponding part is designed.
 
-Alternative formulations, such as smoothing or factor-graph methods, should be
-added when a concrete engineering comparison requires them. EKF support does not
-require forcing every future estimation problem into the same model.
+External estimators should coexist with Meridian's components. Filtering and
+optimization-based VIO must not be forced into a single EKF state/API design.
+Published systems such as [OpenVINS](https://docs.openvins.com/) and
+[VINS-Fusion](https://github.com/HKUST-Aerial-Robotics/VINS-Fusion) illustrate
+these different approaches; neither is yet an adopted dependency.
+
+Longer-term localization work includes loss/recovery of visual tracking,
+relocalization, map constraints, and additional measurements where they address
+a defined requirement. Barometric altitude, range, optical flow, lidar, or other
+sources are possible extensions, not an obligation to implement every modality.
+GNSS absence, degradation, and return should be explicit experiment conditions
+when GNSS is supported. Observability and drift limits remain dependent on the
+available measurements, motion, environment, and reference information.
 
 The existing roll/bias implementation remains useful as a small numerical
 regression case and Python/C++ comparison. Its gravity-dominated single-axis
@@ -172,6 +208,11 @@ references, exclusions, and decision criteria before candidate selection.
 - Quantify accuracy only against a suitable reference and preserve its timing,
   frame alignment, uncertainty, and coverage. Another fused estimate is a
   comparator unless independently justified as a reference.
+- Separate estimator inputs from evaluation references. A GNSS-free VIO run can
+  be evaluated against an independent motion-capture or suitably characterized
+  GNSS reference where available, without supplying that reference to the VIO.
+  Declare trajectory alignment and the reported local/global quantities; do not
+  hide drift or claim absolute accuracy through an inappropriate alignment.
 - Examine consistency, innovations, covariance behavior, availability, recovery,
   and numerical failures as distinct results. Consistency scores without truth
   do not establish physical accuracy or identify a unique cause.
@@ -212,8 +253,8 @@ these are later deployment options, not a prerequisite for the hosted path.
 
 The main workspace should organize projects, datasets, estimator versions,
 experiments, and comparisons. An investigation view should link a selected
-interval across trajectories, sensor signals, innovations, state/covariance,
-events, configuration changes, and code differences where available. Campaign
+interval across images, visual tracks, trajectories, sensor signals, innovations,
+state/covariance, events, configuration changes, and code differences where available. Campaign
 views should expose failures, budgets, progress, and reproducible run manifests.
 Automation should be reviewable through the resulting artifacts and executions.
 
@@ -221,23 +262,35 @@ Provider, frontend framework, database, and queue choices remain open. The
 current static frontend can supply reusable plotting and interaction components;
 its fixed simulation data contract is unsuitable as the general execution API.
 
-## Delivery sequence and gates
+## Major development parts
 
-These are proposed capability gates, not delivery dates or a commitment to
-implement every item at once.
+The sequence below defines outcomes and boundaries, not detailed implementation
+tasks or delivery dates. Each part's detailed design will use the results of the
+preceding parts. VIO is the reference use case from the first part, rather than
+a feature deferred until the platform is otherwise complete.
 
-| Stage | Deliverable | Gate before expanding |
+| Part | Scope | Completion outcome |
 | --- | --- | --- |
-| 1. Define an expert task | A real external estimator/data pair, baseline investigation, reference quality, and agreed evaluation protocol. | Another engineer can describe the decision to make and reproduce the starting result; measure the existing workflow's effort. |
-| 2. Deliver the first hosted engineering workflow | Run and compare a baseline and candidate on a scoped 3D IMU/GNSS task, with at least one external implementation, private data, and exportable results. | Reproduce an independently checked result; detect known defects and preserve inconclusive cases; demonstrate useful work without a local Meridian installation. |
-| 3. Develop and evaluate changes | Reference EKF, model/implementation editing, numerical checks, supported calibration/tuning, campaign execution, and code/configuration export. | An external engineer completes a real modification, evaluates it on separate data, and reproduces the exported result outside Meridian. |
-| 4. Automate bounded engineering tasks | Investigation and change-generation agents, independent evaluation, budgets, and complete experiment records. | Compare with manual work and deterministic automation on a fixed benchmark; measure verified fixes, false diagnoses, accepted regressions, review effort, time, and cost. |
-| 5. Expand the research and integration scope | More sensors/estimators, active experiment selection, learned components, and target/closed-loop integrations. | Each extension passes domain-specific evaluation and demonstrates additional engineering value. |
+| 1. Hosted workspace and reference workflow | A scoped professional task, private project, minimal job execution, prepared calibrated camera/IMU dataset, and an existing VIO implementation. | Run a reference from the browser, inspect its outputs, and export a reproducible result without installing Meridian locally. |
+| 2. Sensor data, calibration, and timing | Extend the initial supported data path to user recordings, image/IMU synchronization, units/frames, sensor metadata, and supported calibration workflows. | Produce a versioned acquisition and calibration usable by the estimator, with explicit data-quality and calibration limits. |
+| 3. 3D estimation and estimator integration | Inertial models, states and uncertainty, EKF components, model/code modification, numerical checks, and a contract for external implementations. | Develop and compare a scoped estimation change, with tested conventions and code/configuration reusable outside the site. |
+| 4. Visual-inertial development | Visual tracking, initialization, camera/IMU fusion, intermediate diagnostics, and changes to the VIO implementation. | An engineer can modify a VIO component and evaluate the full resulting pipeline on recordings independent of its tuning data. |
+| 5. Robust localization without reliable GNSS | Tracking degradation/loss, drift, recovery, and selected relocalization, map, or additional-sensor methods; GNSS transitions when relevant. | Characterize and improve localization availability under declared failure conditions, without concealing unresolved ambiguity or drift. |
+| 6. Advanced campaigns and system integration | Larger test campaigns, constrained tuning, fault injection, regression automation, target resource measurements, and scoped closed-loop integration. | Compare robustness and performance across conditions and produce a documented integration candidate with target-specific evidence. |
+| 7. AI engineering agents | Hypothesis-driven investigations and bounded model/code/configuration changes using the established execution and independent evaluation tools. | Complete a defined engineering task with reviewable artifacts; measure verified improvements, false diagnoses, regressions, human effort, and cost. |
+| 8. Advanced research | Experiment selection, counterexample search, model-structure exploration, and learned estimation components. | Demonstrate additional value on separate evaluation conditions before promoting an experimental capability into routine engineering use. |
 
-The small roll study can support early infrastructure checks but does not
-constitute the professional product milestone. Detailed stage specifications
-should follow a selected estimator and dataset rather than a universal plugin
-framework built in anticipation of every possible integration.
+Usability, numerical checks, comparisons, reproducibility, basic runtime
+measurements, exports, and private-data handling accompany the first applicable
+increments. Part 6 expands their depth and scale; it does not introduce testing
+or usable deliverables for the first time. Target and flight claims still require
+their own evidence. Real bench acquisition remains part of the development and
+evaluation work when the required hardware is available.
+
+The minimal execution/data contract in part 1 supports its chosen reference;
+parts 2 and 3 extend it from observed requirements. This avoids a universal
+plugin framework before multiple concrete integrations exist. The roll study
+can support infrastructure checks but does not constitute the VIO milestone.
 
 ## Existing tools and research
 
@@ -250,6 +303,7 @@ capability baseline, not comparative performance or a verified market gap.
 | [PX4 replay](https://docs.px4.io/main/en/debug/system_wide_replay) and [navigation-filter analysis](https://docs.px4.io/main/en/advanced_config/tuning_the_ecl_ekf) | Logged-input replay, parameter comparisons, estimator diagnostics, and analysis tools, with replay prerequisites and restrictions. | Use exact implementation/revision semantics; build value beyond plotting and rerunning logs. |
 | [Foxglove agents](https://docs.foxglove.dev/docs/agents) | Recording search, data inspection, layouts, transformation scripts, and assisted debugging. | Natural-language interaction and robotics plots already exist together. |
 | [Kalibr](https://github.com/ethz-asl/kalibr/wiki/camera-imu-calibration) | Camera/IMU calibration with required models, motion excitation, and timestamp assumptions. | Assess or integrate established methods before creating another calibrator. |
+| [OpenVINS](https://docs.openvins.com/) and [VINS-Fusion](https://github.com/HKUST-Aerial-Robotics/VINS-Fusion) | Visual-inertial estimation using filtering and optimization respectively, with calibration and evaluation capabilities. | VIO is a concrete professional reference task; support different formulations and evaluate existing implementations before selecting an integration. |
 | [SymForce](https://symforce.org/) | Symbolic robotics models, Jacobians, code generation, and optimization. | Model-to-code automation has concrete foundations; unrestricted generated models still require independent checks. |
 | [Chen et al., Kalman Filter Auto-Tuning](https://discovery.ucl.ac.uk/id/eprint/10185809/) | Bayesian tuning with analysis of ambiguity in consistency-based objectives. | A single favorable consistency score is not a sufficient optimization or acceptance target. |
 | [AirIMU](https://arxiv.org/abs/2310.04874) | Learned inertial corrections and uncertainty combined with model-based estimation in reported experiments. | Hybrid approaches are a research option; transfer to a new vehicle/domain must be evaluated. |
@@ -261,11 +315,12 @@ engineers. No source review establishes that any feature is unique.
 
 ## Decisions still required
 
-Select the first external estimator, dataset and reference, task owner, and
-acceptance protocol. Specify the first 3D model and adapter boundaries before
-implementation. Evaluate dependency licenses and integration costs before
-adoption. Establish hosted data handling and realistic compute budgets. Choose
-the first bounded automation task after deterministic execution is reliable.
+For part 1, select the professional VIO task, external implementation, prepared
+camera/IMU dataset, evaluation reference, and acceptance protocol. Evaluate
+dependency licenses and integration costs before adoption, and establish hosted
+data handling and realistic compute limits. Numerical formulations, additional
+formats/sensors, and automation tasks will be specified with their corresponding
+parts, using the evidence available then.
 
 Implementation changes, dependency selection, hosted deployment, and hardware
 integration remain future work. The existing technical reports remain evidence

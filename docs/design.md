@@ -3,9 +3,10 @@
 **Work in progress. V1 isn't ready yet.** The sections below describe the current
 experiments and the validation still needed.
 
-The [professional workspace proposal](professional-estimation-roadmap.md)
-describes a broader future direction. Its hosted execution, 3D estimation, and
-engineering automation capabilities are proposed work, not current behavior.
+The [professional workspace roadmap](professional-estimation-roadmap.md)
+prioritizes VIO and state estimation without reliable GNSS. Its hosted execution,
+3D estimation, visual-inertial development, and engineering automation are planned
+work, not current behavior.
 
 Python gyro integration, accelerometer tilt, complementary fusion, and the
 angle/bias Kalman reference are implemented, with tests and
@@ -51,9 +52,10 @@ IMU. It combines reproducible simulation, Python reference estimators, a C++ EKF
 and offline replay of real bench measurements. Completion requires both simulation
 evidence and a documented bench acquisition and replay.
 
-The core will remain independent of any vehicle software. Full 3D attitude,
-additional sensors, and integrations are possible extensions, not committed
-features.
+The core will remain independent of any vehicle software. The development
+roadmap prioritizes 3D visual-inertial estimation and localization without
+reliable GNSS. These capabilities are not implemented yet; the validation
+described here applies to the current single-axis study.
 
 ## Estimation model
 
