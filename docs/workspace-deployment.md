@@ -48,9 +48,11 @@ directory. Ground truth is mounted only into the independent evaluator, together
 with its exact evaluation inputs. Children have no network, application secrets
 or database connection. Job summaries come from PostgreSQL. With investigation
 enabled, the API also reads immutable published artifacts and the two camera
-directories. It cannot write these mounts and has no reference-trajectory, IMU,
-calibration, scratch or Docker-socket mount. Nginx has no data mounts: image and
-investigation requests pass through Django ownership checks.
+directories. These mounts are read-only. The API has no separate mount of the
+prepared reference trajectory, IMU CSV or calibration tree, and no scratch or
+Docker-socket mount. Published artifacts include the run's rendered configuration.
+Nginx has no data mounts: image and investigation requests pass through Django
+ownership checks.
 
 PostgreSQL uses a separate bootstrap administrator. The application role owns
 only its database and has no superuser, role-creation, database-creation or
