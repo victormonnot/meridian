@@ -1,0 +1,240 @@
+{
+  "attempt_count": 1,
+  "completed_at": "2026-10-18T19:53:49.986913+00:00",
+  "dataset_manifest_sha256": "e55f0480533611fc1e198d16b181814a8d34752cb748becbfeec7bcb4908ba6d",
+  "evaluator_sha256": "539f07a0e3dbabe5fd3b4874b42218db1938e5f3733d8ac3bd9c714900a8cca6",
+  "full_interval": {
+    "alignment_scope": "full_recording_global_se3_unchanged",
+    "counts": {
+      "associated_camera_samples": 2624,
+      "estimate_samples": 2689,
+      "evaluated_camera_samples": 2624,
+      "expected_camera_samples": 2821,
+      "reference_supported_camera_samples": 2756
+    },
+    "coverage_fraction": 0.9532080822403403,
+    "evaluated_fraction": 0.9301666075859625,
+    "evaluated_reference_fraction": 0.9521044992743106,
+    "interval": {
+      "boundary": "closed",
+      "end_time_s": 141.004463474,
+      "end_timestamp_ns": "1520530449203911100",
+      "first_camera_index": 0,
+      "last_camera_index": 2820,
+      "start_time_s": 0.0,
+      "start_timestamp_ns": "1520530308199447626"
+    },
+    "metrics": {
+      "ate_rmse_m": 0.0612163695742259,
+      "orientation_error_max_deg": 4.307316076259924,
+      "orientation_error_mean_deg": 1.2005629690623145,
+      "orientation_rmse_deg": 1.3255413925517476,
+      "orientation_rmse_rad": 0.023135061671498636,
+      "position_error_max_m": 0.109949022489596,
+      "position_error_mean_m": 0.05697479331128086
+    },
+    "protocol": {
+      "alignment": "global_se3_least_squares_over_all_evaluated_positions",
+      "estimate_interpolation": false,
+      "initialization_delay_definition": "first_estimated_camera_timestamp_minus_first_expected_timestamp",
+      "initialization_exclusion": "none",
+      "max_estimate_timestamp_error_ns": 1000,
+      "max_reference_gap_ns": 20000000,
+      "name": "meridian-vio-se3",
+      "quaternion_convention": "Hamilton_xyzw_body_to_world",
+      "reference_association": "linear_position_shortest_arc_slerp_without_extrapolation",
+      "removed_gauge": "constant_world_rotation_including_roll_pitch_yaw_and_translation",
+      "scale_fitted": false,
+      "time_offset_fitted": false,
+      "version": 1,
+      "weighting": "equal_weight_per_evaluated_camera_sample"
+    },
+    "reference_coverage_fraction": 0.9769585253456221,
+    "schema_version": 1,
+    "status": "ok"
+  },
+  "hosting_policy": {
+    "artifact_limit_bytes": 33554432,
+    "compute_adapter_sha256": "b733c2ba540ab9ad16401923c3ce4d45e66fdf400300f251fcdc1e636bd0a6c7",
+    "evaluation": {
+      "cpus": 0.5,
+      "memory_mb": 512,
+      "network": "none",
+      "pids": 64,
+      "rootfs": "read-only",
+      "timeout_s": 120
+    },
+    "evaluation_entrypoint_sha256": "fa66c265bc0dabedfdca7f4d87706df344930174287780ca84491c20f52d23f9",
+    "evaluation_image_id": "sha256:b6a38145641c749c83e689601bbcf3ecaaedcc5bb0a8a2a0ec5f26fb74e136ae",
+    "log_limit_bytes_per_process": 2097152,
+    "progress": "execution phases and observed elapsed wall time; no inferred completion percentage",
+    "schema_version": 1,
+    "scratch_limit_bytes": 134217728
+  },
+  "image_index_bytes": 1561046,
+  "investigation_bytes": 7871455,
+  "investigation_sha256": "55bc1fad3c6ae06dfc39a213e68c2b940e63f3feb622e1728ea944b00ed4c809",
+  "job_wall_seconds": 227.674827,
+  "method": "Actual hosted saved-revision submission through authenticated HTTPS, durable queue, isolated native estimator and separate evaluator. All 18 published artifacts were copied and rehashed before exact QA account cleanup.",
+  "passed": true,
+  "publication_manifest": {
+    "files": {
+      "binary-sha256.txt": {
+        "sha256": "7b66a083c7d5c69c6e85721e3357def42fbc1a125a5b13735f3e55ee3ad28070",
+        "size_bytes": 204
+      },
+      "config-estimator_config.yaml": {
+        "sha256": "10c37c00c52a07ba5a86ce3d6d2846c2430397d6fa6a9e190dfdc47aa10c2045",
+        "size_bytes": 3689
+      },
+      "config-kalibr_imu_chain.yaml": {
+        "sha256": "cb598952ee3766492a332eaae8567fe2b63a9bf6d63b9c0a7b9d988471600a3d",
+        "size_bytes": 1351
+      },
+      "config-kalibr_imucam_chain.yaml": {
+        "sha256": "072d26e3dd20844ae7402f508c51cf7e899a401634ba6b0db0e08cd2880b7dab",
+        "size_bytes": 1530
+      },
+      "config-mask_tumvi0.png": {
+        "sha256": "62dfc1053f336d1adb4ae01519579532370d1b211894566a7a4ec167dd8c3f4f",
+        "size_bytes": 12277
+      },
+      "config-mask_tumvi1.png": {
+        "sha256": "67ff644599f862f2437026d9c43ef0a0887907470179a53e34447fb95cbd35ba",
+        "size_bytes": 11930
+      },
+      "dependency-versions.txt": {
+        "sha256": "92d76ee986a1ff4508a96fb3f2c26439d99cb446a546f8e0d795f56d69e7023e",
+        "size_bytes": 17909
+      },
+      "evaluation.json": {
+        "sha256": "d26ee4fa4d3a4445b8b8dc758687ed8197d66731c71dcd2e4f2abe75e72e5201",
+        "size_bytes": 215032
+      },
+      "evaluation.log": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "size_bytes": 0
+      },
+      "experiment-specification.json": {
+        "sha256": "f8450550c77b615690904395b1eead2236166b744f4ab7c5f5325d126eae2614",
+        "size_bytes": 5820
+      },
+      "hosting-policy.json": {
+        "sha256": "07f27bde0f8f23d63be57855cdbf4edb7e53bc309831acc7220f01a8eb258bab",
+        "size_bytes": 687
+      },
+      "image-index.json": {
+        "sha256": "83802457f05d1cea04d967ff5daa83cdf6abcdd5d28dddf9638748e270fcc084",
+        "size_bytes": 1561046
+      },
+      "investigation.json": {
+        "sha256": "55bc1fad3c6ae06dfc39a213e68c2b940e63f3feb622e1728ea944b00ed4c809",
+        "size_bytes": 7871455
+      },
+      "result.json": {
+        "sha256": "577d6813091d4cf2ad1e1d0e53d43dcbd3054bf88351239308637c00737d21a1",
+        "size_bytes": 4627
+      },
+      "run-spec.json": {
+        "sha256": "2074a5f30ab174bbae959c9eba44177bff797077101fdf27ba2ba78f1b4338c8",
+        "size_bytes": 1032921
+      },
+      "runner.log": {
+        "sha256": "11f97616a5b994ea142234bf276d6922481d1632d3784644d66b217400fd1cb5",
+        "size_bytes": 35
+      },
+      "status.json": {
+        "sha256": "46e33b34042f24fbdc701fc862ed53a6f27a49c55efb84732d93d61a91feac1c",
+        "size_bytes": 962
+      },
+      "trajectory.csv": {
+        "sha256": "d2a59ed328807d54af0a930006b7c2e850998c2dc7d6f89debd1c195ca4ed764",
+        "size_bytes": 441094
+      }
+    },
+    "schema_version": 1
+  },
+  "result": {
+    "artifacts": {
+      "file_count": 18,
+      "manifest_sha256": "063ddec2fe43d8b3a102e6523de1f3a9eee74f832bb7e355a8305c939ba8c6ee",
+      "total_bytes": 11182569
+    },
+    "evaluation": {
+      "counts": {
+        "estimate_samples": 2689,
+        "evaluated_camera_samples": 2624,
+        "expected_camera_samples": 2821,
+        "missing_initial_camera_samples": 132,
+        "missing_interior_camera_samples": 0,
+        "missing_trailing_camera_samples": 0,
+        "reference_samples": 16541,
+        "reference_supported_camera_samples": 2756
+      },
+      "coverage_fraction": 0.9532080822403403,
+      "evaluated_fraction": 0.9301666075859625,
+      "initialization_delay_s": 6.600339685000001,
+      "metrics": {
+        "ate_rmse_m": 0.0612163695742259,
+        "orientation_error_max_deg": 4.307316076259924,
+        "orientation_error_mean_deg": 1.2005629690623147,
+        "orientation_rmse_deg": 1.3255413925517476,
+        "orientation_rmse_rad": 0.023135061671498636,
+        "position_error_max_m": 0.109949022489596,
+        "position_error_mean_m": 0.05697479331128086
+      },
+      "protocol": {
+        "alignment": "global_se3_least_squares_over_all_evaluated_positions",
+        "estimate_interpolation": false,
+        "initialization_delay_definition": "first_estimated_camera_timestamp_minus_first_expected_timestamp",
+        "initialization_exclusion": "none",
+        "max_estimate_timestamp_error_ns": 1000,
+        "max_reference_gap_ns": 20000000,
+        "name": "meridian-vio-se3",
+        "quaternion_convention": "Hamilton_xyzw_body_to_world",
+        "reference_association": "linear_position_shortest_arc_slerp_without_extrapolation",
+        "removed_gauge": "constant_world_rotation_including_roll_pitch_yaw_and_translation",
+        "scale_fitted": false,
+        "time_offset_fitted": false,
+        "version": 1,
+        "weighting": "equal_weight_per_evaluated_camera_sample"
+      },
+      "reference_coverage_fraction": 0.9769585253456221,
+      "status": "ok"
+    },
+    "execution": {
+      "container_wall_seconds": 75.5379243211355,
+      "native_cpu_seconds": 73.665836,
+      "native_peak_rss_kib": 81304,
+      "native_wall_seconds": 74.563560708
+    },
+    "qualification": {
+      "checks": {
+        "estimate_coverage": true,
+        "evaluated_coverage": true,
+        "evaluated_samples": true,
+        "evaluation_ok": true,
+        "initialization_delay": true,
+        "orientation_error": true,
+        "position_error": true,
+        "reference_coverage": true
+      },
+      "passed": true
+    },
+    "schema_version": 1
+  },
+  "runner_sha256": "d840c4400675a16a6ed22873086a8267f3547b750a5d62fbbf1c03279bd51a09",
+  "runtime_identity": {
+    "binding": "qualified_oci_manifest",
+    "configuration_image_id": "sha256:73e1213d073ce52a9a509decb15628a7c043e0690609171c4b9382ed0c2730da",
+    "execution_image_id": "sha256:54863f14d9f92d2805f5fddcfb78d146c6aac2ad77dc348e304059e2252a400a",
+    "identity_resolver_sha256": "9093a2641c60fc75118e25920a4a14b24f3ad21ef07ed7964d0446c01b0f5212",
+    "qualified_oci_manifest_sha256": "54863f14d9f92d2805f5fddcfb78d146c6aac2ad77dc348e304059e2252a400a",
+    "schema_version": 1
+  },
+  "schema_version": 1,
+  "specification_sha256": "521227054edeac5226ec9ab25e6a9190475affc62c64ce96057b5402bbf73677",
+  "started_at": "2026-10-18T19:50:02.312086+00:00",
+  "state": "succeeded",
+  "trajectory_sha256": "d2a59ed328807d54af0a930006b7c2e850998c2dc7d6f89debd1c195ca4ed764"
+}

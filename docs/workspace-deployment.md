@@ -1,10 +1,12 @@
 # Deploy the project workspace
 
 This deployment serves accounts, private projects, versioned experiments and
-durable VIO jobs. Computation is opt-in: the `compute` Compose profile adds a
+durable VIO jobs with synchronized result investigation. Computation is opt-in: the `compute` Compose profile adds a
 trusted worker after the qualified native image, prepared reference dataset and
 bounded scratch filesystem have been installed separately. The API image does
-not contain the estimator, Docker CLI, NumPy or recordings.
+not contain the estimator, Docker CLI, NumPy or recordings. The separate
+`compose.investigation.yaml` override grants the API read-only access to published
+artifacts and the two prepared camera-image directories.
 The [workspace contract](hosted-workspace.md) describes authentication, ownership
 and retention. The original static explorer is also served at `/index.html`.
 
@@ -44,8 +46,11 @@ The worker mounts prepared data read-only and private artifact/scratch directori
 read-write. The estimator receives only sensor data, configuration and its output
 directory. Ground truth is mounted only into the independent evaluator, together
 with its exact evaluation inputs. Children have no network, application secrets
-or database connection. API results come from PostgreSQL; the API has no dataset
-or artifact mount.
+or database connection. Job summaries come from PostgreSQL. With investigation
+enabled, the API also reads immutable published artifacts and the two camera
+directories. It cannot write these mounts and has no reference-trajectory, IMU,
+calibration, scratch or Docker-socket mount. Nginx has no data mounts: image and
+investigation requests pass through Django ownership checks.
 
 PostgreSQL uses a separate bootstrap administrator. The application role owns
 only its database and has no superuser, role-creation, database-creation or
@@ -59,6 +64,8 @@ for these images. Private notes, Git objects, local databases, numerical outputs
 sensor archives and native estimator builds are excluded. Nginx serves compiled
 assets only. Its content-security policy hashes the exact inline theme bootstrap
 bytes during the build, without enabling arbitrary inline scripts or evaluation.
+Only the image directive additionally permits `blob:` URLs, used to display
+authenticated frame responses fetched by the workspace.
 
 ## Configure and build
 
@@ -164,15 +171,17 @@ capacity exceeds 128 MiB. Do not replace it with an ordinary disk directory or
 an unbounded host `/tmp`. No shared Docker daemon restart is needed.
 
 After assets and storage have been checked, set `MERIDIAN_EXECUTION_ENABLED=1`
-and build/start the worker with the same release environment:
+and build/start computation and investigation with the same release environment:
 
 ```sh
 docker compose --project-name meridian-workspace \
   --env-file /srv/meridian-workspace/.env \
-  -f deploy/workspace/compose.yaml --profile compute build worker
+  -f deploy/workspace/compose.yaml -f deploy/workspace/compose.investigation.yaml \
+  --profile compute build api worker
 docker compose --project-name meridian-workspace \
   --env-file /srv/meridian-workspace/.env \
-  -f deploy/workspace/compose.yaml --profile compute up -d --wait --no-deps api worker
+  -f deploy/workspace/compose.yaml -f deploy/workspace/compose.investigation.yaml \
+  --profile compute up -d --wait --no-deps api worker
 ```
 
 Apply pending migrations before replacing these services. Keep the existing
@@ -185,6 +194,33 @@ terminal state, input/output hashes and independent metrics, and test cancellati
 and lease recovery. Capture redacted container limits/mounts, actual image IDs,
 the source manifest, prepared-data manifest, database identity and existing-site
 health before and after deployment. Never capture environment values or cookies.
+
+## Private investigation access
+
+Include `compose.investigation.yaml` on subsequent API upgrades so its three
+read-only mounts remain present. It mounts `MERIDIAN_JOB_ARTIFACT_ROOT` at the
+same path used by the worker, plus the prepared `cam0/data` and `cam1/data`
+directories under `MERIDIAN_CAMERA_ROOT` (default `/reference-cameras`). Sources
+must already exist; Compose refuses to create empty substitute directories.
+The base Compose stack remains usable without prepared data when computation and
+investigation are not enabled.
+
+The API serves only an owned job's published investigation and indexed camera
+frames. The worker publishes `investigation.json` and `image-index.json` with
+the attempt's immutable artifact hashes. The index binds image identities to the
+prepared dataset; it is not a general file-serving API. Original mono16 PNG bytes
+are served without image conversion or additional image libraries in the API.
+Images remain shared prepared inputs rather than being copied into each job's
+32 MiB artifact allowance. Estimator preprocessing remains unchanged.
+
+Artifact expiry and deletion revoke subsequent hosted investigation/image access.
+Responses must remain private and uncached; do not add a public Nginx alias or
+CDN cache for either mount. Old jobs without the investigation artifacts are
+explicitly unavailable; deployment does not silently recompute or backfill them.
+Qualification includes cross-account image denial, malformed identifiers, missing
+or changed artifacts, expired access, and browser display of the original PNGs.
+The [investigation validation report](../results/investigation/README.md) records
+the tested release, artifact sizes and observed browser/API resource measurements.
 
 ## Local container check
 
@@ -210,7 +246,8 @@ Set `MERIDIAN_DOMAIN=localhost` in this local environment. The override creates
 an isolated ingress network and binds only `127.0.0.1:8090`; it enables Django
 debug mode and HTTP cookies for local checks. Never use it on the hosted server.
 
-For local computation, additionally use `--profile compute`, prepared data, a
+For local computation and investigation, additionally include
+`-f deploy/workspace/compose.investigation.yaml` and use `--profile compute`, prepared data, a
 private artifact directory and a dedicated 128 MiB tmpfs with identical host and
 worker paths. A Docker local volume with `type=tmpfs` and a keeper container can
 provide this on a development host without a system-wide mount change. Use its
@@ -244,8 +281,7 @@ Scheduled backups, off-server copies and a verified restoration procedure are
 not established by the Compose file. Until those are configured, treat the
 hosted application as a preview, not the only copy of engineering work.
 No user recording upload exists in this increment; only the maintained room1
-profile executes. Trajectory investigation, comparisons and independent exports
-remain later increments.
+profile executes. Run comparisons and independent exports remain later increments.
 If operators retain database snapshots, deleted records may remain in them until
 those snapshots are removed; publish their retention period before relying on
 such a backup service.

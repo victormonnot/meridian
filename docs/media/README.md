@@ -1,5 +1,27 @@
 # Interface screenshots
 
+## Synchronized VIO investigation
+
+[`investigation.png`](investigation.png) captures the deployed HTTPS application
+on 2026-10-18 in Chromium at a 1440 × 1400 viewport, light theme, scrolled to the
+shared timeline. Release `20261018-8230e773705d` ran a new baseline through the
+real queue, native OpenVINS container and independent evaluator. The selected
+camera epoch is 1010 at 50.502 seconds; metrics use the full recording. The
+fictional QA account and its private project were created for this check and
+removed afterward. No pixels, values or execution states were edited.
+
+To reproduce, launch a saved 200-point baseline and open its investigation,
+select frame 1010, keep the full interval and scroll to the timeline. The view
+continues below the viewport with error, support, attitude and IMU plots. See the
+[investigation contract](../vio-investigation.md) and
+[validation report](../../results/investigation/README.md).
+
+Camera imagery is from the **TUM VI Benchmark**, David Schubert, Thore Goll,
+Nikolaus Demmel, Vladyslav Usenko, Joerg Stueckler and Daniel Cremers (2018),
+under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Original mono16
+PNG frames are displayed by Chromium without Meridian pixel transformations.
+This is a handheld benchmark execution, not drone-flight validation.
+
 ## Hosted VIO execution
 
 [`jobs.png`](jobs.png) captures the deployed HTTPS application on 2026-10-18 in

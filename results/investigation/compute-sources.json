@@ -1,0 +1,17 @@
+{
+  "local_stack_matches_current": true,
+  "local_stack_worker_image": "sha256:6110ca27b0f834d6ea819507190b86cf816f466b712f1dd25af240ebcd299bf0",
+  "probe_image": "sha256:e7daa227dc789959d0285f692f4438434056b7a21809f3cd0fecb24633ec9302",
+  "probe_matches_current": true,
+  "schema_version": 1,
+  "sources": {
+    "server/workspace/job_execution.py": "b733c2ba540ab9ad16401923c3ce4d45e66fdf400300f251fcdc1e636bd0a6c7",
+    "src/meridian/vio_evaluation.py": "539f07a0e3dbabe5fd3b4874b42218db1938e5f3733d8ac3bd9c714900a8cca6",
+    "src/meridian/vio_investigation.py": "b25a6b015c44d6264e4fc84cb87f8a3a28199e0d753250bf2ae47a4124360bf2",
+    "src/meridian/vio_investigation_metrics.py": "8c04325c8ac8804987ea2911ce3629a9c8a28417beefd39b2541bbcb2b77b736",
+    "src/meridian/vio_job_evaluation.py": "fa66c265bc0dabedfdca7f4d87706df344930174287780ca84491c20f52d23f9",
+    "src/meridian/vio_reference.py": "d840c4400675a16a6ed22873086a8267f3547b750a5d62fbbf1c03279bd51a09",
+    "src/meridian/vio_runtime_identity.py": "9093a2641c60fc75118e25920a4a14b24f3ad21ef07ed7964d0446c01b0f5212",
+    "src/meridian/vio_specification.py": "c597c141bd7d3e8b0ee1f08141a231212c98803f391b00a5e9b9fde73f4d2ad8"
+  }
+}

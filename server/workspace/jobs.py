@@ -12,6 +12,7 @@ from meridian.vio_specification import specification_sha256, validate_specificat
 from .api import endpoint, error, not_found, response
 from .experiments import owned_project, payload
 from .job_queue import ACTIVE, TERMINAL, cancel_locked, enabled, limits, queue_lock, service_status
+from .investigation import available as investigation_available
 from .models import AuthWindow, Experiment, Job
 
 
@@ -30,6 +31,7 @@ def job_payload(job):
             "cancel_requested": bool(job.cancel_requested_at), "failure": job.failure,
             "result": job.result if job.state == "succeeded" else None,
             "artifacts_available": job.artifacts_available,
+            "investigation_available": investigation_available(job),
             "artifacts_expire_at": _date(job.artifacts_expire_at),
             "attempts": [{"number": item.number, "state": item.state,
                           "started_at": _date(item.started_at), "finished_at": _date(item.finished_at),

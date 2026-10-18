@@ -4,6 +4,7 @@ import hashlib
 import importlib.util
 import json
 import csv
+import copy
 import math
 from pathlib import Path
 import shutil
@@ -127,26 +128,80 @@ def test_hosted_container_preserves_native_budget_and_disables_docker_log_storag
     assert not any("DATABASE_URL" in item or "docker.sock" in item for item in command)
 
 
+def _investigation_fixture(tmp_path, monkeypatch, specification, *, empty=False):
+    """Small explicit protocol fixture; this is not the qualified room1 profile."""
+    from meridian.vio_investigation import _IMU_HEADER
+    spec = copy.deepcopy(specification)
+    prepared = tmp_path / "prepared"
+    staging = tmp_path / "run"
+    staging.mkdir()
+    (prepared / "reference").mkdir(parents=True)
+    (prepared / "sensors/mav0/imu0").mkdir(parents=True)
+    (prepared / "sensors/mav0/cam0").mkdir(parents=True)
+    times = [1_000_000_000, 1_010_000_000, 1_020_000_000]
+    for path, missing in ((prepared / "reference/trajectory.csv",False),(staging / "trajectory.csv",empty)):
+        with path.open("w",newline="") as stream:
+            writer = csv.writer(stream)
+            writer.writerow(["timestamp_ns","px_m","py_m","pz_m","qx","qy","qz","qw"])
+            if not missing:
+                writer.writerows([[stamp,*position,0,0,0,1] for stamp,position in zip(times,[(0,0,0),(1,0,0),(0,1,0)])])
+    imu = prepared / "sensors/mav0/imu0/data.csv"
+    with imu.open("w",newline="") as stream:
+        writer=csv.writer(stream); writer.writerow(_IMU_HEADER)
+        writer.writerows([stamp,0,0,0,0,0,9.81] for stamp in times)
+    camera = prepared / "sensors/mav0/cam0/data.csv"
+    with camera.open("w",newline="") as stream:
+        writer=csv.writer(stream); writer.writerow(["#timestamp [ns]","filename"])
+        writer.writerows([stamp,str(stamp)+".png"] for stamp in times)
+    files = {f"sensors/mav0/{cam}/data/{stamp}.png":{"sha256":"d"*64,"size_bytes":123}
+             for cam in ("cam0","cam1") for stamp in times}
+    files["sensors/mav0/imu0/data.csv"]={"sha256":reference._sha(imu),"size_bytes":imu.stat().st_size}
+    files["sensors/mav0/cam0/data.csv"]={"sha256":reference._sha(camera),"size_bytes":camera.stat().st_size}
+    reference._json(prepared / "manifest.json", {"files":files,"license":{"spdx":"synthetic_fixture"}})
+    spec["dataset"]["prepared_manifest_sha256"] = reference._sha(prepared / "manifest.json")
+    spec["dataset"]["reference_sha256"] = reference._sha(prepared / "reference/trajectory.csv")
+    spec["interval"].update({"camera_pairs":3,"imu_samples":3,"first_camera_timestamp_ns":str(times[0]),"last_camera_timestamp_ns":str(times[-1])})
+    reference._json(staging / "status.json", {"schema_version":1,"state":"uninitialized" if empty else "complete",
+        "counts":{"trajectory_states":0 if empty else 3},"orientation":"Hamilton xyzw, IMU-body to local-world",
+        "initialized_timestamp_ns":None if empty else times[0],"error":None})
+    monkeypatch.setattr(execution,"specification_sha256",lambda value:hashlib.sha256(execution._canonical(value)).hexdigest())
+    return spec,prepared,staging,times
+
+
+def _execute_evaluation_locally(controller, tmp_path, command):
+    """Exercise the real child entry point, with Docker replaced only in this fixture."""
+    prepared=tmp_path/"prepared"
+    assert evaluate_main(["--estimate",str(controller.staging/"trajectory.csv"),"--reference",str(prepared/"reference/trajectory.csv"),
+        "--request",str(tmp_path/"evaluation-request.json"),"--output",str(tmp_path/"evaluation-output/evaluation.json"),
+        "--imu",str(prepared/"sensors/mav0/imu0/data.csv"),"--native-status",str(controller.staging/"status.json"),
+        "--investigation-request",str(tmp_path/"investigation-request.json"),"--investigation-output",str(tmp_path/"evaluation-output/investigation.json")]) == 0
+    return 0,None
+
+
 def test_evaluation_mounts_only_explicit_inputs_without_sensor_tree_or_credentials(tmp_path, monkeypatch, specification):
+    specification,prepared,staging,times=_investigation_fixture(tmp_path,monkeypatch,specification)
     controller = _controller(tmp_path, specification)
     commands = []
 
     def supervise(command, *args):
         commands.append(command)
-        reference._json(tmp_path / "evaluation-output/evaluation.json", {"schema_version": 1})
-        return 0, None
+        return _execute_evaluation_locally(controller,tmp_path,command)
 
     monkeypatch.setattr(controller, "_supervise", supervise)
     result = controller.evaluate(tmp_path / "run/trajectory.csv", tmp_path / "prepared/reference/trajectory.csv",
-                                 expected_timestamps_ns=[1, 2, 3])
+                                 expected_timestamps_ns=times)
     command = commands[0]
     mounts = [command[index + 1] for index, item in enumerate(command) if item == "--mount"]
-    assert len(mounts) == 4 and all(mount.endswith(",readonly") for mount in mounts[:3])
+    assert len(mounts) == 7 and all(mount.endswith(",readonly") for mount in mounts[:6])
     assert "dst=/inputs/reference.csv" in mounts[1]
-    assert not any("/sensors" in item or "docker.sock" in item or "DATABASE_URL" in item for item in command)
+    assert not any("docker.sock" in item or "DATABASE_URL" in item for item in command)
+    assert [mount for mount in mounts if "/sensors" in mount] == [next(mount for mount in mounts if "/imu0/data.csv" in mount)]
+    assert not any("cam0/data" in mount or "cam1/data" in mount for mount in mounts)
     assert command[command.index("--network") + 1] == "none"
     assert command[command.index("--memory") + 1] == "512m"
-    assert result == {"schema_version": 1}
+    assert result["status"] == "ok" and result["counts"]["estimate_samples"] == 3
+    assert controller.investigation_validated
+    assert json.loads((staging/"investigation.json").read_text())["full_interval"]["counts"]["evaluated_camera_samples"] == 3
 
 
 @pytest.mark.parametrize("unsafe", ["symlink", "directory", "unknown", "hardlink", "oversize"])
@@ -176,9 +231,77 @@ def test_partial_manifest_excludes_bad_paths_and_unvalidated_trajectory(tmp_path
     (tmp_path / "trajectory.csv").write_text("invalid pose")
     (tmp_path / "status.json").symlink_to(tmp_path / "elsewhere")
     (tmp_path / "secret.txt").write_text("not allowed")
+    (tmp_path / "investigation.json").write_text('{"forged":true}')
+    (tmp_path / "image-index.json").write_text('{"forged":true}')
     manifest = execution._manifest(tmp_path, specification, complete=False)
     assert set(manifest["files"]) == {"runner.log"}
     assert manifest["files"]["runner.log"]["sha256"] == hashlib.sha256(b"bounded diagnostic").hexdigest()
+
+
+@pytest.mark.parametrize("corruption", [None,"invalid_trajectory","forged_investigation"])
+def test_native_initialization_failure_can_publish_only_validated_partial_investigation(tmp_path,monkeypatch,specification,corruption):
+    specification,prepared,staging,times=_investigation_fixture(tmp_path,monkeypatch,specification,empty=True)
+    if corruption == "invalid_trajectory":
+        with (staging/"trajectory.csv").open("a") as stream:
+            stream.write(f"{times[0]},nan,0,0,0,0,0,1\n")
+    if corruption == "forged_investigation":
+        reference._json(staging/"investigation.json",{"forged":True})
+    template=tmp_path/"native-template"
+    staging.rename(template)
+    monkeypatch.setattr(execution,"validate_specification",lambda _:None)
+    monkeypatch.setattr(execution,"verify_scratch",lambda _:None)
+    monkeypatch.setattr(execution,"cleanup_attempt",lambda _:True)
+    evaluations=[]
+    def native(prepared,image,directory,**kwargs):
+        shutil.copytree(template,directory)
+        kwargs["controller"].checkpoint("running",{})
+        raise execution.ExecutionFailure("initialization_failure")
+    def supervise(self,command,*args):
+        evaluations.append(command)
+        return _execute_evaluation_locally(self,tmp_path,command)
+    monkeypatch.setattr(reference,"run_reference",native)
+    monkeypatch.setattr(execution._Controller,"_supervise",supervise)
+    outcome=execution.execute_attempt(specification,prepared,staging,attempt_id=str(uuid4()),checkpoint=lambda *_:None,
+                                      evaluation_image="sha256:"+"c"*64,configuration_parent=tmp_path)
+    assert outcome["state"] == "failed" and outcome["failure"]["code"] == "initialization_failure"
+    assert outcome["result"] is None and "trajectory.csv" not in outcome["manifest"]["files"]
+    if corruption is None:
+        assert len(evaluations) == 1
+        assert {"investigation.json","image-index.json"} <= set(outcome["manifest"]["files"])
+        artifact=json.loads((staging/"investigation.json").read_text())
+        assert artifact["run_state"] == "partial"
+        assert artifact["full_interval"]["counts"]["expected_camera_samples"] == 3
+        assert artifact["full_interval"]["counts"]["estimate_samples"] == 0
+        assert artifact["full_interval"]["metrics"] is None
+    else:
+        assert not evaluations
+        assert "investigation.json" not in outcome["manifest"]["files"]
+        assert "image-index.json" not in outcome["manifest"]["files"]
+
+
+@pytest.mark.parametrize("error", [execution.AttemptCancelled,execution.AttemptLeaseLost])
+def test_partial_investigation_does_not_override_cancellation_or_lost_lease(tmp_path,monkeypatch,specification,error):
+    monkeypatch.setattr(execution,"verify_scratch",lambda _:None)
+    cleaned=[]
+    monkeypatch.setattr(execution,"cleanup_attempt",lambda _:cleaned.append(True) or True)
+    def native(prepared,image,directory,**kwargs):
+        directory.mkdir()
+        kwargs["controller"].checkpoint("running",{})
+        raise execution.ExecutionFailure("initialization_failure")
+    def salvage(self,prepared):
+        raise error()
+    monkeypatch.setattr(reference,"run_reference",native)
+    monkeypatch.setattr(execution._Controller,"salvage_investigation",salvage)
+    def run():
+        return execution.execute_attempt(specification,tmp_path/"prepared",tmp_path/"run",attempt_id=str(uuid4()),
+            checkpoint=lambda *_:None,evaluation_image="sha256:"+"c"*64,configuration_parent=tmp_path)
+    if error is execution.AttemptLeaseLost:
+        with pytest.raises(error):
+            run()
+    else:
+        outcome=run()
+        assert outcome["state"] == "cancelled" and outcome["manifest"]["files"] == {}
+    assert cleaned == [True]
 
 
 def test_cleanup_requires_verified_absence_and_never_removes_unrelated_names(monkeypatch):
@@ -280,7 +403,7 @@ def test_evaluation_entrypoint_records_a_failure_without_fabricated_metrics(tmp_
     assert str(tmp_path) not in capsys.readouterr().out
 
 
-def _completed_output(directory, specification, *, missing_start=0):
+def _completed_output(directory, specification, *, missing_start=0, controller=None):
     """Synthetic curved motion, evaluated independently; never native evidence."""
     directory.mkdir()
     interval = specification["interval"]
@@ -318,6 +441,13 @@ def _completed_output(directory, specification, *, missing_start=0):
         shutil.copyfile(source / name, directory / ("config-" + name))
     for name in ("runner.log", "evaluation.log", "binary-sha256.txt", "dependency-versions.txt"):
         (directory / name).write_text("Synthetic test fixture.\n")
+    # These tests substitute the whole already-validated numerical pipeline.
+    # The real child/builder/acceptance path is exercised separately above.
+    for name in ("investigation.json", "image-index.json"):
+        reference._json(directory/name,{"schema_version":1,"synthetic_test_fixture":True})
+    if controller is not None:
+        controller.investigation_validated = True
+        controller.investigation_run_state = "complete"
     run = {"schema_version": 1, "state": "complete", "native_status": status,
            "qualification": reference.qualification(evaluation), "container_wall_seconds": 1.2,
            "artifacts": reference._artifacts(directory)}
@@ -330,7 +460,7 @@ def test_success_requires_complete_validated_artifacts_and_keeps_failed_qualific
     monkeypatch.setattr(execution, "verify_scratch", lambda _: None)
     monkeypatch.setattr(execution, "cleanup_attempt", lambda _: True)
     monkeypatch.setattr(reference, "run_reference", lambda prepared, image, directory, **kwargs:
-                        _completed_output(directory, specification, missing_start=missing_start))
+                        _completed_output(directory, specification, missing_start=missing_start,controller=kwargs["controller"]))
     outcome = execution.execute_attempt(specification, tmp_path / "prepared", tmp_path / "run",
         attempt_id=str(uuid4()), checkpoint=lambda *_: None,
         evaluation_image="sha256:" + "c" * 64, configuration_parent=tmp_path)
@@ -351,7 +481,7 @@ def test_zero_exit_and_nominal_metrics_cannot_publish_malformed_outputs(tmp_path
     monkeypatch.setattr(execution, "cleanup_attempt", lambda _: True)
     def run(prepared, image, directory, **kwargs):
         kwargs["controller"].checkpoint("validating", {})
-        result = _completed_output(directory, specification)
+        result = _completed_output(directory, specification, controller=kwargs["controller"])
         if corruption == "count_type":
             result["native_status"]["counts"]["trajectory_states"] = 2821.0
         elif corruption == "coordinate_convention":
@@ -384,13 +514,15 @@ def test_zero_exit_and_nominal_metrics_cannot_publish_malformed_outputs(tmp_path
         evaluation_image="sha256:" + "c" * 64, configuration_parent=tmp_path)
     assert outcome["state"] == "failed" and outcome["failure"]["code"] == "numerical_failure"
     assert outcome["result"] is None and "trajectory.csv" not in outcome["manifest"]["files"]
+    assert "investigation.json" not in outcome["manifest"]["files"]
+    assert "image-index.json" not in outcome["manifest"]["files"]
 
 
 def test_failed_cleanup_prevents_a_successful_outcome(tmp_path, monkeypatch, specification):
     monkeypatch.setattr(execution, "verify_scratch", lambda _: None)
     monkeypatch.setattr(execution, "cleanup_attempt", lambda _: False)
     monkeypatch.setattr(reference, "run_reference", lambda prepared, image, directory, **kwargs:
-                        _completed_output(directory, specification))
+                        _completed_output(directory, specification,controller=kwargs["controller"]))
     outcome = execution.execute_attempt(specification, tmp_path / "prepared", tmp_path / "run",
         attempt_id=str(uuid4()), checkpoint=lambda *_: None,
         evaluation_image="sha256:" + "c" * 64, configuration_parent=tmp_path)

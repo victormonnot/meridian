@@ -2,6 +2,7 @@ import { initializeTheme } from './theme.js';
 import { ApiError, createApiClient, escapeHtml as e, errorMessage, parseRoute, safeExternalLink } from './workspace-api.js';
 import { revisionDraft, draftChanged, experimentPayload, experimentPath, createExperimentDialog, renderExperimentList, renderExperimentDetail, renderComparison, renderConflict } from './workspace-experiments.js';
 import { activeJob, jobPath, renderJobRows, renderRevisionJobs, renderJobList, renderJobDetail, renderService, jobActionDialog, createJobPoller } from './workspace-jobs.js';
+import { investigationShell, mountInvestigation } from './workspace-investigation.js';
 
 initializeTheme();
 const api = createApiClient();
@@ -23,6 +24,7 @@ let renderedHash = window.location.hash;
 let comparisonRequest = 0;
 let jobView = null;
 let jobPoller;
+let investigationView;
 const submissions = new Map();
 
 const integer = value => new Intl.NumberFormat('en').format(value);
@@ -41,6 +43,7 @@ function announce(message = '', isError = false) {
 
 function setSession(value) {
   jobPoller?.stop();
+  investigationView?.destroy();
   submissions.clear();
   sessionEpoch += 1;
   session = value;
@@ -61,6 +64,7 @@ function removePrivateState() {
   sessionEpoch += 1;
   controller?.abort();
   jobPoller?.stop();
+  investigationView?.destroy();
   submissions.clear();
   datasets = [];
   currentProject = null;
@@ -215,12 +219,13 @@ function renderProject(project, section) {
   if (section === 'data') content = renderDataset(dataset);
   else if (section === 'settings') content = renderSettings(project);
   else if (section === 'experiments') content = experimentView.experiment ? renderExperimentDetail(project, experimentView, draftState, renderRevisionJobs(experimentView, session.capabilities.execution, draftState?.kind === 'edit')) : renderExperimentList(project, experimentView);
-  else content = `<div id="jobs-content">${jobView.job ? renderJobDetail(jobView.job) : renderJobList(jobView)}</div>`;
+  else content = `<div id="jobs-content">${jobView.investigation ? investigationShell(jobView.job) : jobView.job ? renderJobDetail(jobView.job) : renderJobList(jobView)}</div>`;
   mount(`<nav class="breadcrumb" aria-label="Breadcrumb"><a href="#projects">Projects</a><span aria-hidden="true">/</span><span>${e(project.name)}</span></nav>
     <div class="page-heading project-heading"><div><p class="eyebrow">Private project</p><h1>${e(project.name)}</h1>${project.description ? `<p class="muted project-description">${e(project.description)}</p>` : ''}</div><span class="pill">Private to your account</span></div>
     <nav class="project-nav" aria-label="Project">${tabs.map(([key, label]) => `<a href="#project/${e(project.id)}/${key}" ${key === section ? 'aria-current="page"' : ''}>${label}</a>`).join('')}</nav><p id="job-poll-status" class="job-feedback" role="status" hidden></p>${content}`, `${project.name} · ${tabs.find(([key]) => key === section)[1]}`, true);
   const pending = experimentView?.experiment && submissions.get(submissionIdentity());
   if (pending?.inFlight) app.querySelector('[data-action="launch-job"]')?.setAttribute('disabled', '');
+  if (jobView?.investigation) investigationView = mountInvestigation(app.querySelector('#investigation-content'), { api, job: jobView.job, onSessionExpired: expireSession });
 }
 
 function routeError(error) {
@@ -244,6 +249,8 @@ async function renderRoute() {
   const id = ++navigation;
   controller?.abort();
   jobPoller?.stop();
+  investigationView?.destroy();
+  investigationView = null;
   controller = new AbortController();
   currentProject = null;
   experimentView = null;
@@ -291,7 +298,7 @@ async function renderRoute() {
       } else if (route.section === 'results') {
         const value = await api.request(`/projects/${route.id}/jobs${route.jobId ? `/${route.jobId}` : ''}`, { signal: controller.signal });
         if (id !== navigation) return;
-        jobView = value;
+        jobView = { ...value, investigation: Boolean(route.investigation) };
       }
       currentProject = resource.project;
       renderProject(currentProject, route.section);
@@ -435,6 +442,7 @@ function selectedJobs(view = experimentView) {
 }
 
 function startJobPolling(route, routeId) {
+  if (route.investigation) return;
   const detail = route.section === 'results' && route.jobId;
   const revision = route.section === 'experiments' && route.experimentId;
   if (!detail && !revision && route.section !== 'results') return;

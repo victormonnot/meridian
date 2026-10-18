@@ -18,6 +18,8 @@
 !src/meridian/vio_job_evaluation.py
 !src/meridian/vio_job_control.py
 !src/meridian/vio_runtime_identity.py
+!src/meridian/vio_investigation.py
+!src/meridian/vio_investigation_metrics.py
 !web/
 !web/package.json
 !web/package-lock.json

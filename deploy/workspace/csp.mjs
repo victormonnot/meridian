@@ -20,7 +20,7 @@ const policy = [
   "default-src 'none'", `script-src 'self' ${[...hashes.script].join(' ')}`,
   `style-src 'self' ${[...hashes.style].join(' ')}`,
   "script-src-attr 'none'", "style-src-attr 'none'", "connect-src 'self'",
-  "font-src 'self'", "img-src 'self' data:", "base-uri 'none'",
+  "font-src 'self'", "img-src 'self' data: blob:", "base-uri 'none'",
   "form-action 'self'", "frame-ancestors 'none'", "object-src 'none'",
 ].join('; ');
 writeFileSync(output, [

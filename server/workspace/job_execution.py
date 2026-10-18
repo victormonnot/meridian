@@ -16,6 +16,7 @@ import os
 from pathlib import Path
 import re
 import selectors
+import shutil
 import stat
 import subprocess
 import time
@@ -24,6 +25,7 @@ from uuid import UUID
 from meridian import vio_reference as reference
 from meridian.vio_job_control import AttemptCancelled, AttemptLeaseLost
 from meridian.vio_evaluation import read_trajectory
+from meridian.vio_investigation import build_image_index, validate_investigation
 from meridian.vio_specification import specification_sha256, validate_specification
 
 
@@ -116,7 +118,8 @@ def _canonical(value: dict) -> bytes:
 def _allowed_files(specification: dict) -> set[str]:
     return {"trajectory.csv", "status.json", "evaluation.json", "run-spec.json",
             "experiment-specification.json", "runner.log", "evaluation.log", "result.json",
-            "dependency-versions.txt", "binary-sha256.txt", "hosting-policy.json"} | {
+            "dependency-versions.txt", "binary-sha256.txt", "hosting-policy.json",
+            "investigation.json", "image-index.json"} | {
                 "config-" + name for name in specification["configuration"]["rendered_files"]}
 
 
@@ -131,7 +134,7 @@ def _check_directory(directory: Path, allowed: set[str]) -> None:
             raise ExecutionFailure("resource_exhaustion")
 
 
-def _manifest(directory: Path, specification: dict, *, complete: bool) -> dict:
+def _manifest(directory: Path, specification: dict, *, complete: bool, investigation_validated=False) -> dict:
     files = {}
     allowed = _allowed_files(specification)
     if complete:
@@ -146,6 +149,8 @@ def _manifest(directory: Path, specification: dict, *, complete: bool) -> dict:
         if path.name not in allowed or not stat.S_ISREG(metadata.st_mode) or metadata.st_nlink != 1:
             continue
         if not complete and path.name in {"trajectory.csv", "evaluation.json"}:
+            continue
+        if not complete and path.name in {"investigation.json", "image-index.json"} and not investigation_validated:
             continue
         if metadata.st_size > MAX_ARTIFACT_BYTES or total + metadata.st_size > MAX_ARTIFACT_BYTES:
             continue
@@ -167,6 +172,8 @@ class _Controller:
         self.configuration_parent = configuration_parent
         self.phase = "preparing"
         self.allowed = _allowed_files(specification)
+        self.investigation_validated = False
+        self.investigation_run_state = None
 
     def checkpoint(self, phase, progress):
         self.phase = phase
@@ -264,7 +271,7 @@ class _Controller:
             raise ExecutionFailure("infrastructure_failure" if code in {125, 126, 127} else "numerical_failure")
         return code
 
-    def evaluate(self, estimate, ground_truth, *, expected_timestamps_ns, **options):
+    def evaluate(self, estimate, ground_truth, *, expected_timestamps_ns, run_state="complete", **options):
         self.checkpoint("evaluating", {})
         parent = self.configuration_parent
         request_path = parent / "evaluation-request.json"
@@ -274,23 +281,88 @@ class _Controller:
             "max_estimate_timestamp_error_ns": options.get("max_estimate_timestamp_error_ns", 1000),
             "evaluator_sha256": self.specification["evaluation"]["evaluator_sha256"],
         })
+        prepared = ground_truth.parent.parent
+        manifest_path = prepared / "manifest.json"
+        if reference._sha(manifest_path) != self.specification["dataset"]["prepared_manifest_sha256"]:
+            raise ExecutionFailure("invalid_input")
+        manifest = reference._parse_json(manifest_path.read_text())
+        for filename in ("investigation.json", "image-index.json"):
+            if (self.staging / filename).exists() or (self.staging / filename).is_symlink():
+                raise ExecutionFailure("numerical_failure")
+        investigation_request = {
+            "schema_version": 1, "specification_sha256": specification_sha256(self.specification),
+            "dataset_manifest_sha256": self.specification["dataset"]["prepared_manifest_sha256"],
+            "dataset_id": self.specification["dataset"]["id"],
+            "expected_timestamps_ns": expected_timestamps_ns,
+            "evaluator_sha256": self.specification["evaluation"]["evaluator_sha256"],
+            "reference_sha256": self.specification["dataset"]["reference_sha256"],
+            "imu_sha256": manifest["files"]["sensors/mav0/imu0/data.csv"]["sha256"],
+            "license": manifest["license"], "run_state": run_state,
+        }
+        investigation_request_path = parent / "investigation-request.json"
+        reference._json(investigation_request_path, investigation_request)
+        image_index = build_image_index(manifest, expected_timestamps_ns,
+                                       specification_sha256=specification_sha256(self.specification),
+                                       dataset_manifest_sha256=self.specification["dataset"]["prepared_manifest_sha256"])
         destination = parent / "evaluation-output"
         destination.mkdir()
         limits = {"cpus": 0.5, "memory_mb": 512, "pids": 64, "tmp_mb": 32}
         command = ["docker", "run", *reference._container_options(limits), "--entrypoint", "python"]
         for source, target in ((estimate, "/inputs/estimate.csv"),
                                (ground_truth, "/inputs/reference.csv"),
-                               (request_path, "/inputs/request.json")):
+                               (request_path, "/inputs/request.json"),
+                               (prepared / "sensors/mav0/imu0/data.csv", "/inputs/imu.csv"),
+                               (self.staging / "status.json", "/inputs/native-status.json"),
+                               (investigation_request_path, "/inputs/investigation-request.json")):
             command += reference._mount(source, target, readonly=True)
         command += reference._mount(destination, "/evaluation", readonly=False)
         command += [self.evaluation_image, "-m", "meridian.vio_job_evaluation", "--estimate",
                     "/inputs/estimate.csv", "--reference", "/inputs/reference.csv", "--request",
-                    "/inputs/request.json", "--output", "/evaluation/evaluation.json"]
+                    "/inputs/request.json", "--output", "/evaluation/evaluation.json",
+                    "--imu", "/inputs/imu.csv", "--native-status", "/inputs/native-status.json",
+                    "--investigation-request", "/inputs/investigation-request.json",
+                    "--investigation-output", "/evaluation/investigation.json"]
         code, _ = self._supervise(command, "evaluation", 120, self.staging / "evaluation.log")
         if code:
             raise ExecutionFailure("infrastructure_failure" if code in {125, 126, 127} else "numerical_failure")
-        _check_directory(destination, {"evaluation.json"})
-        return reference._parse_json((destination / "evaluation.json").read_text())
+        _check_directory(destination, {"evaluation.json", "investigation.json"})
+        evaluation = reference._parse_json((destination / "evaluation.json").read_text())
+        investigation = reference._parse_json((destination / "investigation.json").read_text())
+        validate_investigation(investigation, request=investigation_request, evaluation=evaluation,
+                               trajectory_sha256=reference._sha(estimate))
+        if len(investigation["imu"]["samples"]) != self.specification["interval"]["imu_samples"]:
+            raise ExecutionFailure("numerical_failure")
+        shutil.copyfile(destination / "investigation.json", self.staging / "investigation.json")
+        reference._json(self.staging / "image-index.json", image_index)
+        _check_directory(self.staging, self.allowed)
+        self.investigation_validated = True
+        self.investigation_run_state = run_state
+        return evaluation
+
+    def salvage_investigation(self, prepared):
+        """Retain valid partial outputs after native failure, without a success result."""
+        _check_directory(self.staging, self.allowed)
+        trace = read_trajectory(self.staging / "trajectory.csv")
+        status = reference._parse_json((self.staging / "status.json").read_text())
+        if (type(status.get("schema_version")) is not int or status["schema_version"] != 1
+                or status.get("state") not in {"failed", "uninitialized"}
+                or status.get("orientation") != "Hamilton xyzw, IMU-body to local-world"
+                or status.get("counts", {}).get("trajectory_states") != len(trace.timestamp_ns)):
+            raise ExecutionFailure("numerical_failure")
+        manifest = reference._parse_json((prepared / "manifest.json").read_text())
+        camera_csv = prepared / "sensors/mav0/cam0/data.csv"
+        if reference._sha(camera_csv) != manifest["files"]["sensors/mav0/cam0/data.csv"]["sha256"]:
+            raise ExecutionFailure("invalid_input")
+        from meridian.vio_dataset import camera_timestamps_ns
+        expected = camera_timestamps_ns(prepared)
+        interval = self.specification["interval"]
+        if (len(expected) != interval["camera_pairs"] or str(expected[0]) != interval["first_camera_timestamp_ns"]
+                or str(expected[-1]) != interval["last_camera_timestamp_ns"]):
+            raise ExecutionFailure("invalid_input")
+        self.evaluate(self.staging / "trajectory.csv", prepared / "reference/trajectory.csv",
+                      expected_timestamps_ns=expected, run_state="partial",
+                      max_reference_gap_ns=self.specification["evaluation"]["maximum_reference_bracket_ns"],
+                      max_estimate_timestamp_error_ns=self.specification["evaluation"]["maximum_estimate_timestamp_error_ns"])
 
 
 def _summary(directory, run, manifest):
@@ -429,6 +501,8 @@ def execute_attempt(specification, prepared: Path, staging: Path, *, attempt_id:
         # A successful process exit is insufficient: the independent reader,
         # manifest, saved specification and evaluator have all been validated.
         _validate_completed(staging, run, specification)
+        if not controller.investigation_validated:
+            raise ExecutionFailure("numerical_failure")
         manifest = _manifest(staging, specification, complete=True)
         result = _summary(staging, run, manifest)
         _canonical(result)
@@ -441,6 +515,18 @@ def execute_attempt(specification, prepared: Path, staging: Path, *, attempt_id:
         outcome = "cancelled"
     except ExecutionFailure as error:
         failure = error.code
+        if (controller is not None and controller.phase == "running"
+                and failure in {"initialization_failure", "numerical_failure"}):
+            try:
+                controller.salvage_investigation(Path(prepared))
+            except AttemptLeaseLost:
+                raise
+            except AttemptCancelled:
+                failure, outcome = "cancelled", "cancelled"
+            except (ExecutionFailure, OSError, ValueError, TypeError, KeyError, subprocess.SubprocessError):
+                # Keep the original native failure. Unvalidated diagnostics do
+                # not enter the published failure manifest.
+                controller.investigation_validated = False
     except (ValueError, TypeError, KeyError, UnicodeError):
         failure = "numerical_failure" if controller is not None and controller.phase != "preparing" else "invalid_input"
     except (OSError, subprocess.SubprocessError):
@@ -451,6 +537,9 @@ def execute_attempt(specification, prepared: Path, staging: Path, *, attempt_id:
         outcome, failure = "failed", "infrastructure_failure"
     if outcome != "succeeded":
         return {"state": outcome, "failure": {"code": failure, "message": _MESSAGES[failure]},
-                "result": None, "manifest": (_manifest(staging, specification, complete=False)
+                "result": None, "manifest": (_manifest(staging, specification, complete=False,
+                    investigation_validated=(controller is not None and controller.investigation_validated
+                                              and controller.investigation_run_state == "partial"
+                                              and outcome == "failed" and cleaned))
                                                if valid_specification else {"schema_version": 1, "files": {}})}
     return {"state": outcome, "failure": None, "result": result, "manifest": manifest}

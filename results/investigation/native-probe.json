@@ -1,0 +1,133 @@
+{
+  "completed_at": "2026-10-18T19:43:37.024498+00:00",
+  "evaluation_image": "sha256:e7daa227dc789959d0285f692f4438434056b7a21809f3cd0fecb24633ec9302",
+  "failure": null,
+  "full_interval": {
+    "alignment_scope": "full_recording_global_se3_unchanged",
+    "counts": {
+      "associated_camera_samples": 2624,
+      "estimate_samples": 2689,
+      "evaluated_camera_samples": 2624,
+      "expected_camera_samples": 2821,
+      "reference_supported_camera_samples": 2756
+    },
+    "coverage_fraction": 0.9532080822403403,
+    "evaluated_fraction": 0.9301666075859625,
+    "evaluated_reference_fraction": 0.9521044992743106,
+    "interval": {
+      "boundary": "closed",
+      "end_time_s": 141.004463474,
+      "end_timestamp_ns": "1520530449203911100",
+      "first_camera_index": 0,
+      "last_camera_index": 2820,
+      "start_time_s": 0.0,
+      "start_timestamp_ns": "1520530308199447626"
+    },
+    "metrics": {
+      "ate_rmse_m": 0.0612163695742259,
+      "orientation_error_max_deg": 4.307316076259924,
+      "orientation_error_mean_deg": 1.2005629690623145,
+      "orientation_rmse_deg": 1.3255413925517476,
+      "orientation_rmse_rad": 0.023135061671498636,
+      "position_error_max_m": 0.109949022489596,
+      "position_error_mean_m": 0.05697479331128086
+    },
+    "protocol": {
+      "alignment": "global_se3_least_squares_over_all_evaluated_positions",
+      "estimate_interpolation": false,
+      "initialization_delay_definition": "first_estimated_camera_timestamp_minus_first_expected_timestamp",
+      "initialization_exclusion": "none",
+      "max_estimate_timestamp_error_ns": 1000,
+      "max_reference_gap_ns": 20000000,
+      "name": "meridian-vio-se3",
+      "quaternion_convention": "Hamilton_xyzw_body_to_world",
+      "reference_association": "linear_position_shortest_arc_slerp_without_extrapolation",
+      "removed_gauge": "constant_world_rotation_including_roll_pitch_yaw_and_translation",
+      "scale_fitted": false,
+      "time_offset_fitted": false,
+      "version": 1,
+      "weighting": "equal_weight_per_evaluated_camera_sample"
+    },
+    "reference_coverage_fraction": 0.9769585253456221,
+    "schema_version": 1,
+    "status": "ok"
+  },
+  "image_index_bytes": 1561046,
+  "investigation_bytes": 7871455,
+  "investigation_sha256": "7410e781dbc3ef691e850584d9db2752caf5bad722cdf87a4d2bd482d0959374",
+  "method": "Standalone native execution and isolated evaluation; separate from the HTTP/queue/browser deployment checks.",
+  "passed": true,
+  "result": {
+    "artifacts": {
+      "file_count": 18,
+      "manifest_sha256": "3201ea5163c5ba4ae1382d4d6ecc14c4c066ab850732c27da8a1295f03ee1b7f",
+      "total_bytes": 11182520
+    },
+    "evaluation": {
+      "counts": {
+        "estimate_samples": 2689,
+        "evaluated_camera_samples": 2624,
+        "expected_camera_samples": 2821,
+        "missing_initial_camera_samples": 132,
+        "missing_interior_camera_samples": 0,
+        "missing_trailing_camera_samples": 0,
+        "reference_samples": 16541,
+        "reference_supported_camera_samples": 2756
+      },
+      "coverage_fraction": 0.9532080822403403,
+      "evaluated_fraction": 0.9301666075859625,
+      "initialization_delay_s": 6.600339685000001,
+      "metrics": {
+        "ate_rmse_m": 0.0612163695742259,
+        "orientation_error_max_deg": 4.307316076259924,
+        "orientation_error_mean_deg": 1.2005629690623147,
+        "orientation_rmse_deg": 1.3255413925517476,
+        "orientation_rmse_rad": 0.023135061671498636,
+        "position_error_max_m": 0.109949022489596,
+        "position_error_mean_m": 0.05697479331128086
+      },
+      "protocol": {
+        "alignment": "global_se3_least_squares_over_all_evaluated_positions",
+        "estimate_interpolation": false,
+        "initialization_delay_definition": "first_estimated_camera_timestamp_minus_first_expected_timestamp",
+        "initialization_exclusion": "none",
+        "max_estimate_timestamp_error_ns": 1000,
+        "max_reference_gap_ns": 20000000,
+        "name": "meridian-vio-se3",
+        "quaternion_convention": "Hamilton_xyzw_body_to_world",
+        "reference_association": "linear_position_shortest_arc_slerp_without_extrapolation",
+        "removed_gauge": "constant_world_rotation_including_roll_pitch_yaw_and_translation",
+        "scale_fitted": false,
+        "time_offset_fitted": false,
+        "version": 1,
+        "weighting": "equal_weight_per_evaluated_camera_sample"
+      },
+      "reference_coverage_fraction": 0.9769585253456221,
+      "status": "ok"
+    },
+    "execution": {
+      "container_wall_seconds": 46.600133765001374,
+      "native_cpu_seconds": 46.095273,
+      "native_peak_rss_kib": 81804,
+      "native_wall_seconds": 46.155835644
+    },
+    "qualification": {
+      "checks": {
+        "estimate_coverage": true,
+        "evaluated_coverage": true,
+        "evaluated_samples": true,
+        "evaluation_ok": true,
+        "initialization_delay": true,
+        "orientation_error": true,
+        "position_error": true,
+        "reference_coverage": true
+      },
+      "passed": true
+    },
+    "schema_version": 1
+  },
+  "schema_version": 1,
+  "started_at": "2026-10-18T19:42:11.929521+00:00",
+  "state": "succeeded",
+  "trajectory_sha256": "d2a59ed328807d54af0a930006b7c2e850998c2dc7d6f89debd1c195ca4ed764"
+}

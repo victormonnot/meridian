@@ -1,0 +1,146 @@
+{
+  "all_release_source_hashes_verified": true,
+  "api": {
+    "cgroup_memory": {
+      "current_bytes": 153870336,
+      "events": {
+        "high": 0,
+        "low": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_group_kill": 0,
+        "oom_kill": 0,
+        "sock_throttled": 0
+      },
+      "limit_bytes": 536870912,
+      "peak_bytes": 171675648,
+      "scope": "API container cgroup since this release container was created, including startup and prior requests; not an isolated per-request measurement."
+    },
+    "docker_cli_available": false,
+    "docker_socket_present": false,
+    "metrics_module_sha256": "8c04325c8ac8804987ea2911ce3629a9c8a28417beefd39b2541bbcb2b77b736",
+    "numpy_available": false,
+    "readonly_bind_count": 3,
+    "readonly_input_roles": [
+      "published attempt artifacts",
+      "prepared cam0 image files",
+      "prepared cam1 image files"
+    ]
+  },
+  "checked_at_utc": "2026-10-18T19:55:50.332991+00:00",
+  "cleanup": {
+    "aggregate_budgets_preserved": true,
+    "artifact_root_entries": 0,
+    "compute_children": 0,
+    "deleted_counts": {
+      "account_budget_windows": 5,
+      "attempts": 1,
+      "experiments": 1,
+      "jobs": 2,
+      "projects": 1,
+      "revisions": 1,
+      "sessions": 4,
+      "users": 4
+    },
+    "exact_qa_account_deletion": true,
+    "remaining_exact_accounts": 0,
+    "remaining_exact_artifact_jobs": 0,
+    "remaining_exact_scratch_attempts": 0,
+    "scratch_root_entries": 0
+  },
+  "database": {
+    "container_identity_preserved": true,
+    "image_preserved": true,
+    "migrations_unchanged": true,
+    "mounts_and_volume_preserved": true,
+    "start_time_preserved": true
+  },
+  "execution_isolation": {
+    "actual_native_and_evaluator_inspected": true,
+    "application_credentials": false,
+    "docker_socket": false,
+    "evaluator_cpus": 0.5,
+    "evaluator_memory_bytes": 536870912,
+    "evaluator_readonly_input_files": 6,
+    "evidence": "child-isolation.json",
+    "native_cpus": 2,
+    "native_memory_bytes": 4294967296,
+    "native_reference_access": false,
+    "network": "none"
+  },
+  "network": {
+    "all_existing_applications_https_200": true,
+    "existing_application_count_checked": 3,
+    "meridian_https_status": 200,
+    "staging_ipv4_unchanged": true
+  },
+  "release": {
+    "api_image": "meridian-workspace-api:20261018-8230e773705d",
+    "api_image_id": "sha256:551305c8581ca00c9bd873e86b9e967f3a8d676b5c15732513dd44471444428c",
+    "bundle_sha256": "8230e773705d6dcf4d637a6b8a8c0d2b0e00902b7f8c7777f0acf6ae4a1d445a",
+    "domain": "meridian.151.80.144.150.sslip.io",
+    "native_image_id": "sha256:54863f14d9f92d2805f5fddcfb78d146c6aac2ad77dc348e304059e2252a400a",
+    "prepared_manifest_sha256": "e55f0480533611fc1e198d16b181814a8d34752cb748becbfeec7bcb4908ba6d",
+    "release": "20261018-8230e773705d",
+    "scratch_capacity_bytes": 134217728,
+    "web_image": "meridian-workspace-web:20261018-8230e773705d",
+    "web_image_id": "sha256:1ff6e1c7f421b13d60027a3294531eb94f551588aa1d5fe4d40cbf39835f083f",
+    "worker_image": "meridian-workspace-worker:20261018-8230e773705d",
+    "worker_image_id": "sha256:b6a38145641c749c83e689601bbcf3ecaaedcc5bb0a8a2a0ec5f26fb74e136ae"
+  },
+  "schema_version": 1,
+  "scratch": {
+    "capacity_bytes": 134217728,
+    "filesystem": "tmpfs",
+    "used_bytes": 0
+  },
+  "services": {
+    "api": {
+      "health": "healthy",
+      "memory_bytes": 536870912,
+      "nano_cpus": 750000000
+    },
+    "db": {
+      "health": "healthy",
+      "memory_bytes": 536870912,
+      "nano_cpus": 500000000
+    },
+    "web": {
+      "health": "healthy",
+      "memory_bytes": 134217728,
+      "nano_cpus": 250000000
+    },
+    "worker": {
+      "health": "healthy",
+      "memory_bytes": 536870912,
+      "nano_cpus": 250000000
+    }
+  },
+  "source_file_count": 76,
+  "worker": {
+    "health": "healthy",
+    "recent_healthchecks": [
+      {
+        "duration_s": 22.402124,
+        "exit_code": 0
+      },
+      {
+        "duration_s": 17.892167,
+        "exit_code": 0
+      },
+      {
+        "duration_s": 9.207798,
+        "exit_code": 0
+      },
+      {
+        "duration_s": 9.701029,
+        "exit_code": 0
+      },
+      {
+        "duration_s": 9.28615,
+        "exit_code": 0
+      }
+    ],
+    "restart_count": 0
+  }
+}

@@ -1,0 +1,133 @@
+{
+  "actual_child_inspection": [
+    {
+      "actual_execution_image": "sha256:e7daa227dc789959d0285f692f4438434056b7a21809f3cd0fecb24633ec9302",
+      "cap_drop": [
+        "ALL"
+      ],
+      "environment_variable_names": [
+        "OMP_NUM_THREADS",
+        "OPENBLAS_NUM_THREADS",
+        "PATH",
+        "LANG",
+        "GPG_KEY",
+        "PYTHON_VERSION",
+        "PYTHON_SHA256",
+        "PYTHONDONTWRITEBYTECODE",
+        "PYTHONUNBUFFERED",
+        "PIP_DISABLE_PIP_VERSION_CHECK",
+        "PYTHONPATH"
+      ],
+      "log_driver": "none",
+      "memory_bytes": 536870912,
+      "mounts": [
+        {
+          "destination": "/inputs/reference.csv",
+          "read_write": false,
+          "type": "bind"
+        },
+        {
+          "destination": "/inputs/request.json",
+          "read_write": false,
+          "type": "bind"
+        },
+        {
+          "destination": "/inputs/imu.csv",
+          "read_write": false,
+          "type": "bind"
+        },
+        {
+          "destination": "/inputs/native-status.json",
+          "read_write": false,
+          "type": "bind"
+        },
+        {
+          "destination": "/inputs/investigation-request.json",
+          "read_write": false,
+          "type": "bind"
+        },
+        {
+          "destination": "/evaluation",
+          "read_write": true,
+          "type": "bind"
+        },
+        {
+          "destination": "/inputs/estimate.csv",
+          "read_write": false,
+          "type": "bind"
+        }
+      ],
+      "nano_cpus": 500000000,
+      "network": "none",
+      "pids_limit": 64,
+      "privileged": false,
+      "read_only_rootfs": true,
+      "security_options": [
+        "no-new-privileges"
+      ],
+      "tmpfs": {
+        "/tmp": "rw,noexec,nosuid,size=32m"
+      },
+      "ulimits": [
+        {
+          "Hard": 33554432,
+          "Name": "fsize",
+          "Soft": 33554432
+        }
+      ],
+      "user": "10001:10001"
+    }
+  ],
+  "completed_at": "2026-10-18T19:45:19.092327+00:00",
+  "evaluation_image": "sha256:e7daa227dc789959d0285f692f4438434056b7a21809f3cd0fecb24633ec9302",
+  "frames": 2821,
+  "full_interval": {
+    "alignment_scope": "full_recording_global_se3_unchanged",
+    "counts": {
+      "associated_camera_samples": 0,
+      "estimate_samples": 0,
+      "evaluated_camera_samples": 0,
+      "expected_camera_samples": 2821,
+      "reference_supported_camera_samples": 2756
+    },
+    "coverage_fraction": 0.0,
+    "evaluated_fraction": 0.0,
+    "evaluated_reference_fraction": 0.0,
+    "interval": {
+      "boundary": "closed",
+      "end_time_s": 141.004463474,
+      "end_timestamp_ns": "1520530449203911100",
+      "first_camera_index": 0,
+      "last_camera_index": 2820,
+      "start_time_s": 0.0,
+      "start_timestamp_ns": "1520530308199447626"
+    },
+    "metrics": null,
+    "protocol": {
+      "alignment": "global_se3_least_squares_over_all_evaluated_positions",
+      "estimate_interpolation": false,
+      "initialization_delay_definition": "first_estimated_camera_timestamp_minus_first_expected_timestamp",
+      "initialization_exclusion": "none",
+      "max_estimate_timestamp_error_ns": 1000,
+      "max_reference_gap_ns": 20000000,
+      "name": "meridian-vio-se3",
+      "quaternion_convention": "Hamilton_xyzw_body_to_world",
+      "reference_association": "linear_position_shortest_arc_slerp_without_extrapolation",
+      "removed_gauge": "constant_world_rotation_including_roll_pitch_yaw_and_translation",
+      "scale_fitted": false,
+      "time_offset_fitted": false,
+      "version": 1,
+      "weighting": "equal_weight_per_evaluated_camera_sample"
+    },
+    "reference_coverage_fraction": 0.9769585253456221,
+    "schema_version": 1,
+    "status": "global_alignment_unavailable"
+  },
+  "imu_samples": 28122,
+  "investigation_bytes": 6491790,
+  "investigation_sha256": "9c4cfc32f033c645500c1bea1dc6986fdc7bd7e93a96bd4477d3568c44b8081a",
+  "method": "Actual isolated evaluator container and adapter salvage on a synthetic empty trajectory; no native failure was induced or claimed.",
+  "passed": true,
+  "schema_version": 1,
+  "started_at": "2026-10-18T19:45:14.495356+00:00"
+}

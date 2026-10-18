@@ -72,13 +72,16 @@ the queue does not release that slot on an unverified cleanup.
 
 The worker is a trusted infrastructure component with access to the Docker daemon.
 That access is equivalent to host administration; it is not an arbitrary-code
-sandbox. The HTTP container has no Docker client/socket, numerical dependencies,
-sensor files or artifact mount. Only the maintained reference is executable.
+sandbox. The HTTP container has no Docker client/socket or numerical dependencies.
+The optional [investigation overlay](vio-investigation.md) mounts published files
+and the two camera directories read-only for authenticated access; raw IMU,
+reference and scratch directories remain unavailable to HTTP. Only the maintained
+reference is executable.
 
 | Component | Limits and access |
 | --- | --- |
 | Native estimator | Non-root; 2 CPU, 4096 MiB, no swap allowance, 128 processes, 900 seconds; read-only root and sensor/config mounts; no network, service secrets or reference trajectory. |
-| Independent evaluator | Separate container; 0.5 CPU, 512 MiB, 64 processes, 120 seconds; no network, secrets or Docker socket; only required estimates, timeline and reference inputs. |
+| Independent evaluator | Separate container; 0.5 CPU, 512 MiB, 64 processes, 120 seconds; no network, secrets or Docker socket; only explicit estimates, reference, requests, IMU and native-status inputs, without camera images. |
 | Worker | Non-root trusted orchestrator; 0.25 CPU, 512 MiB; private database network and operator-provisioned storage. |
 | Scratch | Dedicated host tmpfs, 128 MiB total, shared at identical paths with child containers. Startup refuses a missing or incorrectly bounded mount. |
 | Logs and artifacts | Each supervised process log is capped at 2 MiB; Docker log storage is disabled for compute children. Validated artifacts are capped at 32 MiB per attempt. |
@@ -129,7 +132,9 @@ remain until explicit deletion, subject to the retained-record quotas. The worke
 collects expired/orphaned files during its polling loop; deletion is deferred while
 it is stopped or busy. This is application retention, not a qualified backup or
 restoration service. Independent downloadable reproduction packages remain a
-later increment; the current browser exposes the persisted execution summary.
+later increment; the browser exposes persisted execution summaries and retained
+[investigation evidence](vio-investigation.md), including valid partial outputs
+when independent evaluation is possible. The job's failure state is preserved.
 
 [Validation evidence](../results/jobs/README.md) separates automated failure
 fixtures, actual local crash recovery and deployed browser/native checks.

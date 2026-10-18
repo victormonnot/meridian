@@ -10,12 +10,14 @@ The [project workspace](docs/hosted-workspace.md) adds accounts, private project
 reference-data metadata and versioned VIO configurations.
 [Durable VIO jobs](docs/hosted-vio-jobs.md) execute the maintained reference in
 isolated containers and retain independently evaluated results.
+[Synchronized investigation](docs/vio-investigation.md) links camera images,
+IMU measurements, trajectories and full-resolution interval metrics.
 
 The repository also contains the original single-axis roll/bias study: Python
 and C++ filters, simulations, and recorded IMU replay. Its static explorer remains
 available below. The VIO reference supports both hosted jobs and local execution.
 
-![Meridian hosted VIO job showing a completed OpenVINS execution and independently evaluated trajectory metrics](docs/media/jobs.png)
+![Meridian synchronized VIO investigation showing original stereo images, interval metrics and aligned trajectory projections](docs/media/investigation.png)
 
 *An actual hosted computation on TUM-VI room1, with a fictional test account
 and project. [Screenshot details](docs/media/README.md).*
@@ -30,8 +32,8 @@ estimation without reliable GNSS. It covers estimator development, external
 implementations, and automated engineering workflows. The
 [local VIO reference](docs/vio-reference.md), private project workspace and
 [versioned experiments](docs/versioned-experiments.md) underpin the hosted
-execution workflow. Synchronized investigation, run comparison, independent
-exports and broader estimator development remain planned.
+execution and investigation workflow. Run comparison, independent exports and
+broader estimator development remain planned.
 
 The hosted preview uses a temporary HTTPS address. Password recovery and
 recording uploads remain unavailable. The [initial workspace report](results/workspace/README.md)
@@ -48,6 +50,8 @@ records execution, recovery and the maintained room1 profile.
   unchanged to the local reference runner.
 - Durable VIO jobs with immutable input snapshots, idempotent submission,
   cancellation, bounded recovery, isolated evaluation and persistent metrics.
+- A shared investigation timeline for stereo images, IMU, trajectory, attitude,
+  error and coverage, with interval scores that preserve the global alignment.
 - A pinned, ROS-free OpenVINS reference running real TUM-VI stereo/IMU inputs
   in an isolated container, with independent evaluation, provenance and
   [three repeatable qualification runs](results/vio-reference/README.md).
@@ -100,6 +104,7 @@ The simulations include known motion for comparison; the historical log does not
 
 | Study | What it looks at |
 | --- | --- |
+| [Synchronized VIO investigation](results/investigation/README.md) | Original stereo images, input IMU, aligned poses, missing support and full-resolution interval metrics for retained executions. |
 | [Durable VIO jobs](results/jobs/README.md) | Persistent execution, isolated evaluation, cancellation, worker recovery and hosted validation. |
 | [Versioned experiment validation](results/experiments/README.md) | Immutable configurations, concurrent edits, browser workflows and unchanged API specifications executed by the local VIO runner. |
 | [Hosted workspace validation](results/workspace/README.md) | Authentication, project ownership, browser behavior and deployment persistence. |

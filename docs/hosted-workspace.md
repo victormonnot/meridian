@@ -18,15 +18,18 @@ roll explorer remains at `web/index.html`. The deployment serves the workspace
 at `/`, the original explorer at `/index.html`, and the metadata API at `/api/v1`.
 Projects expose Data, Experiments, Results and Settings views. Experiments contain
 saved configurations and history. Results lists persisted jobs, execution
-attempts, failures and validated metric summaries.
+attempts, failures and validated metric summaries. Retained evidence opens a
+[synchronized investigation](vio-investigation.md) of images, IMU, poses and errors.
 
 Django 5.2 LTS supplies authentication, password validation/hashing, server-side
 sessions, CSRF protection and database migrations. This replaces the earlier
 FastAPI candidate for the initial metadata service. PostgreSQL persists accounts,
 sessions, projects, experiments, jobs, attempts and submission/authentication budgets. The HTTP service
-imports only the shared standard-library specification contract from the numerical
-package. The API image contains neither the VIO runtime nor sensor recordings,
-Docker access, host repositories or private notes.
+imports only the shared standard-library specification and interval-summary
+contracts from the numerical package. The API image has no VIO runtime, NumPy,
+Docker access, host repositories or private notes. An optional deployment overlay
+mounts only published artifacts and prepared camera directories read-only for
+authenticated investigation; raw IMU and reference files remain outside HTTP.
 
 The reference catalog describes the exact calibrated TUM-VI room1 variant
 qualified in increment 1.1. It distinguishes motion-capture coverage from

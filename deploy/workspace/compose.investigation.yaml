@@ -1,0 +1,23 @@
+# Opt in to authenticated artifact/image inspection after preparing the reference
+# dataset. The metadata-only stack does not require these host directories.
+services:
+  api:
+    environment:
+      MERIDIAN_JOB_ARTIFACT_ROOT: ${MERIDIAN_JOB_ARTIFACT_ROOT:-/srv/meridian-workspace/jobs}
+      MERIDIAN_CAMERA_ROOT: ${MERIDIAN_CAMERA_ROOT:-/reference-cameras}
+    volumes:
+      - type: bind
+        source: ${MERIDIAN_JOB_ARTIFACT_ROOT:-/srv/meridian-workspace/jobs}
+        target: ${MERIDIAN_JOB_ARTIFACT_ROOT:-/srv/meridian-workspace/jobs}
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${MERIDIAN_VIO_PREPARED:-/srv/meridian-workspace/data/room1}/sensors/mav0/cam0/data
+        target: ${MERIDIAN_CAMERA_ROOT:-/reference-cameras}/cam0
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${MERIDIAN_VIO_PREPARED:-/srv/meridian-workspace/data/room1}/sensors/mav0/cam1/data
+        target: ${MERIDIAN_CAMERA_ROOT:-/reference-cameras}/cam1
+        read_only: true
+        bind: {create_host_path: false}

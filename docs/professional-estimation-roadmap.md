@@ -332,8 +332,8 @@ engineers. No source review establishes that any feature is unique.
 
 ## Decisions still required
 
-The remaining part 1 work builds investigation, comparison and independent
-reproduction on versioned configurations and durable VIO execution, then
+The remaining part 1 work builds comparison and independent reproduction on
+versioned configurations, durable VIO execution and synchronized investigation, then
 qualifies the complete hosted workflow. Preserve the evaluation protocol and
 reserved sequence. Numerical formulations,
 additional formats/sensors, and automation tasks will be specified with their

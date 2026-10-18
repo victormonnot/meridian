@@ -13,7 +13,9 @@ private projects and catalog metadata through a separate Vite entry point.
 configurations, immutable revisions and exact differences; their specification
 contract is shared with the local runner.
 [Durable hosted jobs](hosted-vio-jobs.md) add PostgreSQL scheduling, fenced
-attempts, a separate worker and independently evaluated VIO results. General
+attempts, a separate worker and independently evaluated VIO results.
+[Synchronized investigation](vio-investigation.md) adds retained full-resolution
+camera/IMU/pose evidence and interval scores under the same global alignment. General
 3D estimator development, broader visual-inertial development and engineering
 automation remain planned work.
 

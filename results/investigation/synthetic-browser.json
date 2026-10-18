@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "fixture": "Synthetic empty trajectory independently scored by isolated evaluator, plus injected expired timestamp on this fixture only; neither an observed native failure nor seven days of elapsed retention.",
+  "passed": true,
+  "checks": [
+    "partial artifact remains explicitly a failed run",
+    "synthetic project remains labeled in the actual page",
+    "unavailable global alignment is explicit",
+    "no empty pose is fabricated",
+    "no error score is fabricated",
+    "input IMU remains visible with timing caveat",
+    "raw and aligned worlds are not overlaid",
+    "reference support and missing output stay distinct",
+    "timestamp-injected expiry returns real410 and explicit expired state",
+    "expired access preserves failed job metadata and immediately disables investigation availability",
+    "no browser runtime errors"
+  ],
+  "errors": [],
+  "correction": "Initial metadata assertion incorrectly required asynchronous physical-file GC to be complete. Corrected assertion checks immediate investigation access revocation; fresh authenticated GET returned200, statefailed, investigation_availablefalse. Prior failed assertion report is preserved separately.",
+  "specification_sha256": "521227054edeac5226ec9ab25e6a9190475affc62c64ce96057b5402bbf73677"
+}

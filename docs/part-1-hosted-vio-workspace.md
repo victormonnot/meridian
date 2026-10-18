@@ -1,13 +1,15 @@
 # Part 1: hosted workspace and reference VIO workflow
 
-**Status: increments 1.1–1.4 completed by 2026-10-18; increments 1.5–1.8 remain planned.**
+**Status: increments 1.1–1.5 completed by 2026-10-18; increments 1.6–1.8 remain planned.**
 This plan details part 1 of the [development roadmap](professional-estimation-roadmap.md).
 The current [implementation](../README.md) includes the qualified
 [local VIO reference](../results/vio-reference/README.md), the original single-axis
 study and its static results explorer. The [project workspace](hosted-workspace.md)
 adds accounts, private projects, catalog metadata and versioned experiments.
 [Durable VIO jobs](hosted-vio-jobs.md) add isolated execution and independent
-evaluation of saved specifications.
+evaluation of saved specifications. [Synchronized investigation](vio-investigation.md)
+connects retained executions to stereo images, input IMU, poses, support and
+traceable interval metrics.
 
 ## Outcome and scope
 
@@ -88,8 +90,10 @@ queues work. A worker executes
 the approved estimator with sensor inputs only; a separate evaluation stage reads
 the resulting estimates and independent reference. Validated artifacts are
 published with hashes and an immutable manifest. The UI reads authorized job
-summaries and evaluated metrics; artifact-backed investigation and downloads
-belong to later increments.
+summaries and evaluated metrics. Increment 1.5 adds authenticated reads of
+manifest-verified investigation artifacts and original camera images, with a
+shared timeline and full-resolution interval scoring. Independent reproduction
+downloads remain planned for increment 1.7.
 
 Heavy computation must not run inside an HTTP request or rely on in-process
 background tasks for durability; the
@@ -129,7 +133,7 @@ under the documented retention policy.
 
 Every increment includes its relevant UI states, failure handling, checks, and
 documentation. Later integration testing does not defer those responsibilities.
-Increments 1.1–1.4 are complete; later increments remain pending.
+Increments 1.1–1.5 are complete; later increments remain pending.
 
 ### 1.1 — Executable reference and evaluation protocol
 
@@ -261,6 +265,12 @@ outputs, and quota enforcement have exercised failure paths. A zero process exit
 code alone cannot establish success. Ground truth is absent from estimator inputs.
 
 ### 1.5 — Investigation view and traceable metrics
+
+**Completed:** [investigation contract](vio-investigation.md) and
+[validation evidence](../results/investigation/README.md). The native estimator
+and qualified evaluation protocol are unchanged. Internal feature, bias,
+covariance, innovation and tracking diagnostics remain explicitly unavailable;
+the view reports observable output gaps and native initialization evidence.
 
 **Dependency:** 1.4 and the protocol fixed in 1.1.
 

@@ -36,10 +36,28 @@ def main(argv=None) -> int:
     parser.add_argument("--reference", type=Path, required=True)
     parser.add_argument("--request", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--imu", type=Path)
+    parser.add_argument("--native-status", type=Path)
+    parser.add_argument("--investigation-request", type=Path)
+    parser.add_argument("--investigation-output", type=Path)
     args = parser.parse_args(argv)
     try:
         request = json.loads(args.request.read_text(encoding="utf-8"))
         evaluation = evaluate_request(request, args.estimate, args.reference)
+        investigation_arguments = (args.imu, args.native_status, args.investigation_request, args.investigation_output)
+        if any(investigation_arguments):
+            if not all(investigation_arguments):
+                raise ValueError("Investigation requires all explicit input and output paths.")
+            from meridian.vio_investigation import build_investigation
+            investigation = build_investigation(
+                args.estimate, args.reference, args.imu,
+                request=json.loads(args.investigation_request.read_text(encoding="utf-8")),
+                evaluation=evaluation, native_status=json.loads(args.native_status.read_text(encoding="utf-8")))
+            temporary = args.investigation_output.with_name(".investigation.json.tmp")
+            with temporary.open("x", encoding="utf-8") as stream:
+                json.dump(investigation, stream, sort_keys=True, separators=(",", ":"), allow_nan=False)
+                stream.write("\n")
+            os.replace(temporary, args.investigation_output)
         temporary = args.output.with_name(".evaluation.json.tmp")
         with temporary.open("x", encoding="utf-8") as stream:
             json.dump(evaluation, stream, sort_keys=True, allow_nan=False)

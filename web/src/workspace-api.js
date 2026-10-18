@@ -11,12 +11,17 @@ export class ApiError extends Error {
 
 export function createApiClient(fetchImpl = globalThis.fetch) {
   let csrfToken = '';
+  const checkPath = path => {
+    if (!path.startsWith('/') || path.startsWith('//') || /[\\?#]/.test(path)) throw new TypeError('Invalid API path');
+  };
   return {
     setCsrfToken(value) { csrfToken = typeof value === 'string' ? value : ''; },
     async request(path, { method = 'GET', body, signal, query } = {}) {
       // API paths are application-owned. Never send session state to another origin.
-      if (!path.startsWith('/') || path.startsWith('//') || /[\\?#]/.test(path)) throw new TypeError('Invalid API path');
-      if (query && Object.values(query).some(value => !Number.isSafeInteger(value) || value < 1)) throw new TypeError('Query selectors must be positive integers');
+      checkPath(path);
+      if (query && Object.entries(query).some(([key, value]) => ['start_ns', 'end_ns'].includes(key)
+        ? typeof value !== 'string' || !/^(0|[1-9]\d{0,19})$/.test(value)
+        : !Number.isSafeInteger(value) || value < 1)) throw new TypeError('Invalid query selector');
       const headers = { Accept: 'application/json' };
       if (method !== 'GET') {
         headers['Content-Type'] = 'application/json';
@@ -37,6 +42,17 @@ export function createApiClient(fetchImpl = globalThis.fetch) {
       if (response.status !== 204 && payload?.schema_version !== 1) throw new ApiError(502, null);
       return payload;
     },
+    async image(path, { signal } = {}) {
+      checkPath(path);
+      const response = await fetchImpl(`/api/v1${path}`, { credentials: 'same-origin', cache: 'no-store', headers: { Accept: 'image/png' }, signal });
+      if (!response.ok) {
+        let payload;
+        try { payload = await response.json(); } catch { /* Proxy errors need not be JSON. */ }
+        throw new ApiError(response.status, payload);
+      }
+      if (response.headers.get('Content-Type')?.split(';')[0] !== 'image/png') throw new ApiError(502, null);
+      return response.blob();
+    },
   };
 }
 
@@ -47,8 +63,8 @@ export function escapeHtml(value) {
 export function parseRoute(hash) {
   if (!hash || hash === '#' || hash === '#projects') return { page: 'projects' };
   const uuid = '[a-f\\d]{8}-[a-f\\d]{4}-[a-f\\d]{4}-[a-f\\d]{4}-[a-f\\d]{12}';
-  const job = new RegExp(`^#project/(${uuid})/results/(${uuid})$`, 'i').exec(hash);
-  if (job) return { page: 'project', id: job[1], section: 'results', jobId: job[2] };
+  const job = new RegExp(`^#project/(${uuid})/results/(${uuid})(/investigation)?$`, 'i').exec(hash);
+  if (job) return { page: 'project', id: job[1], section: 'results', jobId: job[2], ...(job[3] ? { investigation: true } : {}) };
   const experiment = new RegExp(`^#project/(${uuid})/experiments/(${uuid})(?:/revisions/([1-9]\\d*))?$`, 'i').exec(hash);
   if (experiment) {
     const version = experiment[3] === undefined ? undefined : Number(experiment[3]);
