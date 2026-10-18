@@ -7,7 +7,7 @@ older run for the same ref.
 
 | Job | Environment | Checks |
 | --- | --- | --- |
-| Hosted workspace and PostgreSQL | Python 3.12, isolated PostgreSQL 17.11 | Install the separate server lock, check migration drift, then test authentication, ownership, immutable experiment revisions, validation and concurrent database limits. |
+| Hosted workspace and PostgreSQL | Python 3.12, isolated PostgreSQL 17.11 | Install the separate server lock, check migration drift, then test authentication, ownership, immutable experiment revisions, job submission/leases/publication, validation and concurrent database limits. |
 | Python and C++ | Python 3.12, C++17, CMake, Eigen | Install the Python and DataFlash locks, check dependency consistency, build Release targets, run native CTest checks, then the complete Python suite with the built replay executable. |
 | Web | Node.js 22 | Install from `web/package-lock.json`, run the Node tests, check the recorded parameter-study export, then build the Vite application. |
 
@@ -61,7 +61,7 @@ These commands were checked locally in fresh environments containing only a
 tracked-source snapshot. Hosted checks are recorded in the
 [GitHub Actions history](https://github.com/victormonnot/meridian/actions).
 
-The jobs exercise numerical behavior, Python/C++ agreement, synthetic log handling,
+The jobs exercise numerical behavior, Python/C++ agreement, compute-adapter failure fixtures, synthetic log handling,
 web data/logic, compilation and private project access. The workspace commands
 were also checked locally against PostgreSQL, including simultaneous requests.
 The linked Actions history records the outcome for each pushed revision.

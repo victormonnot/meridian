@@ -1,0 +1,4 @@
+# Queue worker and isolated evaluator; no plotting or test dependencies.
+-r server/requirements.lock
+# Same version as the qualified numerical environment in requirements.lock.
+numpy==2.5.3

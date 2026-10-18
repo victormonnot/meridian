@@ -1,0 +1,25 @@
+FROM docker:29.8.1-cli@sha256:018edbc908e08fcc9dbf029c812c34251e9b4719e6f71ca0e5eae2a987d014ca AS docker_cli
+FROM python:3.12.15-slim-bookworm@sha256:34386ef0cb081344d7ec1c103ba398e6e9f64e9ab3a1509accc92a4e24a07258 AS dependencies
+
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PYTHONPATH=/app/src OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1
+WORKDIR /app
+COPY --from=docker_cli /usr/local/bin/docker /usr/local/bin/docker
+COPY server/requirements.lock /app/server/requirements.lock
+COPY deploy/workspace/requirements.worker.lock /app/requirements.worker.lock
+RUN pip install --no-cache-dir -r /app/requirements.worker.lock \
+    && groupadd --gid 10001 meridian \
+    && useradd --uid 10001 --gid 10001 --no-create-home --shell /usr/sbin/nologin meridian \
+    && docker --version
+
+FROM dependencies
+COPY server/manage.py /app/server/manage.py
+COPY server/config /app/server/config
+COPY server/workspace /app/server/workspace
+COPY server/catalog/room1.json /app/server/catalog/room1.json
+COPY src/meridian/__init__.py src/meridian/vio_specification.py \
+    src/meridian/vio_dataset.py src/meridian/vio_evaluation.py \
+    src/meridian/vio_reference.py src/meridian/vio_job_control.py \
+    src/meridian/vio_job_evaluation.py src/meridian/vio_runtime_identity.py /app/src/meridian/
+USER 10001:10001
+CMD ["python", "server/manage.py", "run_vio_worker"]

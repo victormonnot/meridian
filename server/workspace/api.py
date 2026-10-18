@@ -1,4 +1,4 @@
-"""Versioned project metadata API. No execution or arbitrary file-access routes."""
+"""Versioned project metadata API, separate from the compute worker."""
 from datetime import timedelta
 from functools import wraps
 import json
@@ -68,7 +68,7 @@ def session_payload(request):
     return {
         "user": {"id": request.user.pk, "username": request.user.username} if request.user.is_authenticated else None,
         "csrf_token": get_token(request),
-        "capabilities": {"execution": False, "uploads": False},
+        "capabilities": {"execution": settings.MERIDIAN_EXECUTION_ENABLED, "uploads": False},
         "limits": {"projects": settings.MERIDIAN_PROJECT_LIMIT},
         "registration_open": settings.MERIDIAN_REGISTRATION_OPEN,
     }
@@ -225,6 +225,8 @@ def project(request, project_id):
         if value is None:
             return not_found(request)
         if request.method == "DELETE":
+            if value.jobs.filter(state__in=["queued", "running", "evaluating"]).exists():
+                return error("active_jobs", "Cancel active executions and wait for them to stop before deleting this project.", 409)
             value.delete()
             return response({"deleted": True})
         if request.method == "PATCH":

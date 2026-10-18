@@ -156,6 +156,18 @@ runtime provenance and evaluator identity must match the fixed profile before
 the actual VIO execution begins. The qualified native image must still exist
 locally; a fresh image build is not silently accepted as the same runtime.
 
+Docker's classic image store identifies this runtime by its configuration digest
+(`73e1213d…`), while its containerd store exposes the OCI manifest digest
+(`54863f14…`). The [identity resolver](../src/meridian/vio_runtime_identity.py)
+retains the byte-exact manifest from the qualified archive, checks its SHA-256
+and its binding to the original configuration digest, and permits only these
+reviewed identities. A missing exact configuration ID may resolve through that
+immutable manifest; arbitrary replacement images are rejected. Saved experiment
+specifications and their hashes stay unchanged. Execution provenance records the
+actual engine ID and the configuration identity separately. This distinction is
+[documented by the Docker maintainers](https://github.com/moby/moby/issues/51934);
+it does not establish identical numeric output across different CPUs.
+
 Configuration rendering changes only the exact `num_pts: 200` line in the
 hash-verified baseline. Calibration, masks and all other estimator settings are
 copied unchanged to a separate temporary directory mounted read-only as

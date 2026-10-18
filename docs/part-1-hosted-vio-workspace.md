@@ -1,12 +1,13 @@
 # Part 1: hosted workspace and reference VIO workflow
 
-**Status: increments 1.1–1.3 completed on 2026-10-17; increments 1.4–1.8 remain planned.**
+**Status: increments 1.1–1.4 completed by 2026-10-18; increments 1.5–1.8 remain planned.**
 This plan details part 1 of the [development roadmap](professional-estimation-roadmap.md).
 The current [implementation](../README.md) includes the qualified
 [local VIO reference](../results/vio-reference/README.md), the original single-axis
 study and its static results explorer. The [project workspace](hosted-workspace.md)
-adds accounts, private projects, catalog metadata and versioned experiments;
-hosted VIO computation remains planned.
+adds accounts, private projects, catalog metadata and versioned experiments.
+[Durable VIO jobs](hosted-vio-jobs.md) add isolated execution and independent
+evaluation of saved specifications.
 
 ## Outcome and scope
 
@@ -69,7 +70,7 @@ implied by selecting a candidate.
 The [qualification report](../results/vio-reference/README.md) records the measured
 accuracy, coverage, repeatability and host resources. Future reference revisions
 must meet the same declared gate or record a protocol change. Deployment cost
-and multi-user operational limits have not been measured yet.
+and sustained multi-user throughput have not been measured yet.
 
 ## Minimal architecture and contracts
 
@@ -78,15 +79,17 @@ Python metadata API and its established authentication/session integration, with
 PostgreSQL persistence and individually owned projects. Django replaces the initial
 FastAPI candidate. Application and API share an origin behind a dedicated Nginx
 service on an existing VPS; the [deployment guide](workspace-deployment.md) records
-the isolated services and limits. Durable jobs, private artifact storage and a
-separate containerized computation worker remain later increments.
+the isolated services and limits. Increment 1.4 adds durable PostgreSQL jobs,
+private artifact storage and a separate containerized computation worker.
 
-The browser submits an experiment specification and follows its progress. The
-API persists it, checks ownership and quotas, and queues work. A worker executes
+The browser submits a saved revision's identifiers and follows the job's progress.
+The API snapshots its immutable specification, checks ownership and quotas, and
+queues work. A worker executes
 the approved estimator with sensor inputs only; a separate evaluation stage reads
 the resulting estimates and independent reference. Validated artifacts are
-published with hashes and an immutable manifest. The UI reads those artifacts
-through authorized access paths.
+published with hashes and an immutable manifest. The UI reads authorized job
+summaries and evaluated metrics; artifact-backed investigation and downloads
+belong to later increments.
 
 Heavy computation must not run inside an HTTP request or rely on in-process
 background tasks for durability; the
@@ -126,7 +129,7 @@ under the documented retention policy.
 
 Every increment includes its relevant UI states, failure handling, checks, and
 documentation. Later integration testing does not defer those responsibilities.
-Increments 1.1–1.3 are complete; all later increments are pending.
+Increments 1.1–1.4 are complete; later increments remain pending.
 
 ### 1.1 — Executable reference and evaluation protocol
 
@@ -201,7 +204,7 @@ with their actual origin.
 **Completed:** [specification and API contract](versioned-experiments.md) and
 [validation evidence](../results/experiments/README.md). The initial profile
 supports the qualified full room1 recording and feature budgets 100, 200 and 400.
-Hosted execution remains the next increment.
+Increment 1.4 executes these saved revisions through durable hosted jobs.
 
 **Dependency:** 1.2 and the qualified configuration contract from 1.1.
 
@@ -222,6 +225,11 @@ configuration. A comparison can identify exactly which supported values changed.
 The stored specification can be passed unchanged to the reference runner.
 
 ### 1.4 — Durable, isolated VIO computation
+
+**Completed:** [execution contract](hosted-vio-jobs.md),
+[deployment recipe](workspace-deployment.md) and
+[validation evidence](../results/jobs/README.md). The requirements below remain
+the execution and publication contract for subsequent increments.
 
 **Dependency:** 1.3.
 

@@ -49,6 +49,7 @@ const check = (name, condition) => { assert.ok(condition, name); checks.push(nam
 const stamp = `${Date.now().toString(36)}-${randomBytes(3).toString('hex')}`;
 const createdAccounts = [];
 let contentSecurityPolicy = null;
+let executionEnabled = false;
 let failure = null;
 const username = `qa-owner-${stamp}`;
 const peerUsername = `qa-peer-${stamp}`;
@@ -85,6 +86,7 @@ try {
   await page.getByRole('heading', { name: 'Sign in', exact: true }).waitFor();
   await page.screenshot({ path: `${output}signin-dark.png`, fullPage: true });
   await register(page, username);
+  executionEnabled = Boolean((await apiRequest(page, '/session')).payload.capabilities.execution);
   check('registration creates an authenticated empty private workspace', await page.getByRole('heading', { name: 'No projects yet' }).isVisible());
   await page.getByRole('button', { name: /New project/ }).click();
   await page.getByLabel('Project name', { exact: true }).fill('Indoor VIO reference');
@@ -179,7 +181,7 @@ try {
   await page.getByText('Exact changes · v1 → v4', { exact: true }).waitFor();
   const changedFields = await page.locator('.comparison-table tbody th').allTextContents();
   check('comparison identifies every changed supported field', ['name', 'description', 'parameters.num_pts'].every(field => changedFields.includes(field)) && changedFields.length === 3);
-  check('experiment screens contain no execution control', await page.getByRole('button', { name: /run|launch|execute/i }).count() === 0);
+  check('experiment launch availability matches the server capability', await page.getByRole('button', { name: /^Run version / }).count() === (executionEnabled ? 1 : 0));
   await page.screenshot({ path: `${output}experiment-desktop-dark.png`, fullPage: true });
   await page.getByLabel('Appearance', { exact: true }).selectOption('light');
   await page.screenshot({ path: `${output}experiment-desktop-light.png`, fullPage: true });
@@ -299,6 +301,7 @@ try {
     passed: !failure,
     environment_description: process.env.MERIDIAN_QA_ENVIRONMENT || 'Not specified by the operator.',
     transport: targetUrl.protocol.replace(':', ''),
+    execution_enabled: executionEnabled,
     created_accounts: createdAccounts,
     checks, pageErrors, cspErrors, consoleErrors, content_security_policy: contentSecurityPolicy,
     ...(failure ? { failure } : {}),

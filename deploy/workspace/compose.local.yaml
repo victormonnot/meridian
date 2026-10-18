@@ -5,6 +5,9 @@ services:
       MERIDIAN_DEBUG: "1"
       MERIDIAN_ALLOWED_HOSTS: localhost,127.0.0.1
       MERIDIAN_CSRF_ORIGINS: http://localhost:8090,http://127.0.0.1:8090
+  worker:
+    environment:
+      MERIDIAN_DEBUG: "1"
   web:
     ports: [127.0.0.1:8090:8080]
     labels:

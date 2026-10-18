@@ -3,8 +3,8 @@
 The workspace provides accounts, persistent private projects and a versioned
 reference catalog. [Versioned experiments](versioned-experiments.md) add supported
 OpenVINS configurations, historical snapshots, duplication and exact differences.
-The qualified OpenVINS runner remains a separate local capability; hosted
-computation belongs to increment 1.4.
+[Durable VIO jobs](hosted-vio-jobs.md) execute a saved revision through a separate
+worker and independent evaluator; the qualified local runner remains available.
 
 The [hosted preview](https://meridian.151.80.144.150.sslip.io/) is available on a
 temporary HTTPS hostname. The [initial workspace report](../results/workspace/README.md)
@@ -17,13 +17,13 @@ The Vite workspace is a separate entry point, `web/workspace.html`. The original
 roll explorer remains at `web/index.html`. The deployment serves the workspace
 at `/`, the original explorer at `/index.html`, and the metadata API at `/api/v1`.
 Projects expose Data, Experiments, Results and Settings views. Experiments contain
-saved configurations and history. Empty result views do not imply a queued job or
-show a fabricated result.
+saved configurations and history. Results lists persisted jobs, execution
+attempts, failures and validated metric summaries.
 
 Django 5.2 LTS supplies authentication, password validation/hashing, server-side
 sessions, CSRF protection and database migrations. This replaces the earlier
 FastAPI candidate for the initial metadata service. PostgreSQL persists accounts,
-sessions, projects, experiments and authentication budgets. The HTTP service
+sessions, projects, experiments, jobs, attempts and submission/authentication budgets. The HTTP service
 imports only the shared standard-library specification contract from the numerical
 package. The API image contains neither the VIO runtime nor sensor recordings,
 Docker access, host repositories or private notes.
@@ -33,7 +33,7 @@ qualified in increment 1.1. It distinguishes motion-capture coverage from
 estimator-output coverage, includes calibration conventions and hashes, and
 identifies the existing qualification as local. Absolute nanosecond timestamps
 are decimal strings to preserve precision in JavaScript. Catalog entries are
-metadata; they do not claim that sensor files or execution are available online.
+metadata; execution availability is reported separately by the job service.
 
 ## Identity, ownership and lifecycle
 
@@ -63,12 +63,14 @@ artifact identifiers, source code, container names or execution commands.
 
 Each account can retain 20 projects, with names up to 100 characters and
 descriptions up to 2000 characters. Creation locks the owner's database row so
-concurrent requests cannot exceed the project cap on PostgreSQL. Upload and
-computation allowances are zero: those endpoints do not exist. JSON request
-bodies are bounded to 8 KiB and unknown fields are rejected.
+concurrent requests cannot exceed the project cap on PostgreSQL. Uploads remain
+unavailable; [job quotas](hosted-vio-jobs.md#isolation-and-budgets) bound hosted
+computation. JSON request bodies are bounded to 8 KiB and unknown fields are rejected.
 
 Projects remain until their owner deletes them. Deletion removes the live project
-metadata immediately and cannot be undone through the application. Account
+metadata immediately and cannot be undone through the application. Active jobs
+block project/experiment deletion with 409; terminal jobs are deleted with their
+parent, and the worker subsequently removes orphaned private files. Account
 removal is currently an operator action; deleting the Django user cascades to
 their projects. Database backups can retain earlier copies until their retention
 period ends. See the deployment guide for the actual backup policy.
@@ -164,3 +166,10 @@ covered by their separate server tests.
 - [Django CSRF protection for AJAX](https://docs.djangoproject.com/en/5.2/howto/csrf/).
 - [Django deployment settings](https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/).
 - [Qualified VIO reference](vio-reference.md) and [recorded evidence](../results/vio-reference/README.md).
+
+The additional `web/scripts/check-workspace-jobs-browser.mjs` accepts the same
+explicit target and output arguments. It requires a healthy, provisioned compute
+worker and executes real jobs: completion, idempotent retry, queued/running
+cancellation, ownership, navigation and persisted outcomes. Its recording uses
+actual server states and metrics. Run it only on an authorized deployment; keep
+the reported exact account IDs for operator cleanup.

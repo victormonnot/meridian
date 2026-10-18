@@ -1,0 +1,15 @@
+# Install with the filename printed by:
+# systemd-escape --path --suffix=mount /srv/meridian-workspace/scratch
+[Unit]
+Description=Bounded scratch storage for Meridian VIO attempts
+Before=docker.service
+
+[Mount]
+What=tmpfs
+Where=/srv/meridian-workspace/scratch
+Type=tmpfs
+Options=size=128M,mode=0700,uid=10001,gid=10001,nosuid,nodev,noexec
+DirectoryMode=0700
+
+[Install]
+WantedBy=multi-user.target

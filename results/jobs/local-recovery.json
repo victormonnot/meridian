@@ -1,0 +1,150 @@
+{
+  "schema_version": 1,
+  "started_at": "2026-10-18T18:48:25.537747+00:00",
+  "completed_at": "2026-10-18T18:52:48.852718+00:00",
+  "method": "SIGKILL of local worker; explicit service start if Docker treats kill as manual",
+  "explicit_start_required": true,
+  "attempt_states": [
+    "expired",
+    "succeeded"
+  ],
+  "first_attempt_failure": "infrastructure_failure",
+  "maximum_observed_native_concurrency": 1,
+  "old_container_absence_confirmed_after_recovery": true,
+  "running_old_container_absent_at_observed_second_native_start": true,
+  "observation_limit": "Container polling stopped at the QA assertion and resumed after the successful second attempt; maximum concurrency is an observed sample count, not a continuous trace.",
+  "specification_sha256": "521227054edeac5226ec9ab25e6a9190475affc62c64ce96057b5402bbf73677",
+  "trajectory_sha256": "d2a59ed328807d54af0a930006b7c2e850998c2dc7d6f89debd1c195ca4ed764",
+  "result": {
+    "artifacts": {
+      "file_count": 16,
+      "total_bytes": 1749732,
+      "manifest_sha256": "66e3b89257cd43dfb4c3cb822d8259fc113b727abf04c0980b5f3e19fbb86b8f"
+    },
+    "execution": {
+      "native_cpu_seconds": 81.319534,
+      "native_peak_rss_kib": 78928,
+      "native_wall_seconds": 82.729712738,
+      "container_wall_seconds": 84.01632070300548
+    },
+    "evaluation": {
+      "counts": {
+        "estimate_samples": 2689,
+        "reference_samples": 16541,
+        "expected_camera_samples": 2821,
+        "evaluated_camera_samples": 2624,
+        "missing_initial_camera_samples": 132,
+        "missing_interior_camera_samples": 0,
+        "missing_trailing_camera_samples": 0,
+        "reference_supported_camera_samples": 2756
+      },
+      "status": "ok",
+      "metrics": {
+        "ate_rmse_m": 0.0612163695742259,
+        "orientation_rmse_deg": 1.3255413925517476,
+        "orientation_rmse_rad": 0.023135061671498636,
+        "position_error_max_m": 0.109949022489596,
+        "position_error_mean_m": 0.05697479331128086,
+        "orientation_error_max_deg": 4.307316076259924,
+        "orientation_error_mean_deg": 1.2005629690623147
+      },
+      "protocol": {
+        "name": "meridian-vio-se3",
+        "version": 1,
+        "alignment": "global_se3_least_squares_over_all_evaluated_positions",
+        "weighting": "equal_weight_per_evaluated_camera_sample",
+        "scale_fitted": false,
+        "removed_gauge": "constant_world_rotation_including_roll_pitch_yaw_and_translation",
+        "time_offset_fitted": false,
+        "max_reference_gap_ns": 20000000,
+        "quaternion_convention": "Hamilton_xyzw_body_to_world",
+        "reference_association": "linear_position_shortest_arc_slerp_without_extrapolation",
+        "estimate_interpolation": false,
+        "initialization_exclusion": "none",
+        "initialization_delay_definition": "first_estimated_camera_timestamp_minus_first_expected_timestamp",
+        "max_estimate_timestamp_error_ns": 1000
+      },
+      "coverage_fraction": 0.9532080822403403,
+      "evaluated_fraction": 0.9301666075859625,
+      "initialization_delay_s": 6.600339685000001,
+      "reference_coverage_fraction": 0.9769585253456221
+    },
+    "qualification": {
+      "checks": {
+        "evaluation_ok": true,
+        "position_error": true,
+        "estimate_coverage": true,
+        "evaluated_samples": true,
+        "orientation_error": true,
+        "evaluated_coverage": true,
+        "reference_coverage": true,
+        "initialization_delay": true
+      },
+      "passed": true
+    },
+    "schema_version": 1
+  },
+  "host": {
+    "cpu_model": "12th Gen Intel(R) Core(TM) i5-12400F",
+    "kernel": "6.18.33.2-microsoft-standard-WSL2",
+    "logical_cpus": 12,
+    "machine": "x86_64",
+    "numpy": "2.5.3",
+    "python": "3.12.15",
+    "system": "Linux"
+  },
+  "runtime_identity": {
+    "binding": "direct_configuration_id",
+    "configuration_image_id": "sha256:73e1213d073ce52a9a509decb15628a7c043e0690609171c4b9382ed0c2730da",
+    "execution_image_id": "sha256:73e1213d073ce52a9a509decb15628a7c043e0690609171c4b9382ed0c2730da",
+    "identity_resolver_sha256": "9093a2641c60fc75118e25920a4a14b24f3ad21ef07ed7964d0446c01b0f5212",
+    "qualified_oci_manifest_sha256": null,
+    "schema_version": 1
+  },
+  "runner_sha256": "d840c4400675a16a6ed22873086a8267f3547b750a5d62fbbf1c03279bd51a09",
+  "hosting_policy": {
+    "artifact_limit_bytes": 33554432,
+    "compute_adapter_sha256": "54ce9c070c7b794440c58fd2705ab2df11ca3cc08ff6774a1ceae07d5168889f",
+    "evaluation": {
+      "cpus": 0.5,
+      "memory_mb": 512,
+      "network": "none",
+      "pids": 64,
+      "rootfs": "read-only",
+      "timeout_s": 120
+    },
+    "evaluation_entrypoint_sha256": "c2982011eb1b65162c4713caf1be4e1f030a920a3bb421320a3bb41ddea58f4f",
+    "evaluation_image_id": "sha256:3287372a4e42aa44dd9632fcddc7d0fa0a025f0f55b7eec912deec264f31e693",
+    "log_limit_bytes_per_process": 2097152,
+    "progress": "execution phases and observed elapsed wall time; no inferred completion percentage",
+    "schema_version": 1,
+    "scratch_limit_bytes": 134217728
+  },
+  "api_restart_persistence": {
+    "same_session": true,
+    "session_created_after_recovery": true,
+    "same_job_result": true,
+    "same_saved_revision": true,
+    "database_unchanged": true
+  },
+  "attempt_timing": [
+    {
+      "number": 1,
+      "state": "expired",
+      "started_at": "2026-10-18T18:48:26.540975+00:00",
+      "finished_at": "2026-10-18T18:49:09.994599+00:00"
+    },
+    {
+      "number": 2,
+      "state": "succeeded",
+      "started_at": "2026-10-18T18:49:10.210045+00:00",
+      "finished_at": "2026-10-18T18:51:43.209236+00:00"
+    }
+  ],
+  "worker_killed_at": "2026-10-18T18:48:38.547816+00:00",
+  "worker_restarted_at": "2026-10-18T18:48:40.7910334Z",
+  "worker_image_id": "sha256:3287372a4e42aa44dd9632fcddc7d0fa0a025f0f55b7eec912deec264f31e693",
+  "qualification_check_correction": "A case-sensitive helper assertion was corrected after Docker returned lowercase 'no such object'; the original job completed without a second interruption.",
+  "retained_artifacts_verified": 16,
+  "exact_recovery_account_and_artifacts_removed": true
+}

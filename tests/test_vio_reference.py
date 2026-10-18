@@ -13,6 +13,7 @@ import pytest
 from meridian import vio_reference as reference
 from meridian.vio_evaluation import TRAJECTORY_COLUMNS
 from meridian.vio_specification import DATASET_ID, build_specification, specification_sha256
+from meridian.vio_runtime_identity import CONFIGURATION_ID, OCI_MANIFEST_ID
 
 
 def _poses(path, *, offset=0.0):
@@ -390,6 +391,29 @@ def test_explicit_specification_executes_with_separate_configuration_and_exact_i
     assert b"num_pts: 100\n" in (output / "config-estimator_config.yaml").read_bytes()
 
 
+def test_containerd_execution_records_manifest_identity_without_changing_saved_config_pin(tmp_path, monkeypatch):
+    prepared, commands, spec = _pinned_execution_fixture(tmp_path, monkeypatch)
+    digest = specification_sha256(spec)
+    inspected = []
+    def inspect(value):
+        inspected.append(value)
+        if value == CONFIGURATION_ID:
+            raise subprocess.CalledProcessError(1, "docker", stderr="No such image: " + value)
+        return value
+    monkeypatch.setattr(reference, "_image_identity", inspect)
+    output = tmp_path / "run"
+    result = reference.run_reference(prepared, CONFIGURATION_ID, output, specification=spec)
+    assert inspected == [CONFIGURATION_ID, OCI_MANIFEST_ID]
+    assert commands[0][-7] == OCI_MANIFEST_ID
+    recorded = json.loads((output / "run-spec.json").read_text())
+    assert recorded["runtime_image_id"] == OCI_MANIFEST_ID
+    assert recorded["runtime_identity"]["configuration_image_id"] == CONFIGURATION_ID
+    assert recorded["runtime_identity"]["execution_image_id"] == OCI_MANIFEST_ID
+    assert recorded["runtime_identity"]["binding"] == "qualified_oci_manifest"
+    assert result["experiment_specification_sha256"] == digest
+    assert json.loads((output / "experiment-specification.json").read_text()) == spec
+
+
 def test_explicit_specification_timeout_retains_identity_and_removes_temporary_configuration(tmp_path, monkeypatch):
     prepared, commands, spec = _pinned_execution_fixture(tmp_path, monkeypatch, timeout=True)
     output = tmp_path / "run"
@@ -430,6 +454,40 @@ def test_cli_passes_the_exact_specification_to_the_reference_runner(tmp_path, mo
                            "--specification", str(path)]) == 0
     assert received == [spec]
     assert json.loads(capsys.readouterr().out)["qualification"]["passed"]
+
+
+def test_hosted_control_keeps_configuration_on_shared_scratch_and_separates_evaluation(tmp_path, monkeypatch):
+    prepared, commands, spec = _pinned_execution_fixture(tmp_path, monkeypatch)
+    scratch = tmp_path / "shared-scratch"
+    scratch.mkdir()
+    monkeypatch.setattr(reference, "_runtime_version", lambda *args, **kwargs: {"protocol_version": 1})
+    monkeypatch.setattr(reference, "_runtime_provenance", lambda *args, **kwargs: {"dependency-versions.txt": "fixture\n"})
+    events, evaluations = [], []
+
+    class Controller:
+        configuration_parent = scratch
+        container_name = "known-hosted-attempt"
+        def checkpoint(self, phase, progress):
+            events.append(phase)
+        def run_native(self, command, output, timeout):
+            assert command[command.index("--name") + 1] == self.container_name
+            assert timeout == spec["resources"]["timeout_s"]
+            config = next(item for item in command if ",dst=/config" in item)
+            assert str(scratch) in config and config.endswith(",readonly")
+            (output / "runner.log").write_text("fixture\n")
+            return reference.subprocess.Popen(command).wait()
+        def evaluate(self, estimate, truth, **options):
+            evaluations.append((estimate, truth, options))
+            return reference.evaluate_trajectory(estimate, truth, **options)
+
+    output = scratch / "run"
+    result = reference.run_reference(prepared, "fixture", output, specification=spec, controller=Controller())
+    assert result["state"] == "complete" and events[-1] == "validating"
+    assert "running" in events and "evaluating" in events
+    assert len(evaluations) == 1 and evaluations[0][1] == prepared / "reference/trajectory.csv"
+    assert evaluations[0][2]["max_reference_gap_ns"] == 20_000_000
+    assert not list(scratch.glob("meridian-vio-config-*"))
+    assert commands[-1] == ["docker", "rm", "--force", "known-hosted-attempt"]
 
 
 @pytest.mark.parametrize("changed", [None, "dataset_id", "archive", "reference", "calibration",

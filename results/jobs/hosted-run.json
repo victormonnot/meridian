@@ -1,0 +1,187 @@
+{
+  "schema_version": 1,
+  "release": "20261018-adf227683c6c",
+  "state": "succeeded",
+  "attempt_count": 1,
+  "started_at": "2026-10-18T18:58:02.072172+00:00",
+  "finished_at": "2026-10-18T19:01:46.856022+00:00",
+  "job_elapsed_seconds": 224.78385,
+  "specification_sha256": "521227054edeac5226ec9ab25e6a9190475affc62c64ce96057b5402bbf73677",
+  "trajectory_sha256": "d2a59ed328807d54af0a930006b7c2e850998c2dc7d6f89debd1c195ca4ed764",
+  "result": {
+    "artifacts": {
+      "file_count": 16,
+      "total_bytes": 1749766,
+      "manifest_sha256": "47e33ba9dcc0a79189a993f48cd0da13f705a463cd5061cd37c0f8520408d005"
+    },
+    "execution": {
+      "native_cpu_seconds": 74.39237,
+      "native_peak_rss_kib": 81792,
+      "native_wall_seconds": 75.658773054,
+      "container_wall_seconds": 77.40362391294912
+    },
+    "evaluation": {
+      "counts": {
+        "estimate_samples": 2689,
+        "reference_samples": 16541,
+        "expected_camera_samples": 2821,
+        "evaluated_camera_samples": 2624,
+        "missing_initial_camera_samples": 132,
+        "missing_interior_camera_samples": 0,
+        "missing_trailing_camera_samples": 0,
+        "reference_supported_camera_samples": 2756
+      },
+      "status": "ok",
+      "metrics": {
+        "ate_rmse_m": 0.0612163695742259,
+        "orientation_rmse_deg": 1.3255413925517476,
+        "orientation_rmse_rad": 0.023135061671498636,
+        "position_error_max_m": 0.109949022489596,
+        "position_error_mean_m": 0.05697479331128086,
+        "orientation_error_max_deg": 4.307316076259924,
+        "orientation_error_mean_deg": 1.2005629690623147
+      },
+      "protocol": {
+        "name": "meridian-vio-se3",
+        "version": 1,
+        "alignment": "global_se3_least_squares_over_all_evaluated_positions",
+        "weighting": "equal_weight_per_evaluated_camera_sample",
+        "scale_fitted": false,
+        "removed_gauge": "constant_world_rotation_including_roll_pitch_yaw_and_translation",
+        "time_offset_fitted": false,
+        "max_reference_gap_ns": 20000000,
+        "quaternion_convention": "Hamilton_xyzw_body_to_world",
+        "reference_association": "linear_position_shortest_arc_slerp_without_extrapolation",
+        "estimate_interpolation": false,
+        "initialization_exclusion": "none",
+        "initialization_delay_definition": "first_estimated_camera_timestamp_minus_first_expected_timestamp",
+        "max_estimate_timestamp_error_ns": 1000
+      },
+      "coverage_fraction": 0.9532080822403403,
+      "evaluated_fraction": 0.9301666075859625,
+      "initialization_delay_s": 6.600339685000001,
+      "reference_coverage_fraction": 0.9769585253456221
+    },
+    "qualification": {
+      "checks": {
+        "evaluation_ok": true,
+        "position_error": true,
+        "estimate_coverage": true,
+        "evaluated_samples": true,
+        "orientation_error": true,
+        "evaluated_coverage": true,
+        "reference_coverage": true,
+        "initialization_delay": true
+      },
+      "passed": true
+    },
+    "schema_version": 1
+  },
+  "host": {
+    "cpu_model": "Intel Core Processor (Haswell, no TSX)",
+    "kernel": "7.0.0-28-generic",
+    "logical_cpus": 4,
+    "machine": "x86_64",
+    "numpy": "2.5.3",
+    "python": "3.12.15",
+    "system": "Linux"
+  },
+  "runtime_identity": {
+    "binding": "qualified_oci_manifest",
+    "configuration_image_id": "sha256:73e1213d073ce52a9a509decb15628a7c043e0690609171c4b9382ed0c2730da",
+    "execution_image_id": "sha256:54863f14d9f92d2805f5fddcfb78d146c6aac2ad77dc348e304059e2252a400a",
+    "identity_resolver_sha256": "9093a2641c60fc75118e25920a4a14b24f3ad21ef07ed7964d0446c01b0f5212",
+    "qualified_oci_manifest_sha256": "54863f14d9f92d2805f5fddcfb78d146c6aac2ad77dc348e304059e2252a400a",
+    "schema_version": 1
+  },
+  "runner_sha256": "d840c4400675a16a6ed22873086a8267f3547b750a5d62fbbf1c03279bd51a09",
+  "evaluator_sha256": "539f07a0e3dbabe5fd3b4874b42218db1938e5f3733d8ac3bd9c714900a8cca6",
+  "hosting_policy": {
+    "artifact_limit_bytes": 33554432,
+    "compute_adapter_sha256": "54ce9c070c7b794440c58fd2705ab2df11ca3cc08ff6774a1ceae07d5168889f",
+    "evaluation": {
+      "cpus": 0.5,
+      "memory_mb": 512,
+      "network": "none",
+      "pids": 64,
+      "rootfs": "read-only",
+      "timeout_s": 120
+    },
+    "evaluation_entrypoint_sha256": "c2982011eb1b65162c4713caf1be4e1f030a920a3bb421320a3bb41ddea58f4f",
+    "evaluation_image_id": "sha256:9e356e828a746a207f440514f01d762faf6f16c7b6fae9f21ef65d28d6e33bb0",
+    "log_limit_bytes_per_process": 2097152,
+    "progress": "execution phases and observed elapsed wall time; no inferred completion percentage",
+    "schema_version": 1,
+    "scratch_limit_bytes": 134217728
+  },
+  "artifact_manifest": {
+    "files": {
+      "binary-sha256.txt": {
+        "sha256": "7b66a083c7d5c69c6e85721e3357def42fbc1a125a5b13735f3e55ee3ad28070",
+        "size_bytes": 204
+      },
+      "config-estimator_config.yaml": {
+        "sha256": "10c37c00c52a07ba5a86ce3d6d2846c2430397d6fa6a9e190dfdc47aa10c2045",
+        "size_bytes": 3689
+      },
+      "config-kalibr_imu_chain.yaml": {
+        "sha256": "cb598952ee3766492a332eaae8567fe2b63a9bf6d63b9c0a7b9d988471600a3d",
+        "size_bytes": 1351
+      },
+      "config-kalibr_imucam_chain.yaml": {
+        "sha256": "072d26e3dd20844ae7402f508c51cf7e899a401634ba6b0db0e08cd2880b7dab",
+        "size_bytes": 1530
+      },
+      "config-mask_tumvi0.png": {
+        "sha256": "62dfc1053f336d1adb4ae01519579532370d1b211894566a7a4ec167dd8c3f4f",
+        "size_bytes": 12277
+      },
+      "config-mask_tumvi1.png": {
+        "sha256": "67ff644599f862f2437026d9c43ef0a0887907470179a53e34447fb95cbd35ba",
+        "size_bytes": 11930
+      },
+      "dependency-versions.txt": {
+        "sha256": "92d76ee986a1ff4508a96fb3f2c26439d99cb446a546f8e0d795f56d69e7023e",
+        "size_bytes": 17909
+      },
+      "evaluation.json": {
+        "sha256": "d26ee4fa4d3a4445b8b8dc758687ed8197d66731c71dcd2e4f2abe75e72e5201",
+        "size_bytes": 215032
+      },
+      "evaluation.log": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "size_bytes": 0
+      },
+      "experiment-specification.json": {
+        "sha256": "f8450550c77b615690904395b1eead2236166b744f4ab7c5f5325d126eae2614",
+        "size_bytes": 5820
+      },
+      "hosting-policy.json": {
+        "sha256": "26baed70975ec09cf5d2bb7ec9f248e58eaff3a903d3072df630f4023b7ce83d",
+        "size_bytes": 687
+      },
+      "result.json": {
+        "sha256": "5b2e2dd085a99609faafddf5fe047f3ee321efd48694860e43e23d4fc70d66a6",
+        "size_bytes": 4335
+      },
+      "run-spec.json": {
+        "sha256": "2074a5f30ab174bbae959c9eba44177bff797077101fdf27ba2ba78f1b4338c8",
+        "size_bytes": 1032921
+      },
+      "runner.log": {
+        "sha256": "11f97616a5b994ea142234bf276d6922481d1632d3784644d66b217400fd1cb5",
+        "size_bytes": 35
+      },
+      "status.json": {
+        "sha256": "dd0b53a0853bd190537bcf59754d9298ad332e18d830dd220d0a14260bfea0f0",
+        "size_bytes": 952
+      },
+      "trajectory.csv": {
+        "sha256": "d2a59ed328807d54af0a930006b7c2e850998c2dc7d6f89debd1c195ca4ed764",
+        "size_bytes": 441094
+      }
+    },
+    "schema_version": 1
+  },
+  "files_independently_verified": 16
+}

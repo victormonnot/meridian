@@ -1,15 +1,16 @@
 # Professional state-estimation workspace
 
-**Status: development roadmap, 2026-10-17.** The product direction prioritizes
+**Status: development roadmap, 2026-10-18.** The product direction prioritizes
 professional state-estimation engineering with visual-inertial odometry (VIO)
 and operation without reliable GNSS. The major parts below describe planned
 work. Part 1 has a [detailed implementation plan](part-1-hosted-vio-workspace.md);
 later parts remain at outcome level. The [README](../README.md) and
 [design notes](design.md) describe the implementation available today. The first
 [local VIO reference](vio-reference.md) is implemented and qualified, and a
-[private project workspace](hosted-workspace.md) is deployed. Hosted
-computation, general estimator integration/development, and AI engineering agents
-remain planned.
+[private project workspace](hosted-workspace.md) is deployed.
+[Durable VIO computation](hosted-vio-jobs.md) implements execution of maintained
+reference jobs; general estimator integration/development and AI engineering
+agents remain planned.
 
 ## Product objective
 
@@ -264,7 +265,8 @@ views should expose failures, budgets, progress, and reproducible run manifests.
 Automation should be reviewable through the resulting artifacts and executions.
 
 The initial metadata workspace now uses Vite, Django and PostgreSQL on an isolated
-shared-VPS deployment. Queue and worker integration remain planned. The original
+shared-VPS deployment. Durable PostgreSQL jobs coordinate a separate compute
+worker and isolated native/evaluation containers. The original
 static frontend supplies reusable plotting and interaction components; its fixed
 simulation data contract is unsuitable as the general execution API.
 
@@ -303,8 +305,9 @@ hosted workflow into eight sequential increments. Increment 1.1 has
 [qualified the local OpenVINS/TUM-VI reference](../results/vio-reference/README.md).
 Increment 1.2 adds a [validated hosted private workspace](../results/workspace/README.md).
 Increment 1.3 adds [versioned VIO experiments](versioned-experiments.md), with
-immutable specifications consumed unchanged by the local runner. The five
-remaining increments, including hosted execution, are planned.
+immutable specifications consumed unchanged by the local runner. Increment 1.4
+adds durable isolated VIO jobs using those same specifications. Investigation,
+comparison, independent exports and full hosted acceptance remain planned.
 
 ## Existing tools and research
 
@@ -329,12 +332,12 @@ engineers. No source review establishes that any feature is unique.
 
 ## Decisions still required
 
-For the remaining part 1 work, connect the versioned configurations to durable,
-isolated workers using the qualified reference's measured resource use and limits.
-The metadata service is deployed; VIO execution is not yet hosted. Preserve its
-evaluation protocol and reserved sequence. Numerical formulations,
+The remaining part 1 work builds investigation, comparison and independent
+reproduction on versioned configurations and durable VIO execution, then
+qualifies the complete hosted workflow. Preserve the evaluation protocol and
+reserved sequence. Numerical formulations,
 additional formats/sensors, and automation tasks will be specified with their
 corresponding parts, using the evidence available then.
 
-Hosted computation, broader estimator development and hardware integration remain
+Broader estimator development and hardware integration remain
 future work. The existing technical reports remain evidence for their stated scope.

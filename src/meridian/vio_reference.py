@@ -24,6 +24,7 @@ from meridian.vio_dataset import (
 )
 from meridian.vio_evaluation import evaluate_trajectory, read_trajectory
 from meridian.vio_specification import specification_sha256, validate_specification
+from meridian.vio_runtime_identity import resolve_runtime_identity
 
 
 UPSTREAM_REVISION = "69488123ed9362dd44b6f28e7f4680abbff1442b"
@@ -123,9 +124,10 @@ def container_command(prepared: Path, output: Path, image_id: str, name: str,
                "/config/estimator_config.yaml", "--output", "/output"])
 
 
-def _runtime_version(image_id: str, limits: dict) -> dict:
-    result = subprocess.run(["docker", "run", *_container_options(limits), image_id, "--version"],
-                            check=True, capture_output=True, text=True, timeout=30)
+def _runtime_version(image_id: str, limits: dict, *, controller=None) -> dict:
+    command = ["docker", "run", *_container_options(limits), image_id, "--version"]
+    result = (controller.probe(command, "version") if controller is not None else
+              subprocess.run(command, check=True, capture_output=True, text=True, timeout=30))
     version = _parse_json(result.stdout)
     if (not isinstance(version, dict) or type(version.get("protocol_version")) is not int
             or version["protocol_version"] != 1
@@ -134,14 +136,14 @@ def _runtime_version(image_id: str, limits: dict) -> dict:
     return version
 
 
-def _runtime_provenance(image_id: str, limits: dict) -> dict[str, str]:
+def _runtime_provenance(image_id: str, limits: dict, *, controller=None) -> dict[str, str]:
     provenance = {}
     for name in ("dependency-versions.txt", "binary-sha256.txt"):
-        result = subprocess.run(
-            ["docker", "run", *_container_options(limits), "--entrypoint", "/bin/cat",
-             image_id, f"/opt/meridian/{name}"],
-            check=True, capture_output=True, text=True, timeout=30,
-        )
+        command = ["docker", "run", *_container_options(limits), "--entrypoint", "/bin/cat",
+                   image_id, f"/opt/meridian/{name}"]
+        result = (controller.probe(command, "dependencies" if name.startswith("dependency") else "binary")
+                  if controller is not None else subprocess.run(
+                      command, check=True, capture_output=True, text=True, timeout=30))
         if not result.stdout.strip():
             raise ValueError("runtime provenance is missing")
         provenance[name] = result.stdout
@@ -291,12 +293,21 @@ def _render_configuration(source: Path, destination: Path, experiment: dict) -> 
 
 def run_reference(prepared: Path, image: str, output: Path, *, cpus: float = 2.0,
                   memory_mb: int = 4096, timeout_s: float = 900.0,
-                  specification: dict | None = None) -> dict:
-    """Run one bounded local qualification attempt and retain its actual outcome."""
+                  specification: dict | None = None, controller=None) -> dict:
+    """Run one bounded qualification attempt and retain its actual outcome.
+
+    A trusted hosted controller may supervise named probes/native execution,
+    receive phase checkpoints, and supply isolated evaluation. Its temporary
+    configuration parent must be visible at the same path to the Docker host.
+    Omitting the controller preserves the standalone qualification workflow.
+    The controller cannot alter the immutable numerical specification.
+    """
     experiment = None
     if specification is not None:
         validate_specification(specification)
         experiment = deepcopy(specification)
+    if controller is not None:
+        controller.checkpoint("preparing", {})
     if Path(output).exists() or Path(output).is_symlink():
         raise FileExistsError(f"output directory already exists: {output}")
     prepared = Path(prepared).resolve(strict=True)
@@ -310,16 +321,25 @@ def run_reference(prepared: Path, image: str, output: Path, *, cpus: float = 2.0
         raise ValueError("resource overrides differ from the immutable specification")
     manifest = verify_prepared(prepared)
     expected = camera_timestamps_ns(prepared)
+    if controller is not None:
+        controller.checkpoint("preparing", {})
     if experiment is not None and _sha(prepared / "manifest.json") != experiment["dataset"]["prepared_manifest_sha256"]:
         raise ValueError("prepared dataset does not match the immutable specification")
-    image_id = _image_identity(image)
-    if experiment is not None and image_id != experiment["runtime"]["image_id"]:
-        raise ValueError("runtime image differs from the immutable specification")
-    version = _runtime_version(image_id, limits)
-    provenance = _runtime_provenance(image_id, limits)
+    runtime_identity = None
+    if experiment is None:
+        image_id = _image_identity(image)
+    else:
+        runtime_identity = resolve_runtime_identity(image, experiment["runtime"]["image_id"], _image_identity)
+        image_id = runtime_identity["execution_image_id"]
+    if controller is None:
+        version = _runtime_version(image_id, limits)
+        provenance = _runtime_provenance(image_id, limits)
+    else:
+        version = _runtime_version(image_id, limits, controller=controller)
+        provenance = _runtime_provenance(image_id, limits, controller=controller)
     if experiment is not None:
         _validate_experiment_inputs(experiment, prepared, manifest, expected,
-                                    image_id, version, provenance, limits)
+                                    runtime_identity["configuration_image_id"], version, provenance, limits)
     spec = {"schema_version": 1, "dataset_manifest_sha256": _sha(prepared / "manifest.json"),
             "runtime_image_id": image_id, "runtime_version": version, "limits": limits,
             "runtime_provenance_sha256": {key: hashlib.sha256(value.encode()).hexdigest()
@@ -330,18 +350,23 @@ def run_reference(prepared: Path, image: str, output: Path, *, cpus: float = 2.0
     if experiment is not None:
         spec["experiment_specification_sha256"] = specification_sha256(experiment)
         spec["rendered_configuration_files"] = experiment["configuration"]["rendered_files"]
+        spec["runtime_identity"] = runtime_identity
     with ExitStack() as cleanup:
         configuration = None
         if experiment is not None:
-            configuration = Path(cleanup.enter_context(TemporaryDirectory(prefix="meridian-vio-config-")))
+            configuration = Path(cleanup.enter_context(TemporaryDirectory(
+                prefix="meridian-vio-config-",
+                dir=controller.configuration_parent if controller is not None else None)))
             _render_configuration(prepared / "config", configuration, experiment)
         return _execute_reference(prepared, output, image_id, limits, provenance, spec,
-                                  expected, configuration=configuration, experiment=experiment)
+                                  expected, configuration=configuration, experiment=experiment,
+                                  controller=controller)
 
 
 def _execute_reference(prepared: Path, output: Path, image_id: str, limits: dict,
                        provenance: dict, spec: dict, expected: list[int], *,
-                       configuration: Path | None = None, experiment: dict | None = None) -> dict:
+                       configuration: Path | None = None, experiment: dict | None = None,
+                       controller=None) -> dict:
     output.mkdir(parents=True)
     _json(output / "run-spec.json", spec)
     if experiment is not None:
@@ -350,7 +375,7 @@ def _execute_reference(prepared: Path, output: Path, image_id: str, limits: dict
             (output / ("config-" + filename)).write_bytes((configuration / filename).read_bytes())
     for name, content in provenance.items():
         (output / name).write_text(content, encoding="utf-8")
-    name = f"meridian-vio-{uuid.uuid4().hex}"
+    name = controller.container_name if controller is not None else f"meridian-vio-{uuid.uuid4().hex}"
     command = container_command(prepared, output, image_id, name, limits, configuration=configuration)
     result = {"schema_version": 1, "state": "failed", "run_spec_sha256": _digest(spec),
               "host": _host(), "error": None}
@@ -358,27 +383,31 @@ def _execute_reference(prepared: Path, output: Path, image_id: str, limits: dict
         result["experiment_specification_sha256"] = spec["experiment_specification_sha256"]
     started = time.monotonic()
     try:
-        with (output / "runner.log").open("wb") as log:
-            process = subprocess.Popen(command, stdout=log, stderr=subprocess.STDOUT)
-            try:
-                returncode = process.wait(timeout=limits["timeout_s"])
-            except BaseException:
+        if controller is not None:
+            controller.checkpoint("running", {})
+            returncode = controller.run_native(command, output, limits["timeout_s"])
+        else:
+            with (output / "runner.log").open("wb") as log:
+                process = subprocess.Popen(command, stdout=log, stderr=subprocess.STDOUT)
                 try:
-                    stopped = subprocess.run(["docker", "kill", name], capture_output=True, timeout=30)
-                    if stopped.returncode != 0:
-                        result["kill_error"] = f"docker exit {stopped.returncode}"
-                except (OSError, subprocess.SubprocessError) as kill_error:
-                    result["kill_error"] = type(kill_error).__name__
-                try:
-                    process.wait(timeout=30)
-                except (OSError, subprocess.SubprocessError) as reap_error:
-                    result["reap_error"] = type(reap_error).__name__
+                    returncode = process.wait(timeout=limits["timeout_s"])
+                except BaseException:
                     try:
-                        process.kill()
-                        process.wait(timeout=5)
-                    except (OSError, subprocess.SubprocessError):
-                        pass
-                raise
+                        stopped = subprocess.run(["docker", "kill", name], capture_output=True, timeout=30)
+                        if stopped.returncode != 0:
+                            result["kill_error"] = f"docker exit {stopped.returncode}"
+                    except (OSError, subprocess.SubprocessError) as kill_error:
+                        result["kill_error"] = type(kill_error).__name__
+                    try:
+                        process.wait(timeout=30)
+                    except (OSError, subprocess.SubprocessError) as reap_error:
+                        result["reap_error"] = type(reap_error).__name__
+                        try:
+                            process.kill()
+                            process.wait(timeout=5)
+                        except (OSError, subprocess.SubprocessError):
+                            pass
+                    raise
         result["container_wall_seconds"] = time.monotonic() - started
         result["returncode"] = returncode
         _artifacts(output)
@@ -387,6 +416,8 @@ def _execute_reference(prepared: Path, output: Path, image_id: str, limits: dict
         if returncode != 0:
             raise ValueError("native VIO execution did not complete successfully; inspect status.json and runner.log")
         _validate_native_status(status, read_trajectory(output / "trajectory.csv"))
+        if controller is not None:
+            controller.checkpoint("evaluating", {})
         verify_prepared(prepared)
         if _sha(prepared / "manifest.json") != spec["dataset_manifest_sha256"]:
             raise ValueError("prepared inputs changed during execution")
@@ -403,10 +434,13 @@ def _execute_reference(prepared: Path, output: Path, image_id: str, limits: dict
                 "max_reference_gap_ns": experiment["evaluation"]["maximum_reference_bracket_ns"],
                 "max_estimate_timestamp_error_ns": experiment["evaluation"]["maximum_estimate_timestamp_error_ns"],
             }
-        evaluation = evaluate_trajectory(output / "trajectory.csv", prepared / "reference" / "trajectory.csv",
-                                         expected_timestamps_ns=expected, **evaluation_options)
+        evaluator = controller.evaluate if controller is not None else evaluate_trajectory
+        evaluation = evaluator(output / "trajectory.csv", prepared / "reference" / "trajectory.csv",
+                               expected_timestamps_ns=expected, **evaluation_options)
         _json(output / "evaluation.json", evaluation)
         result["qualification"] = qualification(evaluation)
+        if controller is not None:
+            controller.checkpoint("validating", {})
         result["state"] = "complete"
     except BaseException as exc:
         result["container_wall_seconds"] = time.monotonic() - started

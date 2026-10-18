@@ -70,8 +70,11 @@ Each project permits 20 experiments, each with up to 50 revisions. Transactions
 serialize mutations against project/experiment rows so simultaneous requests
 cannot overrun the quotas or create two versions with the same number. Deleting
 an experiment removes its revisions; deleting a project removes its experiments.
-There are no jobs or result artifacts attached to these objects yet. Account and
-backup limitations follow the [workspace contract](hosted-workspace.md).
+Submitting a [VIO job](hosted-vio-jobs.md) copies the selected immutable revision.
+Active jobs block deletion of their parent experiment or project with 409.
+Terminal metadata cascades with its parent; the worker subsequently removes
+orphaned files. Account and backup limitations follow the
+[workspace contract](hosted-workspace.md).
 
 ## API
 

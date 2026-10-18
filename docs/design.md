@@ -12,8 +12,10 @@ private projects and catalog metadata through a separate Vite entry point.
 [Versioned experiments](versioned-experiments.md) preserve supported OpenVINS
 configurations, immutable revisions and exact differences; their specification
 contract is shared with the local runner.
-Hosted execution, general 3D estimator development, broader visual-inertial
-development, and engineering automation remain planned work.
+[Durable hosted jobs](hosted-vio-jobs.md) add PostgreSQL scheduling, fenced
+attempts, a separate worker and independently evaluated VIO results. General
+3D estimator development, broader visual-inertial development and engineering
+automation remain planned work.
 
 Python gyro integration, accelerometer tilt, complementary fusion, and the
 angle/bias Kalman reference are implemented, with tests and

@@ -12,6 +12,12 @@
 !src/meridian/
 !src/meridian/__init__.py
 !src/meridian/vio_specification.py
+!src/meridian/vio_dataset.py
+!src/meridian/vio_evaluation.py
+!src/meridian/vio_reference.py
+!src/meridian/vio_job_evaluation.py
+!src/meridian/vio_job_control.py
+!src/meridian/vio_runtime_identity.py
 !web/
 !web/package.json
 !web/package-lock.json
@@ -26,6 +32,8 @@
 !deploy/workspace/
 !deploy/workspace/Dockerfile.api
 !deploy/workspace/Dockerfile.web
+!deploy/workspace/Dockerfile.worker
+!deploy/workspace/requirements.worker.lock
 !deploy/workspace/nginx.conf
 !deploy/workspace/csp.mjs
 !deploy/workspace/entrypoint.sh

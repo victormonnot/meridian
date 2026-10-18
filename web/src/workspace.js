@@ -1,6 +1,7 @@
 import { initializeTheme } from './theme.js';
 import { ApiError, createApiClient, escapeHtml as e, errorMessage, parseRoute, safeExternalLink } from './workspace-api.js';
 import { revisionDraft, draftChanged, experimentPayload, experimentPath, createExperimentDialog, renderExperimentList, renderExperimentDetail, renderComparison, renderConflict } from './workspace-experiments.js';
+import { activeJob, jobPath, renderJobRows, renderRevisionJobs, renderJobList, renderJobDetail, renderService, jobActionDialog, createJobPoller } from './workspace-jobs.js';
 
 initializeTheme();
 const api = createApiClient();
@@ -20,6 +21,9 @@ let experimentView = null;
 let draftState = null;
 let renderedHash = window.location.hash;
 let comparisonRequest = 0;
+let jobView = null;
+let jobPoller;
+const submissions = new Map();
 
 const integer = value => new Intl.NumberFormat('en').format(value);
 const decimal = (value, digits = 2) => Number(value).toFixed(digits);
@@ -36,6 +40,8 @@ function announce(message = '', isError = false) {
 }
 
 function setSession(value) {
+  jobPoller?.stop();
+  submissions.clear();
   sessionEpoch += 1;
   session = value;
   authMode = 'login';
@@ -47,16 +53,20 @@ function setSession(value) {
   currentProject = null;
   experimentView = null;
   draftState = null;
+  jobView = null;
 }
 
 function removePrivateState() {
   navigation += 1;
   sessionEpoch += 1;
   controller?.abort();
+  jobPoller?.stop();
+  submissions.clear();
   datasets = [];
   currentProject = null;
   experimentView = null;
   draftState = null;
+  jobView = null;
   app.replaceChildren();
   account.textContent = '';
   account.hidden = true;
@@ -79,7 +89,7 @@ function renderAuth() {
       <p class="eyebrow">Visual-inertial estimation</p>
       <h1 id="workspace-heading">Your engineering workspace.</h1>
       <p>Organize private projects and versioned estimator configurations around calibrated stereo and IMU recordings.</p>
-      <ul class="scope-list"><li><span>Private projects</span><span>Available</span></li><li><span>Reference catalog</span><span>TUM-VI</span></li><li><span>Versioned configurations</span><span>Available</span></li><li><span>Experiment execution</span><span>Not yet available</span></li></ul>
+      <ul class="scope-list"><li><span>Private projects</span><span>Available</span></li><li><span>Reference catalog</span><span>TUM-VI</span></li><li><span>Versioned configurations</span><span>Available</span></li><li><span>VIO computation</span><span>${session?.capabilities.execution ? 'Enabled' : 'Disabled on this deployment'}</span></li></ul>
     </section>
     <section class="surface auth-panel" aria-labelledby="auth-heading">
       <h2 id="auth-heading">${register ? 'Create an account' : 'Sign in'}</h2>
@@ -103,7 +113,7 @@ function projectDialog() {
       <label for="project-name">Project name<input id="project-name" name="name" maxlength="100" required autocomplete="off"></label>
       <label for="project-description">Description <span class="muted">Optional</span><textarea id="project-description" name="description" maxlength="2000" rows="3"></textarea></label>
       <div class="form-field"><label for="project-dataset">Reference dataset</label><select id="project-dataset" name="dataset_id" required>${datasets.map(dataset => `<option value="${e(dataset.id)}">${e(dataset.name)} · ${e(dataset.version)}</option>`).join('')}</select></div>
-      <p class="muted">This links the catalog record. Uploads and experiment execution are not available in this release.</p>
+      <p class="muted">This links the prepared reference recording. Personal recording uploads are not available.</p>
       <p class="form-error" role="alert"></p>
       <div class="form-actions"><button type="button" data-action="close-dialog">Cancel</button><button type="submit" class="primary">Create project</button></div>
     </fieldset></form>
@@ -193,8 +203,8 @@ function renderSettings(project) {
     <p class="muted">Projects are retained until you delete them.</p><p class="form-error" role="alert"></p>
     <div class="form-actions"><button type="submit" class="primary">Save changes</button></div>
   </fieldset></form>
-  <div class="delete-panel"><h2>Delete project</h2><p>Remove this project, its experiments and all saved versions from your workspace.</p><button class="danger" data-action="delete-project" type="button">Delete project</button></div>
-  <dialog id="delete-dialog" aria-labelledby="delete-heading"><h2 id="delete-heading">Delete ${e(project.name)}?</h2><p>Permanently delete this project, its experiments and all saved versions?</p><form id="delete-project-form"><fieldset><p class="form-error" role="alert"></p><div class="form-actions"><button type="button" data-action="close-dialog" autofocus>Keep project</button><button type="submit" class="danger">Delete project</button></div></fieldset></form></dialog>
+  <div class="delete-panel"><h2>Delete project</h2><p>Remove this project, its experiments, saved versions and run history. Active runs must finish or be cancelled first.</p><button class="danger" data-action="delete-project" type="button">Delete project</button></div>
+  <dialog id="delete-dialog" aria-labelledby="delete-heading"><h2 id="delete-heading">Delete ${e(project.name)}?</h2><p>Permanently delete this project, its experiments, saved versions and run history? Artifact cleanup is asynchronous.</p><form id="delete-project-form"><fieldset><p class="form-error" role="alert"></p><div class="form-actions"><button type="button" data-action="close-dialog" autofocus>Keep project</button><button type="submit" class="danger">Delete project</button></div></fieldset></form></dialog>
   </section>`;
 }
 
@@ -204,17 +214,20 @@ function renderProject(project, section) {
   let content;
   if (section === 'data') content = renderDataset(dataset);
   else if (section === 'settings') content = renderSettings(project);
-  else if (section === 'experiments') content = experimentView.experiment ? renderExperimentDetail(project, experimentView, draftState) : renderExperimentList(project, experimentView);
-  else content = '<div class="empty"><p class="eyebrow">Results</p><h2>No results in this project</h2><p>No experiments have been run in this workspace. The reference qualification linked under Data was produced locally and is separate from project results.</p></div>';
+  else if (section === 'experiments') content = experimentView.experiment ? renderExperimentDetail(project, experimentView, draftState, renderRevisionJobs(experimentView, session.capabilities.execution, draftState?.kind === 'edit')) : renderExperimentList(project, experimentView);
+  else content = `<div id="jobs-content">${jobView.job ? renderJobDetail(jobView.job) : renderJobList(jobView)}</div>`;
   mount(`<nav class="breadcrumb" aria-label="Breadcrumb"><a href="#projects">Projects</a><span aria-hidden="true">/</span><span>${e(project.name)}</span></nav>
     <div class="page-heading project-heading"><div><p class="eyebrow">Private project</p><h1>${e(project.name)}</h1>${project.description ? `<p class="muted project-description">${e(project.description)}</p>` : ''}</div><span class="pill">Private to your account</span></div>
-    <nav class="project-nav" aria-label="Project">${tabs.map(([key, label]) => `<a href="#project/${e(project.id)}/${key}" ${key === section ? 'aria-current="page"' : ''}>${label}</a>`).join('')}</nav>${content}`, `${project.name} · ${tabs.find(([key]) => key === section)[1]}`, true);
+    <nav class="project-nav" aria-label="Project">${tabs.map(([key, label]) => `<a href="#project/${e(project.id)}/${key}" ${key === section ? 'aria-current="page"' : ''}>${label}</a>`).join('')}</nav><p id="job-poll-status" class="job-feedback" role="status" hidden></p>${content}`, `${project.name} · ${tabs.find(([key]) => key === section)[1]}`, true);
+  const pending = experimentView?.experiment && submissions.get(submissionIdentity());
+  if (pending?.inFlight) app.querySelector('[data-action="launch-job"]')?.setAttribute('disabled', '');
 }
 
 function routeError(error) {
   const unavailable = error instanceof ApiError && error.status === 404;
   const csrf = error instanceof ApiError && error.status === 403;
-  const resource = parseRoute(window.location.hash).experimentId ? 'Experiment' : 'Project';
+  const route = parseRoute(window.location.hash);
+  const resource = route.jobId ? 'Run' : route.experimentId ? 'Experiment' : 'Project';
   mount(`<div class="empty error" role="alert"><h1>${unavailable ? `${resource} unavailable` : 'Unable to load the workspace'}</h1><p>${unavailable ? `This ${resource.toLowerCase()} does not exist or is not available to your account.` : e(errorMessage(error))}</p>${csrf ? '<button type="button" data-action="reload">Reload session</button>' : '<button type="button" data-action="retry">Try again</button>'} <a class="button" href="#projects">Return to Projects</a></div>`, 'Workspace unavailable', true);
 }
 
@@ -230,9 +243,11 @@ async function renderRoute() {
   if (!session?.user) { renderAuth(); return; }
   const id = ++navigation;
   controller?.abort();
+  jobPoller?.stop();
   controller = new AbortController();
   currentProject = null;
   experimentView = null;
+  jobView = null;
   mount('<p class="loading" role="status">Loading workspace…</p>', 'Workspace');
   try {
     const route = parseRoute(window.location.hash);
@@ -257,18 +272,30 @@ async function renderRoute() {
         }
         const [profile, list, detail, history, historical] = await Promise.all(tasks);
         if (id !== navigation) return;
-        const view = { profile: profile.profile, experiments: list.experiments, limits: list.limits };
+        const view = { profile: profile.profile, experiments: list.experiments, limits: list.limits, execution: session.capabilities.execution };
         if (detail) {
           view.experiment = detail.experiment;
           view.revision = historical?.revision || detail.revision;
           view.revisions = history.revisions;
-          view.comparison = await api.request(`${path}/${route.experimentId}/compare`, { query: { from: Math.max(1, view.revision.version - 1), to: view.revision.version }, signal: controller.signal });
+          const [comparison, runs] = await Promise.all([
+            api.request(`${path}/${route.experimentId}/compare`, { query: { from: Math.max(1, view.revision.version - 1), to: view.revision.version }, signal: controller.signal }),
+            api.request(`/projects/${route.id}/jobs`, { signal: controller.signal }),
+          ]);
+          view.comparison = comparison;
+          view.jobs = runs.jobs;
+          view.jobLimits = runs.limits;
+          view.jobService = runs.service;
         }
         if (id !== navigation) return;
         experimentView = view;
+      } else if (route.section === 'results') {
+        const value = await api.request(`/projects/${route.id}/jobs${route.jobId ? `/${route.jobId}` : ''}`, { signal: controller.signal });
+        if (id !== navigation) return;
+        jobView = value;
       }
       currentProject = resource.project;
       renderProject(currentProject, route.section);
+      startJobPolling(route, id);
     }
     renderedHash = window.location.hash;
   } catch (error) {
@@ -403,6 +430,132 @@ async function compareSelectedVersions() {
   }
 }
 
+function selectedJobs(view = experimentView) {
+  return view.jobs.filter(job => job.experiment_id === view.experiment.id && job.revision_version === view.revision.version);
+}
+
+function startJobPolling(route, routeId) {
+  const detail = route.section === 'results' && route.jobId;
+  const revision = route.section === 'experiments' && route.experimentId;
+  if (!detail && !revision && route.section !== 'results') return;
+  const remainsActive = value => detail ? activeJob(value.job) : revision ? value.jobs.some(job => job.experiment_id === experimentView.experiment.id && job.revision_version === experimentView.revision.version && activeJob(job)) : value.jobs.some(activeJob);
+  const initial = revision ? experimentView : jobView;
+  if (!remainsActive(initial)) return;
+  let previous = JSON.stringify(detail ? initial.job : initial.jobs);
+  jobPoller = createJobPoller({
+    read: signal => api.request(`/projects/${route.id}/jobs${detail ? `/${route.jobId}` : ''}`, { signal }),
+    isVisible: () => document.visibilityState === 'visible',
+    shouldContinue: remainsActive,
+    onValue(value) {
+      if (routeId !== navigation) return;
+      const status = app.querySelector('#job-poll-status');
+      status.hidden = true;
+      const serialized = JSON.stringify(detail ? value.job : value.jobs);
+      if (revision) { experimentView.jobs = value.jobs; experimentView.jobLimits = value.limits; experimentView.jobService = value.service; }
+      else jobView = value;
+      const service = app.querySelector('#job-service');
+      if (service) service.innerHTML = renderService(value.service);
+      if (serialized === previous) return;
+      previous = serialized;
+      if (revision) {
+        const jobs = selectedJobs();
+        app.querySelector('#revision-job-list').innerHTML = jobs.length ? renderJobRows(jobs) : '<p class="muted job-empty">No runs for this saved version.</p>';
+      } else {
+        const target = app.querySelector('#jobs-content');
+        const focusAction = target.contains(document.activeElement) ? document.activeElement.dataset.action : null;
+        const focusHref = target.contains(document.activeElement) ? document.activeElement.getAttribute('href') : null;
+        const openDetails = [...target.querySelectorAll('details')].map(item => item.open);
+        target.innerHTML = detail ? renderJobDetail(value.job) : renderJobList(value);
+        target.querySelectorAll('details').forEach((item, index) => { item.open = openDetails[index] || false; });
+        if (focusAction) target.querySelector(`[data-action="${focusAction}"]`)?.focus({ preventScroll: true });
+        else if (focusHref) [...target.querySelectorAll('a[href]')].find(link => link.getAttribute('href') === focusHref)?.focus({ preventScroll: true });
+      }
+    },
+    onError(error) {
+      if (routeId !== navigation) return false;
+      if (error.status === 401) { void expireSession(); return false; }
+      if (error.status === 404) { routeError(error); return false; }
+      const status = app.querySelector('#job-poll-status');
+      status.hidden = false;
+      status.textContent = `Status refresh interrupted. Showing the last received state. ${errorMessage(error)}`;
+      if (error.status === 403) {
+        const button = document.createElement('button');
+        button.type = 'button'; button.dataset.action = 'reload'; button.textContent = 'Reload session';
+        status.append(document.createElement('br'), button);
+        return false;
+      }
+      return true;
+    },
+  });
+}
+
+function submissionIdentity() {
+  return `${currentProject.id}/${experimentView.experiment.id}/${experimentView.revision.version}`;
+}
+
+async function launchJob(button) {
+  if (!session.capabilities.execution || draftState?.kind === 'edit') return;
+  const identity = submissionIdentity();
+  const pending = submissions.get(identity) || { key: crypto.randomUUID(), inFlight: false };
+  if (pending.inFlight) return;
+  submissions.set(identity, pending);
+  pending.inFlight = true;
+  const epoch = sessionEpoch;
+  const routeId = navigation;
+  const projectId = currentProject.id;
+  const body = { schema_version: 1, experiment_id: experimentView.experiment.id, revision_version: experimentView.revision.version, idempotency_key: pending.key };
+  button.disabled = true;
+  const feedback = app.querySelector('#job-submission-status');
+  feedback.textContent = 'Submitting the saved version…';
+  try {
+    const response = await api.request(`/projects/${projectId}/jobs`, { method: 'POST', body });
+    if (epoch !== sessionEpoch) return;
+    submissions.delete(identity);
+    if (routeId !== navigation) return;
+    await navigateTo(jobPath(projectId, response.job.id));
+    announce(response.reused ? 'Existing submission recovered. No duplicate run was created.' : 'Run submitted. It continues when you leave the page.');
+  } catch (error) {
+    if (epoch !== sessionEpoch || routeId !== navigation) return;
+    if (error.status === 401) { await expireSession(); return; }
+    if (feedback.isConnected) {
+      const uncertain = !(error instanceof ApiError) || error.status >= 500;
+      feedback.textContent = `${errorMessage(error)}${uncertain ? ' Submission may have reached the server. Retry uses the same request identity to avoid duplicate work.' : ''}`;
+      if (error.status === 403) {
+        const reload = document.createElement('button');
+        reload.type = 'button'; reload.dataset.action = 'reload'; reload.textContent = 'Reload session';
+        feedback.append(document.createElement('br'), reload);
+      }
+    }
+  } finally {
+    pending.inFlight = false;
+    if (epoch === sessionEpoch && button.isConnected) button.disabled = false;
+    else if (epoch === sessionEpoch && experimentView?.experiment && currentProject && submissionIdentity() === identity) {
+      app.querySelector('[data-action="launch-job"]')?.removeAttribute('disabled');
+    }
+  }
+}
+
+function openJobAction(action) {
+  const job = jobView.job;
+  app.querySelector('#job-action-dialog')?.remove();
+  app.insertAdjacentHTML('beforeend', jobActionDialog(job, action));
+  const dialog = app.querySelector('#job-action-dialog');
+  dialog.addEventListener('close', () => dialog.remove(), { once: true });
+  dialog.showModal();
+}
+
+async function submitJobAction(form, epoch, projectId) {
+  const routeId = navigation;
+  const cancel = form.id === 'cancel-job-form';
+  const path = `/projects/${projectId}/jobs/${form.dataset.jobId}`;
+  await api.request(cancel ? `${path}/cancel` : path, { method: cancel ? 'POST' : 'DELETE', ...(cancel ? { body: { schema_version: 1 } } : {}) });
+  if (epoch !== sessionEpoch || routeId !== navigation) return;
+  form.closest('dialog').close();
+  if (cancel) await renderRoute();
+  else await navigateTo(`#project/${projectId}/results`);
+  announce(cancel ? 'Cancellation request processed. The current run state is shown below.' : 'Run removed. Artifact cleanup follows asynchronously.');
+}
+
 app.addEventListener('submit', async event => {
   const form = event.target;
   if (!(form instanceof HTMLFormElement)) return;
@@ -415,7 +568,9 @@ app.addEventListener('submit', async event => {
   form.querySelector('.form-error').textContent = '';
   announce();
   try {
-    if (['create-experiment-form', 'edit-experiment-form', 'duplicate-experiment-form', 'delete-experiment-form'].includes(form.id)) {
+    if (['cancel-job-form', 'delete-job-form'].includes(form.id)) {
+      await submitJobAction(form, epoch, projectId);
+    } else if (['create-experiment-form', 'edit-experiment-form', 'duplicate-experiment-form', 'delete-experiment-form'].includes(form.id)) {
       await submitExperiment(form, data, epoch);
     } else if (form.id === 'auth-form') {
       const value = await api.request(`/auth/${authMode === 'register' && session.registration_open !== false ? 'register' : 'login'}`, { method: 'POST', body: data });
@@ -472,6 +627,9 @@ app.addEventListener('click', event => {
       button.closest('dialog').close();
       break;
     case 'new-experiment': openNewExperiment(); break;
+    case 'launch-job': void launchJob(button); break;
+    case 'cancel-job': openJobAction('cancel'); break;
+    case 'delete-job': openJobAction('delete'); break;
     case 'edit-experiment': {
       const values = revisionDraft(experimentView.revision, experimentView.profile);
       draftState = { kind: 'edit', baseline: { ...values }, values, baseVersion: experimentView.experiment.version };

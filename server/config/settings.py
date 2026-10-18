@@ -82,3 +82,11 @@ SECURE_REFERRER_POLICY = "same-origin"
 X_FRAME_OPTIONS = "DENY"
 MERIDIAN_PROJECT_LIMIT = 20
 MERIDIAN_REGISTRATION_OPEN = os.environ.get("MERIDIAN_REGISTRATION_OPEN", "1") == "1"
+MERIDIAN_EXECUTION_ENABLED = os.environ.get("MERIDIAN_EXECUTION_ENABLED", "0") == "1"
+# Operator-owned paths; no request can supply a filesystem path or image.
+MERIDIAN_VIO_PREPARED = Path(os.environ.get("MERIDIAN_VIO_PREPARED", "/srv/meridian-workspace/data/room1"))
+MERIDIAN_JOB_ARTIFACT_ROOT = Path(os.environ.get("MERIDIAN_JOB_ARTIFACT_ROOT", "/srv/meridian-workspace/jobs"))
+MERIDIAN_JOB_SCRATCH_ROOT = Path(os.environ.get("MERIDIAN_JOB_SCRATCH_ROOT", "/srv/meridian-workspace/scratch"))
+MERIDIAN_EVALUATION_IMAGE = os.environ.get("MERIDIAN_EVALUATION_IMAGE", "")
+MERIDIAN_MIN_AVAILABLE_MEMORY_MB = int(os.environ.get("MERIDIAN_MIN_AVAILABLE_MEMORY_MB", "5120"))
+MERIDIAN_MIN_FREE_DISK_GB = int(os.environ.get("MERIDIAN_MIN_FREE_DISK_GB", "10"))

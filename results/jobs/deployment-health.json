@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "checked_at_utc": "2026-10-18T19:04:14.243989+00:00",
+  "release": "20261018-adf227683c6c",
+  "bundle_sha256": "adf227683c6c00cafbb9d5dce37b27335922ea9aa2144820167beb14c63e4560",
+  "database_container_start_and_volume_unchanged": true,
+  "all_four_meridian_services_healthy": true,
+  "meridian_and_three_existing_sites_https_200": true,
+  "exact_qa_accounts_removed": 4,
+  "exact_qa_sessions_removed": 5,
+  "aggregate_budgets_preserved": true,
+  "remaining_qa_artifact_jobs": 0,
+  "remaining_qa_scratch_attempts": 0,
+  "artifact_root_entries": 0,
+  "scratch_root_entries": 0,
+  "scratch_capacity_bytes": 134217728,
+  "scratch_used_bytes": 0,
+  "remaining_compute_children": 0,
+  "worker_restart_count": 0,
+  "host_memory_available_bytes": 5640597504,
+  "host_free_disk_bytes": 53889568768,
+  "dedicated_local_test_postgresql_removed": true
+}

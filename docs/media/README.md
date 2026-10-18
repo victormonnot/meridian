@@ -1,5 +1,21 @@
 # Interface screenshots
 
+## Hosted VIO execution
+
+[`jobs.png`](jobs.png) captures the deployed HTTPS application on 2026-10-18 in
+Chromium, with a 1440 × 1000 viewport, light theme and a full-page capture. The
+fictional QA account owns `Hosted VIO validation` and `Room1 baseline`. The
+200-point version ran through the real PostgreSQL queue, isolated OpenVINS runtime
+and separate evaluator. The displayed metrics come from the published job;
+no pixels, values or job states were edited. The exact QA account and its data
+are disposable; their identifiers in the image do not identify a real engineer.
+
+To reproduce, create a private project and experiment on the provisioned
+workspace, launch the saved 200-point version and open its completed Results
+entry. See the [job contract](../hosted-vio-jobs.md) and
+[validation report](../../results/jobs/README.md). This capture documents the
+observed reference execution, not drone-flight performance.
+
 ## Versioned experiments
 
 [`experiments.png`](experiments.png) captures the real local application on

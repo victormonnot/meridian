@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "checked_at_utc": "2026-10-18T18:44:11Z",
+  "native_image_id": "sha256:54863f14d9f92d2805f5fddcfb78d146c6aac2ad77dc348e304059e2252a400a",
+  "native_image_config_id": "sha256:73e1213d073ce52a9a509decb15628a7c043e0690609171c4b9382ed0c2730da",
+  "native_image_manifest_id": "sha256:54863f14d9f92d2805f5fddcfb78d146c6aac2ad77dc348e304059e2252a400a",
+  "image_config_and_layers_verified": true,
+  "prepared_manifest_sha256": "e55f0480533611fc1e198d16b181814a8d34752cb748becbfeec7bcb4908ba6d",
+  "prepared_files": 5651,
+  "prepared_file_bytes": 1696791755,
+  "archives": {
+    "room1-prepared.tar.gz": {
+      "sha256": "6c407b4ac741d9abf2dd6dac4c1ffca93bb25664bd52c19be6377beaa09fbddc",
+      "size_bytes": 1691477811
+    },
+    "openvins-image.tar.gz": {
+      "sha256": "bebb6c05ad13ffbe1ebd383b291f9b84080e1cbc27a173eb2e443f3a9020dee8",
+      "size_bytes": 622435670
+    }
+  },
+  "target_verified": true,
+  "scope": "Transfer verification only; hosted execution is recorded separately."
+}

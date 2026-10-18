@@ -1,4 +1,4 @@
-"""Private, versioned configuration metadata. No estimator execution routes."""
+"""Private, versioned configuration metadata shared with queued executions."""
 import json
 import re
 
@@ -154,6 +154,8 @@ def experiment(request, project_id, experiment_id):
             snapshot = value.revisions.filter(version=value.current_version).first()
             return response(detail(value, snapshot)) if snapshot else not_found(request)
         if request.method == "DELETE":
+            if value.jobs.filter(state__in=["queued", "running", "evaluating"]).exists():
+                return error("active_jobs", "Cancel active executions and wait for them to stop before deleting this experiment.", 409)
             value.delete()
             return response({"deleted": True})
         fields = {"schema_version", "base_version", "name", "description", "parameters"}

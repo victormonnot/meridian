@@ -7,11 +7,12 @@ from queue import Queue
 from threading import Barrier
 from time import monotonic, sleep
 from unittest import skipUnless
+import uuid
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import close_old_connections, connection, connections, transaction
-from django.test import Client, TransactionTestCase, override_settings
+from django.test import Client, RequestFactory, TransactionTestCase, override_settings
 
 from .api import rate_budget
 from .models import AuthWindow, Experiment, ExperimentRevision, Project
@@ -225,3 +226,82 @@ class PostgreSQLExperimentConcurrencyTests(ConcurrentDatabaseWorkers, Transactio
         self.assertFalse(Project.objects.filter(pk=self.project.pk).exists())
         self.assertFalse(Experiment.objects.exists())
         self.assertFalse(ExperimentRevision.objects.exists())
+
+
+@skipUnless(connection.vendor == "postgresql", "Requires independent PostgreSQL transactions and row locks")
+@override_settings(MERIDIAN_EXECUTION_ENABLED=True)
+class PostgreSQLJobConcurrencyTests(ConcurrentDatabaseWorkers, TransactionTestCase):
+    def setUp(self):
+        from meridian.vio_specification import build_specification, specification_sha256
+        from .models import ComputeQueue
+        self.owner = get_user_model().objects.create_user("compute.engineer")
+        self.project = Project.objects.create(owner=self.owner, name="Compute race", dataset_id="tumvi-room1-512-16-v1")
+        spec = build_specification(self.project.dataset_id, {"num_pts": 200})
+        digest = specification_sha256(spec)
+        self.experiment = Experiment.objects.create(project=self.project, name="Baseline", parameters=spec["parameters"], specification_sha256=digest)
+        ExperimentRevision.objects.create(experiment=self.experiment, version=1, name="Baseline", specification=spec, specification_sha256=digest)
+        ComputeQueue.objects.get_or_create(pk=1)
+
+    def submit(self, key):
+        from .jobs import jobs
+        request = RequestFactory().post("/jobs", data=json.dumps({"schema_version": 1, "experiment_id": str(self.experiment.pk),
+                                        "revision_version": 1, "idempotency_key": str(key)}), content_type="application/json")
+        request.user = self.owner
+        return jobs(request, self.project.pk)
+
+    def race_on_queue(self, operation):
+        from .models import ComputeQueue
+        with self.workers(operation) as (futures, pids, start):
+            with transaction.atomic():
+                ComputeQueue.objects.select_for_update().get(pk=1)
+                start.wait(timeout=5)
+                self.wait_for_both_database_locks(pids, futures)
+            return [future.result(timeout=12) for future in futures]
+
+    def test_simultaneous_same_submission_creates_one_job(self):
+        from .models import Job
+        key = uuid.uuid4()
+        results = self.race_on_queue(lambda _: self.submit(key))
+        self.assertEqual(sorted(result.status_code for result in results), [200, 201])
+        self.assertEqual(Job.objects.count(), 1)
+        self.assertEqual(len({json.loads(result.content)["job"]["id"] for result in results}), 1)
+
+    def test_simultaneous_submissions_cannot_exceed_last_account_slot(self):
+        from .models import Job
+        self.assertEqual(self.submit(uuid.uuid4()).status_code, 201)
+        results = self.race_on_queue(lambda _: self.submit(uuid.uuid4()))
+        self.assertEqual(sorted(result.status_code for result in results), [201, 409])
+        self.assertEqual(Job.objects.filter(state="queued").count(), 2)
+
+    def test_two_workers_cannot_claim_two_jobs_in_the_global_slot(self):
+        from .job_queue import claim
+        from .models import JobAttempt
+        self.submit(uuid.uuid4())
+        self.submit(uuid.uuid4())
+        results = self.race_on_queue(lambda _: claim(uuid.uuid4()))
+        self.assertEqual(sum(result is not None for result in results), 1)
+        self.assertEqual(JobAttempt.objects.count(), 1)
+
+    def test_cancel_and_finish_are_serialized_without_late_success(self):
+        from .job_queue import claim, finish
+        from .jobs import cancel
+        self.submit(uuid.uuid4())
+        job, attempt = claim(uuid.uuid4())
+
+        def operation(index):
+            if index:
+                return finish(job.pk, attempt.pk, {"state": "succeeded", "failure": None,
+                    "result": {"qualification": {"passed": True}},
+                    "manifest": {"schema_version": 1, "files": {"status.json": {"size_bytes": 2, "sha256": "a" * 64}}}})
+            request = RequestFactory().post("/cancel", data='{"schema_version":1}', content_type="application/json")
+            request.user = self.owner
+            return cancel(request, self.project.pk, job.pk)
+
+        results = self.race_on_queue(operation)
+        self.assertEqual(results[0].status_code, 200)
+        self.assertTrue(results[1])
+        job.refresh_from_db()
+        cancelled_first = json.loads(results[0].content)["job"]["cancel_requested"]
+        self.assertEqual(job.state, "cancelled" if cancelled_first else "succeeded")
+        if cancelled_first:
+            self.assertIsNone(job.result)
