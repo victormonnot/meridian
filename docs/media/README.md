@@ -1,5 +1,27 @@
 # Interface screenshots
 
+## Saved VIO comparisons
+
+[`comparisons.png`](comparisons.png) captures the deployed HTTPS application on
+2026-10-19 in Chromium at a 1440 × 1400 viewport, light theme, scrolled to
+Configuration difference. Release `20261019-0169017b1bec` executed the actual
+200-point baseline and 100-point variant through the private queue, native
+OpenVINS runtime and separate evaluator. The view shows their full-recording
+own-support and common-support scores. No pixels, values or execution states
+were edited; the account and project are disposable QA resources.
+
+To reproduce, run both saved configurations, open **Results → New comparison**,
+select their exact execution identities, save and scroll to Configuration
+difference. The snapshot retains the original full-recording alignments and
+does not rank the configurations. See the [comparison contract](../vio-comparisons.md)
+and [validation report](../../results/comparisons/README.md).
+
+The numerical results derive from the **TUM VI Benchmark**, David Schubert,
+Thore Goll, Nikolaus Demmel, Vladyslav Usenko, Joerg Stueckler and Daniel Cremers
+(2018), under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), using
+the [documented preparation and evaluation](../vio-reference.md). This view
+contains derived metrics, not camera imagery or drone-flight validation.
+
 ## Synchronized VIO investigation
 
 [`investigation.png`](investigation.png) captures the deployed HTTPS application

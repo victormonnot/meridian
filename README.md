@@ -38,9 +38,8 @@ execution, investigation and comparison workflow. Independent exports and
 broader estimator development remain planned.
 
 The hosted preview uses a temporary HTTPS address. Password recovery and
-recording uploads remain unavailable. Saved run comparisons are implemented and
-locally validated; their hosted rollout is pending. The preview currently retains
-the investigation release. The [initial workspace report](results/workspace/README.md)
+recording uploads remain unavailable. Saved run comparisons are validated locally
+and over HTTPS on the deployed preview. The [initial workspace report](results/workspace/README.md)
 records the authentication foundation; [job validation](results/jobs/README.md)
 records execution, recovery and the maintained room1 profile.
 

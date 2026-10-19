@@ -1,7 +1,404 @@
 {
   "schema_version": 1,
-  "status": "hosted_observation_pending",
-  "comparison_release_hosted_children_observed": false,
-  "reason": "The comparison release has not been deployed. No isolation observation from an older release is presented as a new measurement.",
-  "local_execution_evidence": "Three real local VIO jobs completed; their artifact/run specifications are covered by local-independent-audit.json. This file does not assert a fresh live container inspection for those local jobs."
+  "checked_at_utc": "2026-10-19T21:30:20.435081+00:00",
+  "method": "Read-only live Docker inspection of all three actual hosted native/evaluator pairs. Observation-pair numbers only associate phases and do not encode execution order. Host source paths and job/container identifiers omitted.",
+  "completed_pairs_observed": 3,
+  "containers": [
+    {
+      "phase": "native",
+      "image_id": "sha256:54863f14d9f92d2805f5fddcfb78d146c6aac2ad77dc348e304059e2252a400a",
+      "user": "10001:10001",
+      "readonly": true,
+      "memory_bytes": 4294967296,
+      "memory_swap_bytes": 4294967296,
+      "nano_cpus": 2000000000,
+      "pids_limit": 128,
+      "network_mode": "none",
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges"
+      ],
+      "log_driver": "none",
+      "tmpfs": {
+        "/tmp": "rw,noexec,nosuid,size=128m"
+      },
+      "ulimits": [
+        {
+          "Name": "fsize",
+          "Hard": 33554432,
+          "Soft": 33554432
+        }
+      ],
+      "environment_keys": [
+        "DEBIAN_FRONTEND",
+        "OMP_NUM_THREADS",
+        "OPENBLAS_NUM_THREADS",
+        "PATH"
+      ],
+      "observation_pair": 1,
+      "mounts": [
+        {
+          "target": "/config",
+          "role": "rendered configuration",
+          "writable": false
+        },
+        {
+          "target": "/output",
+          "role": "native output",
+          "writable": true
+        },
+        {
+          "target": "/sensors",
+          "role": "prepared camera/IMU sensor tree",
+          "writable": false
+        }
+      ]
+    },
+    {
+      "phase": "evaluation",
+      "image_id": "sha256:d411d433b9af51bd8c55df4487a39fa057adcb8bba3f62d5062d808db3eaac08",
+      "user": "10001:10001",
+      "readonly": true,
+      "memory_bytes": 536870912,
+      "memory_swap_bytes": 536870912,
+      "nano_cpus": 500000000,
+      "pids_limit": 64,
+      "network_mode": "none",
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges"
+      ],
+      "log_driver": "none",
+      "tmpfs": {
+        "/tmp": "rw,noexec,nosuid,size=32m"
+      },
+      "ulimits": [
+        {
+          "Name": "fsize",
+          "Hard": 33554432,
+          "Soft": 33554432
+        }
+      ],
+      "environment_keys": [
+        "GPG_KEY",
+        "LANG",
+        "OMP_NUM_THREADS",
+        "OPENBLAS_NUM_THREADS",
+        "PATH",
+        "PIP_DISABLE_PIP_VERSION_CHECK",
+        "PYTHONDONTWRITEBYTECODE",
+        "PYTHONPATH",
+        "PYTHONUNBUFFERED",
+        "PYTHON_SHA256",
+        "PYTHON_VERSION"
+      ],
+      "observation_pair": 1,
+      "mounts": [
+        {
+          "target": "/evaluation",
+          "role": "evaluation output",
+          "writable": true
+        },
+        {
+          "target": "/inputs/estimate.csv",
+          "role": "estimated trajectory",
+          "writable": false
+        },
+        {
+          "target": "/inputs/imu.csv",
+          "role": "calibrated IMU CSV",
+          "writable": false
+        },
+        {
+          "target": "/inputs/investigation-request.json",
+          "role": "investigation request",
+          "writable": false
+        },
+        {
+          "target": "/inputs/native-status.json",
+          "role": "native status",
+          "writable": false
+        },
+        {
+          "target": "/inputs/reference.csv",
+          "role": "independent reference trajectory",
+          "writable": false
+        },
+        {
+          "target": "/inputs/request.json",
+          "role": "evaluation request",
+          "writable": false
+        }
+      ]
+    },
+    {
+      "phase": "native",
+      "image_id": "sha256:54863f14d9f92d2805f5fddcfb78d146c6aac2ad77dc348e304059e2252a400a",
+      "user": "10001:10001",
+      "readonly": true,
+      "memory_bytes": 4294967296,
+      "memory_swap_bytes": 4294967296,
+      "nano_cpus": 2000000000,
+      "pids_limit": 128,
+      "network_mode": "none",
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges"
+      ],
+      "log_driver": "none",
+      "tmpfs": {
+        "/tmp": "rw,noexec,nosuid,size=128m"
+      },
+      "ulimits": [
+        {
+          "Name": "fsize",
+          "Hard": 33554432,
+          "Soft": 33554432
+        }
+      ],
+      "environment_keys": [
+        "DEBIAN_FRONTEND",
+        "OMP_NUM_THREADS",
+        "OPENBLAS_NUM_THREADS",
+        "PATH"
+      ],
+      "observation_pair": 3,
+      "mounts": [
+        {
+          "target": "/config",
+          "role": "rendered configuration",
+          "writable": false
+        },
+        {
+          "target": "/output",
+          "role": "native output",
+          "writable": true
+        },
+        {
+          "target": "/sensors",
+          "role": "prepared camera/IMU sensor tree",
+          "writable": false
+        }
+      ]
+    },
+    {
+      "phase": "evaluation",
+      "image_id": "sha256:d411d433b9af51bd8c55df4487a39fa057adcb8bba3f62d5062d808db3eaac08",
+      "user": "10001:10001",
+      "readonly": true,
+      "memory_bytes": 536870912,
+      "memory_swap_bytes": 536870912,
+      "nano_cpus": 500000000,
+      "pids_limit": 64,
+      "network_mode": "none",
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges"
+      ],
+      "log_driver": "none",
+      "tmpfs": {
+        "/tmp": "rw,noexec,nosuid,size=32m"
+      },
+      "ulimits": [
+        {
+          "Name": "fsize",
+          "Hard": 33554432,
+          "Soft": 33554432
+        }
+      ],
+      "environment_keys": [
+        "GPG_KEY",
+        "LANG",
+        "OMP_NUM_THREADS",
+        "OPENBLAS_NUM_THREADS",
+        "PATH",
+        "PIP_DISABLE_PIP_VERSION_CHECK",
+        "PYTHONDONTWRITEBYTECODE",
+        "PYTHONPATH",
+        "PYTHONUNBUFFERED",
+        "PYTHON_SHA256",
+        "PYTHON_VERSION"
+      ],
+      "observation_pair": 3,
+      "mounts": [
+        {
+          "target": "/evaluation",
+          "role": "evaluation output",
+          "writable": true
+        },
+        {
+          "target": "/inputs/estimate.csv",
+          "role": "estimated trajectory",
+          "writable": false
+        },
+        {
+          "target": "/inputs/imu.csv",
+          "role": "calibrated IMU CSV",
+          "writable": false
+        },
+        {
+          "target": "/inputs/investigation-request.json",
+          "role": "investigation request",
+          "writable": false
+        },
+        {
+          "target": "/inputs/native-status.json",
+          "role": "native status",
+          "writable": false
+        },
+        {
+          "target": "/inputs/reference.csv",
+          "role": "independent reference trajectory",
+          "writable": false
+        },
+        {
+          "target": "/inputs/request.json",
+          "role": "evaluation request",
+          "writable": false
+        }
+      ]
+    },
+    {
+      "phase": "native",
+      "image_id": "sha256:54863f14d9f92d2805f5fddcfb78d146c6aac2ad77dc348e304059e2252a400a",
+      "user": "10001:10001",
+      "readonly": true,
+      "memory_bytes": 4294967296,
+      "memory_swap_bytes": 4294967296,
+      "nano_cpus": 2000000000,
+      "pids_limit": 128,
+      "network_mode": "none",
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges"
+      ],
+      "log_driver": "none",
+      "tmpfs": {
+        "/tmp": "rw,noexec,nosuid,size=128m"
+      },
+      "ulimits": [
+        {
+          "Name": "fsize",
+          "Hard": 33554432,
+          "Soft": 33554432
+        }
+      ],
+      "environment_keys": [
+        "DEBIAN_FRONTEND",
+        "OMP_NUM_THREADS",
+        "OPENBLAS_NUM_THREADS",
+        "PATH"
+      ],
+      "observation_pair": 2,
+      "mounts": [
+        {
+          "target": "/config",
+          "role": "rendered configuration",
+          "writable": false
+        },
+        {
+          "target": "/output",
+          "role": "native output",
+          "writable": true
+        },
+        {
+          "target": "/sensors",
+          "role": "prepared camera/IMU sensor tree",
+          "writable": false
+        }
+      ]
+    },
+    {
+      "phase": "evaluation",
+      "image_id": "sha256:d411d433b9af51bd8c55df4487a39fa057adcb8bba3f62d5062d808db3eaac08",
+      "user": "10001:10001",
+      "readonly": true,
+      "memory_bytes": 536870912,
+      "memory_swap_bytes": 536870912,
+      "nano_cpus": 500000000,
+      "pids_limit": 64,
+      "network_mode": "none",
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges"
+      ],
+      "log_driver": "none",
+      "tmpfs": {
+        "/tmp": "rw,noexec,nosuid,size=32m"
+      },
+      "ulimits": [
+        {
+          "Name": "fsize",
+          "Hard": 33554432,
+          "Soft": 33554432
+        }
+      ],
+      "environment_keys": [
+        "GPG_KEY",
+        "LANG",
+        "OMP_NUM_THREADS",
+        "OPENBLAS_NUM_THREADS",
+        "PATH",
+        "PIP_DISABLE_PIP_VERSION_CHECK",
+        "PYTHONDONTWRITEBYTECODE",
+        "PYTHONPATH",
+        "PYTHONUNBUFFERED",
+        "PYTHON_SHA256",
+        "PYTHON_VERSION"
+      ],
+      "observation_pair": 2,
+      "mounts": [
+        {
+          "target": "/evaluation",
+          "role": "evaluation output",
+          "writable": true
+        },
+        {
+          "target": "/inputs/estimate.csv",
+          "role": "estimated trajectory",
+          "writable": false
+        },
+        {
+          "target": "/inputs/imu.csv",
+          "role": "calibrated IMU CSV",
+          "writable": false
+        },
+        {
+          "target": "/inputs/investigation-request.json",
+          "role": "investigation request",
+          "writable": false
+        },
+        {
+          "target": "/inputs/native-status.json",
+          "role": "native status",
+          "writable": false
+        },
+        {
+          "target": "/inputs/reference.csv",
+          "role": "independent reference trajectory",
+          "writable": false
+        },
+        {
+          "target": "/inputs/request.json",
+          "role": "evaluation request",
+          "writable": false
+        }
+      ]
+    }
+  ],
+  "no_application_credentials_or_socket": true,
+  "native_has_no_independent_reference": true,
+  "evaluation_readonly_input_files": 6
 }

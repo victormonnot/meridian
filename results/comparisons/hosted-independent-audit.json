@@ -1,0 +1,419 @@
+{
+  "schema_version": 1,
+  "passed": true,
+  "comparisons_checked": 2,
+  "checks": [
+    {
+      "comparison_id": "7e5a5ec2-cb61-4473-ae5a-90fa927710a3",
+      "analysis_sha256": "a6742840a8193ad246ac8ab0eae0650ec38ec2ca45d00b24cd8181881374cca1",
+      "kind": "repeated_execution",
+      "passed": true,
+      "runs": {
+        "baseline": {
+          "job_id": "f8806e0e-0636-4adc-a2f7-231fb692fccf",
+          "specification_sha256": "98e780babbc5fd1b8214a3afbe65e5b5dbe39196017a83361b93f7f7cd3e5f73",
+          "trajectory_sha256": "5640a2349c71c67c1ffeda44a59b0226cb8d5f9ea86ec58d068a78b30660462e",
+          "investigation_sha256": "12df1d297f95cbebf8afcdbfeee165f2c658e59f59cd1af73dbc1180526e5321",
+          "state": "succeeded",
+          "published_files_verified": 18,
+          "publication_manifest_sha256": "87d06917c1c70f5ce98fbe6ec0ab3564fd4bf270f10115e3120f1805f1057770",
+          "counts": {
+            "estimate_samples": 2689,
+            "expected_camera_samples": 2821,
+            "evaluated_camera_samples": 2624,
+            "associated_camera_samples": 2624,
+            "reference_supported_camera_samples": 2756
+          },
+          "own_metrics": {
+            "ate_rmse_m": 0.051132041394887494,
+            "position_error_mean_m": 0.04787200345164509,
+            "position_error_max_m": 0.11970868362413112,
+            "orientation_rmse_deg": 1.532136616154553,
+            "orientation_rmse_rad": 0.026740828542261494,
+            "orientation_error_mean_deg": 1.3471094574226024,
+            "orientation_error_max_deg": 4.428362220743539
+          },
+          "geometry_check": {
+            "max_position_error_residual_m": 4.2327252813834093e-16,
+            "max_orientation_error_residual_deg": 2.8338775770464508e-11
+          }
+        },
+        "candidate": {
+          "job_id": "0b88cf6c-f44a-4993-b3c7-074b6c949eec",
+          "specification_sha256": "98e780babbc5fd1b8214a3afbe65e5b5dbe39196017a83361b93f7f7cd3e5f73",
+          "trajectory_sha256": "5640a2349c71c67c1ffeda44a59b0226cb8d5f9ea86ec58d068a78b30660462e",
+          "investigation_sha256": "4523d57b6bb253dfc4e18392cf053a1cda5a3a49dc952f4d71906e593dd73b1b",
+          "state": "succeeded",
+          "published_files_verified": 18,
+          "publication_manifest_sha256": "c3646f4a58c1e1cf3be9111174f6c83b41ee1d41f289f75db88a0f4aeb945cf9",
+          "counts": {
+            "estimate_samples": 2689,
+            "expected_camera_samples": 2821,
+            "evaluated_camera_samples": 2624,
+            "associated_camera_samples": 2624,
+            "reference_supported_camera_samples": 2756
+          },
+          "own_metrics": {
+            "ate_rmse_m": 0.051132041394887494,
+            "position_error_mean_m": 0.04787200345164509,
+            "position_error_max_m": 0.11970868362413112,
+            "orientation_rmse_deg": 1.532136616154553,
+            "orientation_rmse_rad": 0.026740828542261494,
+            "orientation_error_mean_deg": 1.3471094574226024,
+            "orientation_error_max_deg": 4.428362220743539
+          },
+          "geometry_check": {
+            "max_position_error_residual_m": 4.2327252813834093e-16,
+            "max_orientation_error_residual_deg": 2.8338775770464508e-11
+          }
+        }
+      },
+      "common_support": {
+        "reason": null,
+        "status": "ok",
+        "baseline_metrics": {
+          "ate_rmse_m": 0.051132041394887494,
+          "orientation_rmse_deg": 1.532136616154553,
+          "orientation_rmse_rad": 0.026740828542261494,
+          "position_error_max_m": 0.11970868362413112,
+          "position_error_mean_m": 0.04787200345164509,
+          "orientation_error_max_deg": 4.428362220743539,
+          "orientation_error_mean_deg": 1.3471094574226024
+        },
+        "candidate_metrics": {
+          "ate_rmse_m": 0.051132041394887494,
+          "orientation_rmse_deg": 1.532136616154553,
+          "orientation_rmse_rad": 0.026740828542261494,
+          "position_error_max_m": 0.11970868362413112,
+          "position_error_mean_m": 0.04787200345164509,
+          "orientation_error_max_deg": 4.428362220743539,
+          "orientation_error_mean_deg": 1.3471094574226024
+        },
+        "fraction_of_expected": 0.9301666075859625,
+        "expected_camera_samples": 2821,
+        "evaluated_camera_samples": 2624,
+        "delta_candidate_minus_baseline": {
+          "ate_rmse_m": 0.0,
+          "orientation_rmse_deg": 0.0,
+          "orientation_rmse_rad": 0.0,
+          "position_error_max_m": 0.0,
+          "position_error_mean_m": 0.0,
+          "orientation_error_max_deg": 0.0,
+          "orientation_error_mean_deg": 0.0
+        }
+      },
+      "observed_deltas": {
+        "coverage_fraction": 0.0,
+        "evaluated_fraction": 0.0,
+        "native_cpu_seconds": -1.1854349999999982,
+        "native_peak_rss_kib": 152,
+        "native_wall_seconds": -1.6265762060000029,
+        "initialization_delay_s": 0.0
+      },
+      "support_counts": {
+        "estimated": {
+          "both": 2689,
+          "neither": 132,
+          "baseline_only": 0,
+          "candidate_only": 0
+        },
+        "evaluated": {
+          "both": 2624,
+          "neither": 197,
+          "baseline_only": 0,
+          "candidate_only": 0
+        }
+      }
+    },
+    {
+      "comparison_id": "c0081ce5-6ca5-4ae0-a795-d1d2f7591b26",
+      "analysis_sha256": "574e3f3a9e7192df982b954f55cc92c22e42ee812653c216188db83ac0533b9f",
+      "kind": "configuration_variant",
+      "passed": true,
+      "runs": {
+        "baseline": {
+          "job_id": "9cf17736-8d83-4876-bfe9-2bb527add147",
+          "specification_sha256": "521227054edeac5226ec9ab25e6a9190475affc62c64ce96057b5402bbf73677",
+          "trajectory_sha256": "d2a59ed328807d54af0a930006b7c2e850998c2dc7d6f89debd1c195ca4ed764",
+          "investigation_sha256": "b8683cd4e6b1b22c2447a488881a7c161f7b6d77d42e1603152a73b4073ed44c",
+          "state": "succeeded",
+          "published_files_verified": 18,
+          "publication_manifest_sha256": "285cff767a04b5e42a81163f06b3d540820f929998b92838e06ced70ed5c8098",
+          "counts": {
+            "estimate_samples": 2689,
+            "expected_camera_samples": 2821,
+            "evaluated_camera_samples": 2624,
+            "associated_camera_samples": 2624,
+            "reference_supported_camera_samples": 2756
+          },
+          "own_metrics": {
+            "ate_rmse_m": 0.06121636957422591,
+            "position_error_mean_m": 0.05697479331128086,
+            "position_error_max_m": 0.109949022489596,
+            "orientation_rmse_deg": 1.3255413925517476,
+            "orientation_rmse_rad": 0.023135061671498636,
+            "orientation_error_mean_deg": 1.2005629690623145,
+            "orientation_error_max_deg": 4.307316076259924
+          },
+          "geometry_check": {
+            "max_position_error_residual_m": 3.5388358909926865e-16,
+            "max_orientation_error_residual_deg": 2.335326376723401e-11
+          }
+        },
+        "candidate": {
+          "job_id": "f8806e0e-0636-4adc-a2f7-231fb692fccf",
+          "specification_sha256": "98e780babbc5fd1b8214a3afbe65e5b5dbe39196017a83361b93f7f7cd3e5f73",
+          "trajectory_sha256": "5640a2349c71c67c1ffeda44a59b0226cb8d5f9ea86ec58d068a78b30660462e",
+          "investigation_sha256": "12df1d297f95cbebf8afcdbfeee165f2c658e59f59cd1af73dbc1180526e5321",
+          "state": "succeeded",
+          "published_files_verified": 18,
+          "publication_manifest_sha256": "87d06917c1c70f5ce98fbe6ec0ab3564fd4bf270f10115e3120f1805f1057770",
+          "counts": {
+            "estimate_samples": 2689,
+            "expected_camera_samples": 2821,
+            "evaluated_camera_samples": 2624,
+            "associated_camera_samples": 2624,
+            "reference_supported_camera_samples": 2756
+          },
+          "own_metrics": {
+            "ate_rmse_m": 0.051132041394887494,
+            "position_error_mean_m": 0.04787200345164509,
+            "position_error_max_m": 0.11970868362413112,
+            "orientation_rmse_deg": 1.532136616154553,
+            "orientation_rmse_rad": 0.026740828542261494,
+            "orientation_error_mean_deg": 1.3471094574226024,
+            "orientation_error_max_deg": 4.428362220743539
+          },
+          "geometry_check": {
+            "max_position_error_residual_m": 4.2327252813834093e-16,
+            "max_orientation_error_residual_deg": 2.8338775770464508e-11
+          }
+        }
+      },
+      "common_support": {
+        "reason": null,
+        "status": "ok",
+        "baseline_metrics": {
+          "ate_rmse_m": 0.0612163695742259,
+          "orientation_rmse_deg": 1.3255413925517476,
+          "orientation_rmse_rad": 0.023135061671498636,
+          "position_error_max_m": 0.109949022489596,
+          "position_error_mean_m": 0.05697479331128086,
+          "orientation_error_max_deg": 4.307316076259924,
+          "orientation_error_mean_deg": 1.2005629690623145
+        },
+        "candidate_metrics": {
+          "ate_rmse_m": 0.051132041394887494,
+          "orientation_rmse_deg": 1.532136616154553,
+          "orientation_rmse_rad": 0.026740828542261494,
+          "position_error_max_m": 0.11970868362413112,
+          "position_error_mean_m": 0.04787200345164509,
+          "orientation_error_max_deg": 4.428362220743539,
+          "orientation_error_mean_deg": 1.3471094574226024
+        },
+        "fraction_of_expected": 0.9301666075859625,
+        "expected_camera_samples": 2821,
+        "evaluated_camera_samples": 2624,
+        "delta_candidate_minus_baseline": {
+          "ate_rmse_m": -0.010084328179338409,
+          "orientation_rmse_deg": 0.20659522360280547,
+          "orientation_rmse_rad": 0.0036057668707628575,
+          "position_error_max_m": 0.009759661134535122,
+          "position_error_mean_m": -0.009102789859635765,
+          "orientation_error_max_deg": 0.12104614448361506,
+          "orientation_error_mean_deg": 0.14654648836028783
+        }
+      },
+      "observed_deltas": {
+        "coverage_fraction": 0.0,
+        "evaluated_fraction": 0.0,
+        "native_cpu_seconds": -22.227953,
+        "native_peak_rss_kib": -300,
+        "native_wall_seconds": -21.99732494199999,
+        "initialization_delay_s": 0.0
+      },
+      "support_counts": {
+        "estimated": {
+          "both": 2689,
+          "neither": 132,
+          "baseline_only": 0,
+          "candidate_only": 0
+        },
+        "evaluated": {
+          "both": 2624,
+          "neither": 197,
+          "baseline_only": 0,
+          "candidate_only": 0
+        }
+      }
+    }
+  ],
+  "method": [
+    "Verify canonical saved-analysis SHA256.",
+    "Verify exact retained investigation and trajectory SHA256.",
+    "Reconstruct envelopes and reproduce exact analysis with the recorded frozen comparison implementation.",
+    "Independently recompute common/own RMSE using math.hypot, support intersections using sets, and pose-to-reference scalar errors.",
+    "Retain missing evidence and cancellation without invented scores."
+  ],
+  "limitations": [
+    "This read-only audit launches no native execution and does not establish statistical confidence or flight performance.",
+    "These local and hosted observations do not establish cross-hardware byte identity for future runs or statistical confidence."
+  ],
+  "checked_at_utc": "2026-10-19T21:31:32.549991+00:00",
+  "source_report_sha256": "10ca14127684e69da8e9883fe3967b0260ab3615c25fbc8e67f0aeff4f26ec29",
+  "canonical_snapshots_file_sha256": "4e8cdaec3ee10698a5e60e501dff0572e76e1e751cc20fa488109b9678653247",
+  "exact_https_response_checks": [
+    {
+      "comparison_id": "7e5a5ec2-cb61-4473-ae5a-90fa927710a3",
+      "response_sha256": "993cd5c91bfadafff1336e1584b7252855841afed691c62df0507a9ce34ade23",
+      "canonical_analysis_sha256": "a6742840a8193ad246ac8ab0eae0650ec38ec2ca45d00b24cd8181881374cca1",
+      "http_and_database_snapshot_identical": true
+    },
+    {
+      "comparison_id": "c0081ce5-6ca5-4ae0-a795-d1d2f7591b26",
+      "response_sha256": "7fbf035125f9ac046bcd211f8940c3871d0026c04f9cdd7f216a07e74dcef3f2",
+      "canonical_analysis_sha256": "574e3f3a9e7192df982b954f55cc92c22e42ee812653c216188db83ac0533b9f",
+      "http_and_database_snapshot_identical": true
+    }
+  ],
+  "exact_https_job_result_checks": 3,
+  "local_audit_sha256": "5e8b05797d98a0dc7247d263af4352da251c5fdb35af41a721d5fab7a38f7335",
+  "local_versus_hosted": [
+    {
+      "kind": "repeated_execution",
+      "local_comparison_id": "583236e5-76a1-45b1-8b14-24362b196d4e",
+      "hosted_comparison_id": "7e5a5ec2-cb61-4473-ae5a-90fa927710a3",
+      "identities": {
+        "baseline": {
+          "same_specification": true,
+          "local_trajectory_sha256": "5640a2349c71c67c1ffeda44a59b0226cb8d5f9ea86ec58d068a78b30660462e",
+          "hosted_trajectory_sha256": "5640a2349c71c67c1ffeda44a59b0226cb8d5f9ea86ec58d068a78b30660462e",
+          "identical_trajectory_bytes": true
+        },
+        "candidate": {
+          "same_specification": true,
+          "local_trajectory_sha256": "5640a2349c71c67c1ffeda44a59b0226cb8d5f9ea86ec58d068a78b30660462e",
+          "hosted_trajectory_sha256": "5640a2349c71c67c1ffeda44a59b0226cb8d5f9ea86ec58d068a78b30660462e",
+          "identical_trajectory_bytes": true
+        }
+      },
+      "own_support": {
+        "baseline": {
+          "metrics_hosted_minus_local": {
+            "ate_rmse_m": 0.0,
+            "position_error_mean_m": 0.0,
+            "position_error_max_m": 0.0,
+            "orientation_rmse_deg": 0.0,
+            "orientation_rmse_rad": 0.0,
+            "orientation_error_mean_deg": 0.0,
+            "orientation_error_max_deg": 0.0
+          },
+          "counts_hosted_minus_local": {
+            "estimate_samples": 0,
+            "expected_camera_samples": 0,
+            "evaluated_camera_samples": 0,
+            "associated_camera_samples": 0,
+            "reference_supported_camera_samples": 0
+          }
+        },
+        "candidate": {
+          "metrics_hosted_minus_local": {
+            "ate_rmse_m": 0.0,
+            "position_error_mean_m": 0.0,
+            "position_error_max_m": 0.0,
+            "orientation_rmse_deg": 0.0,
+            "orientation_rmse_rad": 0.0,
+            "orientation_error_mean_deg": 0.0,
+            "orientation_error_max_deg": 0.0
+          },
+          "counts_hosted_minus_local": {
+            "estimate_samples": 0,
+            "expected_camera_samples": 0,
+            "evaluated_camera_samples": 0,
+            "associated_camera_samples": 0,
+            "reference_supported_camera_samples": 0
+          }
+        }
+      },
+      "common_support_delta_hosted_minus_local": {
+        "ate_rmse_m": 0.0,
+        "orientation_rmse_deg": 0.0,
+        "orientation_rmse_rad": 0.0,
+        "position_error_max_m": 0.0,
+        "position_error_mean_m": 0.0,
+        "orientation_error_max_deg": 0.0,
+        "orientation_error_mean_deg": 0.0
+      },
+      "observed_host_cost_differences_are_not_a_performance_guarantee": true
+    },
+    {
+      "kind": "configuration_variant",
+      "local_comparison_id": "8edfd46c-e7ed-4869-bdae-fc0f432eacd5",
+      "hosted_comparison_id": "c0081ce5-6ca5-4ae0-a795-d1d2f7591b26",
+      "identities": {
+        "baseline": {
+          "same_specification": true,
+          "local_trajectory_sha256": "d2a59ed328807d54af0a930006b7c2e850998c2dc7d6f89debd1c195ca4ed764",
+          "hosted_trajectory_sha256": "d2a59ed328807d54af0a930006b7c2e850998c2dc7d6f89debd1c195ca4ed764",
+          "identical_trajectory_bytes": true
+        },
+        "candidate": {
+          "same_specification": true,
+          "local_trajectory_sha256": "5640a2349c71c67c1ffeda44a59b0226cb8d5f9ea86ec58d068a78b30660462e",
+          "hosted_trajectory_sha256": "5640a2349c71c67c1ffeda44a59b0226cb8d5f9ea86ec58d068a78b30660462e",
+          "identical_trajectory_bytes": true
+        }
+      },
+      "own_support": {
+        "baseline": {
+          "metrics_hosted_minus_local": {
+            "ate_rmse_m": 0.0,
+            "position_error_mean_m": 0.0,
+            "position_error_max_m": 0.0,
+            "orientation_rmse_deg": 0.0,
+            "orientation_rmse_rad": 0.0,
+            "orientation_error_mean_deg": 0.0,
+            "orientation_error_max_deg": 0.0
+          },
+          "counts_hosted_minus_local": {
+            "estimate_samples": 0,
+            "expected_camera_samples": 0,
+            "evaluated_camera_samples": 0,
+            "associated_camera_samples": 0,
+            "reference_supported_camera_samples": 0
+          }
+        },
+        "candidate": {
+          "metrics_hosted_minus_local": {
+            "ate_rmse_m": 0.0,
+            "position_error_mean_m": 0.0,
+            "position_error_max_m": 0.0,
+            "orientation_rmse_deg": 0.0,
+            "orientation_rmse_rad": 0.0,
+            "orientation_error_mean_deg": 0.0,
+            "orientation_error_max_deg": 0.0
+          },
+          "counts_hosted_minus_local": {
+            "estimate_samples": 0,
+            "expected_camera_samples": 0,
+            "evaluated_camera_samples": 0,
+            "associated_camera_samples": 0,
+            "reference_supported_camera_samples": 0
+          }
+        }
+      },
+      "common_support_delta_hosted_minus_local": {
+        "ate_rmse_m": 0.0,
+        "orientation_rmse_deg": 0.0,
+        "orientation_rmse_rad": 0.0,
+        "position_error_max_m": 0.0,
+        "position_error_mean_m": 0.0,
+        "orientation_error_max_deg": 0.0,
+        "orientation_error_mean_deg": 0.0
+      },
+      "observed_host_cost_differences_are_not_a_performance_guarantee": true
+    }
+  ],
+  "comparison_source_unchanged": true,
+  "snapshot_capture_method": "Exact HTTPS response bodies parsed by Python and compared with exact Django/Python DB snapshot captures; browser JSON reserialization is used only for lifecycle observations."
+}

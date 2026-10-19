@@ -1,7 +1,6 @@
 # Saved VIO comparison validation
 
-**Local validation completed on 2026-10-19. Hosted rollout and HTTPS validation
-remain pending.**
+**Validated locally and over HTTPS on 2026-10-19.**
 
 Increment 1.6 preserves comparisons of two exact terminal runs in a private
 project. The [comparison contract](../../docs/vio-comparisons.md) defines
@@ -75,12 +74,28 @@ same SHA-256,
 Their numerical deltas are zero while the separate host-cost observations
 differ. Two runs do not establish statistical repeatability or a speed guarantee.
 
+Three new HTTPS jobs on release `20261019-0169017b1bec` produced the same
+trajectory bytes, support and numerical metrics as their corresponding local
+runs. Their [saved snapshots](hosted-comparisons.json) and
+[independent audit](hosted-independent-audit.json) verify all 54 artifacts,
+reproduce both comparisons exactly and match the canonical analyses and job
+results against the original HTTPS response bodies. Native wall times on the
+VPS were 76.87790, 54.88058 and 53.25400 seconds respectively. Host costs remain
+separate observations; numerical agreement here does not guarantee future
+cross-hardware byte identity or establish flight performance.
+
+![Actual hosted configuration difference, own-support scores and common-support errors](../../docs/media/comparisons.png)
+
+*An unmodified HTTPS capture of the baseline and variant comparison.
+[Capture and data attribution](../../docs/media/README.md).*
+
 ## Browser checks
 
-The local application passes **29 comparison checks and 49 workspace regression
-checks**. The [check record](checks.json) lists the exact assertions: uncertain
+Both local and HTTPS applications pass **29 comparison checks and 49 workspace
+regression checks**, with normal TLS validation for HTTPS. The
+[check record](checks.json) lists the exact assertions: uncertain
 submission and idempotent retry, saved deep links, private ownership, source and
-comparison deletion, cancellation, session expiry, real investigation links and
+comparison deletion, cancellation, loss of session credentials, real investigation links and
 decoded stereo images. Desktop and 390 px views have no page overflow, uncaught
 JavaScript errors or CSP violations; wide evidence tables remain keyboard-scrollable.
 
@@ -93,14 +108,27 @@ Django/Python snapshot captures because browser JSON serialization can normalize
 `1.0` to `1`; it does not substitute reserialized browser data for the original
 hashed bytes.
 
+The HTTPS script ran completely from account creation through three new native
+executions, saved comparisons, deletion checks and loss of session credentials.
+Clearing cookies verifies the signed-out view; it does not test server-side
+session expiry. The initial
+variant creation response contained 30,606 decoded bytes and was observed after
+approximately 1,291 ms; its idempotent recovery took 59 ms and returned the same
+analysis identity. The repeated-run comparison took 1,053 ms and returned 30,531
+bytes. These timings include transport and Playwright instrumentation with the
+exact scopes recorded in the check record. They are not isolated server timings,
+a controlled benchmark or latency guarantees.
+
 ## Runtime and delivery status
 
 The [local deployment record](deployment-health.json) verifies the additive
 `0004_run_comparisons` migration, preserved database container identity, image,
 start time and mounts, and four healthy services. The comparison API and worker
 images contain the same scientific source as the workspace: 31 API and 38 worker
-files were compared by SHA-256. The [80-file source bundle](source-manifest.json)
-is prepared for deployment; it has not been activated on the VPS.
+files were compared by SHA-256. The same [80-file source bundle](source-manifest.json)
+is active on the VPS as release `20261019-0169017b1bec`; its runtime sources match
+the committed implementation. The remote database identity and existing mounts
+were preserved through the additive migration as well.
 
 The [API cgroup observation](api-resources.json) recorded a peak of 214,872,064
 bytes under its 512 MiB limit, with no memory-limit or OOM events. This peak
@@ -118,16 +146,30 @@ active. Its pre-existing stopped state had caused the local worker's tmpfs guard
 to refuse work; restoring that keeper preceded this validation. The dedicated
 test database was removed separately from the application database.
 
-The remote preflight received an explicit Docker `No such image` for the
-qualified native runtime, before creating or activating a new release. Its
-absence has no established cause. The existing SSH relay subsequently became
-unavailable, preventing restoration and further deployment. The
-[remote record](deployment-health.json) separates the last successful inventory
-from this failure; a worker heartbeat alone does not establish runtime-image
-availability. The [isolation record](child-isolation.json) explicitly records
-that no live remote child inspection was performed for this increment. The
-previous hosted release remains the deployed application; this report does not
-claim successful hosted execution of the new comparison feature.
+The VPS API reached a lifetime cgroup peak of 211,898,368 bytes under the same
+512 MiB limit, with no memory-limit events, OOM events or restarts. After evidence
+capture, four exact hosted QA accounts, their four sessions, three retained jobs
+and two comparisons were removed; aggregate submission budgets were preserved.
+No computation child, published artifact or scratch entry remained. All four
+Meridian services were healthy and all four checked sites on the shared host
+returned HTTP 200. These resource observations include startup and QA activity;
+they do not isolate comparison costs or establish sustained capacity.
+
+The remote preflight initially received an explicit Docker `No such image` for
+the qualified native runtime, before creating or activating a new release. Its
+absence has no established cause. After a temporary SSH relay outage, the exact
+622,435,670-byte archive was verified and restored, including its OCI manifest,
+configuration identity and 11 layers; no estimator rebuild or pin change was
+introduced. The [restoration record](native-restoration.json) and
+[deployment record](deployment-health.json) retain this sequence. A worker
+heartbeat alone does not establish runtime-image availability.
+
+The [live isolation record](child-isolation.json) covers the three actual native
+and three independent evaluation containers on the VPS. Native sensor-only
+inputs remain separate from reference poses; the evaluator receives six explicit
+read-only files and an output directory, with no camera image tree. Existing
+network, memory, CPU and process limits remain in place. These are observations
+of the executed reference profile, not a new capability to run arbitrary code.
 
 ## Reproduce the checks
 

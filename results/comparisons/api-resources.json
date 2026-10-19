@@ -21,11 +21,61 @@
     "measurement": "Linux cgroup v2 peak since this API container was created; includes startup and all requests, not an isolated single-request peak."
   },
   "hosted": {
-    "status": "pending",
-    "reason": "The release has not been activated. The existing SSH relay went offline after the native image preflight failed."
+    "checked_at_utc": "2026-10-19T21:31:12.008354+00:00",
+    "api_image_id": "sha256:84521bc0f76e175512205e595dbbca35ab7b7efd11c8eb02c7dc75466c9d4c87",
+    "memory_current_bytes": 169725952,
+    "memory_peak_bytes": 211898368,
+    "memory_limit_bytes": 536870912,
+    "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0,
+      "sock_throttled": 0
+    },
+    "oom_killed": false,
+    "restart_count": 0,
+    "measurement": "API container cgroup since this release container was created, including startup and prior requests; not an isolated per-request measurement.",
+    "comparison_requests": [
+      {
+        "status": 201,
+        "reused": false,
+        "elapsed_ms": 1290.9838219999801,
+        "response_body_bytes": 30606,
+        "timing_scope": "Node monotonic time from Playwright route.fetch() to complete decoded response body, before intentional browser interruption.",
+        "operation": "configuration_variant_initial_create"
+      },
+      {
+        "status": 200,
+        "reused": true,
+        "elapsed_ms": 59.439196999999695,
+        "response_body_bytes": 30605,
+        "timing_scope": "Node monotonic time from Playwright browser request event to complete decoded response body.",
+        "operation": "configuration_variant_idempotent_replay"
+      },
+      {
+        "status": 201,
+        "reused": false,
+        "elapsed_ms": 1053.1897820000304,
+        "response_body_bytes": 30531,
+        "timing_scope": "Node monotonic time from Playwright browser request event to complete decoded response body.",
+        "operation": "same_specification_repeat_create"
+      },
+      {
+        "status": 201,
+        "reused": false,
+        "elapsed_ms": 542.1349390000105,
+        "response_body_bytes": 20112,
+        "timing_scope": "Node monotonic time from Playwright browser request event to complete decoded response body.",
+        "operation": "cancelled_source_comparison_create"
+      }
+    ]
   },
   "limitations": [
     "The local memory peak covers the whole API container lifetime, including startup and other QA requests.",
-    "No isolated local HTTP creation-latency measurement was recorded."
+    "No isolated local HTTP creation-latency measurement was recorded.",
+    "Hosted elapsed times are four individual Playwright observations including transport and automation overhead; they are not isolated server timings or a throughput benchmark."
   ]
 }

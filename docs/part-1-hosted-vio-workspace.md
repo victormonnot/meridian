@@ -1,8 +1,6 @@
 # Part 1: hosted workspace and reference VIO workflow
 
-**Status: increments 1.1–1.5 completed by 2026-10-18. Increment 1.6 is implemented
-and locally validated on 2026-10-19; hosted rollout remains pending. Increments
-1.7–1.8 remain planned.**
+**Status: increments 1.1–1.6 completed by 2026-10-19; increments 1.7–1.8 remain planned.**
 This plan details part 1 of the [development roadmap](professional-estimation-roadmap.md).
 The current [implementation](../README.md) includes the qualified
 [local VIO reference](../results/vio-reference/README.md), the original single-axis
@@ -138,8 +136,7 @@ under the documented retention policy.
 
 Every increment includes its relevant UI states, failure handling, checks, and
 documentation. Later integration testing does not defer those responsibilities.
-Increments 1.1–1.5 are complete. Increment 1.6 has passed local validation and
-awaits hosted rollout; later increments remain pending.
+Increments 1.1–1.6 are complete; later increments remain pending.
 
 ### 1.1 — Executable reference and evaluation protocol
 
@@ -301,10 +298,9 @@ usable with representative full-recording sizes and failed/partial runs.
 
 ### 1.6 — Comparable configuration experiments
 
-**Implemented and locally validated:** [comparison contract](vio-comparisons.md)
-and [actual-run evidence](../results/comparisons/README.md). Hosted rollout and
-HTTPS validation remain pending; the requirements below remain the acceptance
-contract.
+**Completed:** [comparison contract](vio-comparisons.md) and
+[actual-run evidence](../results/comparisons/README.md), including local and HTTPS
+validation. The requirements below remain the acceptance contract.
 
 **Dependency:** 1.5.
 

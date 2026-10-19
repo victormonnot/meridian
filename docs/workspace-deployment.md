@@ -11,10 +11,9 @@ artifacts and the two prepared camera-image directories.
 The [workspace contract](hosted-workspace.md) describes authentication, ownership
 and retention. The original static explorer is also served at `/index.html`.
 
-As of the 2026-10-19 comparison qualification, the new comparison release is
-validated locally. Its hosted rollout is pending restoration of the qualified
-native image and deployment access. See the [comparison evidence](../results/comparisons/README.md)
-for the distinction between prepared sources, local checks and hosted validation.
+The 2026-10-19 comparison release is qualified locally and on the hosted stack.
+The [comparison evidence](../results/comparisons/README.md) records the exact
+release, three real runs, saved-analysis checks, service isolation and API resources.
 
 ## Services and isolation
 
@@ -145,6 +144,13 @@ bundle; compare archive SHA-256 values, verify every prepared file against its
 manifest and retain the transfer manifest. Do not download datasets during an
 API build or substitute a rebuilt native image without qualification. Dataset
 license and attribution information remains in the prepared provenance.
+
+Keep the hashed runtime archive available for recovery. If the qualified image
+is absent, verify that archive and restore it with `docker image load`; verify
+the configuration/manifest/layer relationship again before accepting jobs. A
+healthy worker heartbeat does not establish image availability. The comparison
+rollout used this recovery procedure without rebuilding the estimator or changing
+its pins; the cause of the observed image absence was not established.
 
 The saved specification pins the native image configuration digest
 `sha256:73e1213d073ce52a9a509decb15628a7c043e0690609171c4b9382ed0c2730da`.

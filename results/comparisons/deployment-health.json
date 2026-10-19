@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "local_qualification_complete; VPS deployment pending SSH relay availability",
+  "status": "local_and_hosted_qualification_complete",
   "local": {
     "checked_at_utc": "2026-10-19T21:10:03.751743+00:00",
     "database": {
@@ -78,59 +78,230 @@
     }
   },
   "hosted": {
-    "new_release_activated": false,
-    "native_image_preflight": {
-      "command": "docker image inspect --format {{.Id}} <qualified-native-manifest-id>",
-      "exit_code": 1,
-      "stderr": "No such image: sha256:54863f14d9f92d2805f5fddcfb78d146c6aac2ad77dc348e304059e2252a400a",
-      "absence_cause": "Not established",
-      "worker_health_scope": "Database heartbeat liveness; does not guarantee native runtime image availability.",
-      "failure_evidence_sha256": "97681ee881fe19ac56c3a2653f82a0d66596b3d4f1d114e2a60a4b8018c9a3bb"
+    "checked_at_utc": "2026-10-19T21:32:24.271172+00:00",
+    "release": {
+      "release": "20261019-0169017b1bec",
+      "domain": "meridian.151.80.144.150.sslip.io",
+      "bundle_sha256": "0169017b1bec1a37a26eae29248e00d879fd80402c766f859551589b8f71641c",
+      "api_image": "meridian-workspace-api:20261019-0169017b1bec",
+      "web_image": "meridian-workspace-web:20261019-0169017b1bec",
+      "worker_image": "meridian-workspace-worker:20261019-0169017b1bec",
+      "api_image_id": "sha256:84521bc0f76e175512205e595dbbca35ab7b7efd11c8eb02c7dc75466c9d4c87",
+      "web_image_id": "sha256:73d9cf81933416e8405f44565a299bf83298c5db8b5664c57b34869e800df5e8",
+      "worker_image_id": "sha256:d411d433b9af51bd8c55df4487a39fa057adcb8bba3f62d5062d808db3eaac08",
+      "native_image_id": "sha256:54863f14d9f92d2805f5fddcfb78d146c6aac2ad77dc348e304059e2252a400a",
+      "prepared_manifest_sha256": "e55f0480533611fc1e198d16b181814a8d34752cb748becbfeec7bcb4908ba6d",
+      "scratch_capacity_bytes": 134217728
     },
-    "subsequent_access": "Existing SSH relay went offline; no remote application was changed by this release attempt.",
-    "last_readonly_inventory": {
-      "checked_at_utc": "2026-10-19T20:46:43.421013+00:00",
-      "active_release": "20261018-8230e773705d",
-      "services": {
-        "api": {
-          "health": "healthy",
-          "image_id": "sha256:551305c8581ca00c9bd873e86b9e967f3a8d676b5c15732513dd44471444428c",
-          "memory_bytes": 536870912,
-          "nano_cpus": 750000000
-        },
-        "web": {
-          "health": "healthy",
-          "image_id": "sha256:1ff6e1c7f421b13d60027a3294531eb94f551588aa1d5fe4d40cbf39835f083f",
-          "memory_bytes": 134217728,
-          "nano_cpus": 250000000
-        },
-        "db": {
-          "health": "healthy",
-          "image_id": "sha256:3645570cccdfa447589da9f57dd740faa29b30938e861289a5574b6ca6b03826",
-          "memory_bytes": 536870912,
-          "nano_cpus": 500000000
-        },
-        "worker": {
-          "health": "healthy",
-          "image_id": "sha256:b6a38145641c749c83e689601bbcf3ecaaedcc5bb0a8a2a0ec5f26fb74e136ae",
-          "memory_bytes": 536870912,
-          "nano_cpus": 250000000
-        }
-      },
+    "database": {
+      "container_identity_preserved": true,
+      "image_start_time_mounts_and_volume_preserved": true,
       "workspace_migrations": [
         "0001_initial",
         "0002_versioned_experiments",
-        "0003_durable_vio_jobs"
+        "0003_durable_vio_jobs",
+        "0004_run_comparisons"
       ],
+      "only_added_migration": "0004_run_comparisons"
+    },
+    "services": {
+      "api": {
+        "health": "healthy",
+        "memory_bytes": 536870912,
+        "nano_cpus": 750000000,
+        "restart_count": 0,
+        "oom_killed": false,
+        "healthcheck_observations": [
+          {
+            "duration_seconds": 0.54843,
+            "exit_code": 0
+          },
+          {
+            "duration_seconds": 0.554226,
+            "exit_code": 0
+          },
+          {
+            "duration_seconds": 1.551875,
+            "exit_code": 0
+          },
+          {
+            "duration_seconds": 0.524636,
+            "exit_code": 0
+          },
+          {
+            "duration_seconds": 0.478436,
+            "exit_code": 0
+          }
+        ]
+      },
+      "web": {
+        "health": "healthy",
+        "memory_bytes": 134217728,
+        "nano_cpus": 250000000,
+        "restart_count": 0,
+        "oom_killed": false,
+        "healthcheck_observations": [
+          {
+            "duration_seconds": 0.204031,
+            "exit_code": 0
+          },
+          {
+            "duration_seconds": 0.203665,
+            "exit_code": 0
+          },
+          {
+            "duration_seconds": 0.201606,
+            "exit_code": 0
+          },
+          {
+            "duration_seconds": 0.094309,
+            "exit_code": 0
+          },
+          {
+            "duration_seconds": 0.109985,
+            "exit_code": 0
+          }
+        ]
+      },
+      "db": {
+        "health": "healthy",
+        "memory_bytes": 536870912,
+        "nano_cpus": 500000000,
+        "restart_count": 0,
+        "oom_killed": false,
+        "healthcheck_observations": [
+          {
+            "duration_seconds": 0.158319,
+            "exit_code": 0
+          },
+          {
+            "duration_seconds": 0.134464,
+            "exit_code": 0
+          },
+          {
+            "duration_seconds": 0.195791,
+            "exit_code": 0
+          },
+          {
+            "duration_seconds": 0.169692,
+            "exit_code": 0
+          },
+          {
+            "duration_seconds": 0.131955,
+            "exit_code": 0
+          }
+        ]
+      },
+      "worker": {
+        "health": "healthy",
+        "memory_bytes": 536870912,
+        "nano_cpus": 250000000,
+        "restart_count": 0,
+        "oom_killed": false,
+        "healthcheck_observations": [
+          {
+            "duration_seconds": 9.307589,
+            "exit_code": 0
+          },
+          {
+            "duration_seconds": 21.888256,
+            "exit_code": 0
+          },
+          {
+            "duration_seconds": 15.410669,
+            "exit_code": 0
+          },
+          {
+            "duration_seconds": 8.998883,
+            "exit_code": 0
+          },
+          {
+            "duration_seconds": 10.387828,
+            "exit_code": 0
+          }
+        ]
+      }
+    },
+    "network": {
+      "staging_ipv4_unchanged": true,
       "meridian_https_status": 200,
       "other_existing_application_count_checked": 3,
-      "all_existing_applications_https_200": true,
+      "all_existing_applications_https_200": true
+    },
+    "api": {
+      "readonly_bind_count": 3,
+      "readonly_input_roles": [
+        "published attempt artifacts",
+        "prepared cam0 image files",
+        "prepared cam1 image files"
+      ],
+      "numpy_available": false,
+      "docker_cli_available": false,
+      "docker_socket_present": false,
+      "comparison_module_sha256": "9f1f5d42aee087ae9aaae5f5356713896141e15b0989113c3a4b83db7c304f39"
+    },
+    "sources": {
+      "all_80_release_source_hashes_verified": true,
+      "api_source_files_verified": 31,
+      "worker_source_files_verified": 38
+    },
+    "scratch": {
+      "filesystem": "tmpfs",
+      "capacity_bytes": 134217728,
+      "used_bytes": 0
+    },
+    "cleanup": {
+      "exact_qa_account_deletion": true,
+      "deleted_counts": {
+        "comparisons": 2,
+        "users": 4,
+        "projects": 1,
+        "experiments": 1,
+        "revisions": 2,
+        "jobs": 3,
+        "attempts": 3,
+        "sessions": 4,
+        "account_budget_windows": 5
+      },
+      "remaining_exact_accounts": 0,
+      "remaining_exact_artifact_jobs": 0,
+      "remaining_exact_scratch_attempts": 0,
+      "aggregate_budgets_preserved": true,
       "compute_children": 0,
-      "scratch": {
-        "filesystem": "tmpfs",
-        "capacity_bytes": 134217728,
-        "used_bytes": 0
-      }
-    }
+      "artifact_root_entries": 0,
+      "scratch_root_entries": 0
+    },
+    "native_image_recovery": {
+      "schema_version": 1,
+      "checked_at_utc": "2026-10-19T21:15:08.580376+00:00",
+      "image_was_present_before": false,
+      "image_restored_from_existing_archive": true,
+      "native_image_config_id": "sha256:73e1213d073ce52a9a509decb15628a7c043e0690609171c4b9382ed0c2730da",
+      "native_image_manifest_id": "sha256:54863f14d9f92d2805f5fddcfb78d146c6aac2ad77dc348e304059e2252a400a",
+      "archive": {
+        "sha256": "bebb6c05ad13ffbe1ebd383b291f9b84080e1cbc27a173eb2e443f3a9020dee8",
+        "size_bytes": 622435670
+      },
+      "archive_hash_verified": true,
+      "config_manifest_and_layers_verified": true,
+      "layers_verified": 11,
+      "existing_services_identical": true,
+      "existing_current_release_unchanged": true,
+      "site_http_codes_before": [
+        200,
+        200,
+        200,
+        200
+      ],
+      "site_http_codes_after": [
+        200,
+        200,
+        200,
+        200
+      ],
+      "absence_cause": "Not determined; image absence was observed while the worker heartbeat was healthy. No deletion actor or mechanism has been established."
+    },
+    "live_isolation_evidence": "child-isolation.json",
+    "api_resource_evidence": "api-resources.json"
   }
 }

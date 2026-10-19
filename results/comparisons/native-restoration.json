@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "checked_at_utc": "2026-10-19T21:15:08.580376+00:00",
+  "image_was_present_before": false,
+  "image_restored_from_existing_archive": true,
+  "native_image_config_id": "sha256:73e1213d073ce52a9a509decb15628a7c043e0690609171c4b9382ed0c2730da",
+  "native_image_manifest_id": "sha256:54863f14d9f92d2805f5fddcfb78d146c6aac2ad77dc348e304059e2252a400a",
+  "archive": {
+    "sha256": "bebb6c05ad13ffbe1ebd383b291f9b84080e1cbc27a173eb2e443f3a9020dee8",
+    "size_bytes": 622435670
+  },
+  "archive_hash_verified": true,
+  "config_manifest_and_layers_verified": true,
+  "layers_verified": 11,
+  "existing_services_identical": true,
+  "existing_current_release_unchanged": true,
+  "site_http_codes_before": [
+    200,
+    200,
+    200,
+    200
+  ],
+  "site_http_codes_after": [
+    200,
+    200,
+    200,
+    200
+  ],
+  "absence_cause": "Not determined; image absence was observed while the worker heartbeat was healthy. No deletion actor or mechanism has been established."
+}
