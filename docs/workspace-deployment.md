@@ -1,7 +1,8 @@
 # Deploy the project workspace
 
 This deployment serves accounts, private projects, versioned experiments and
-durable VIO jobs with synchronized result investigation. Computation is opt-in: the `compute` Compose profile adds a
+durable VIO jobs with synchronized result investigation and saved run comparisons.
+Computation is opt-in: the `compute` Compose profile adds a
 trusted worker after the qualified native image, prepared reference dataset and
 bounded scratch filesystem have been installed separately. The API image does
 not contain the estimator, Docker CLI, NumPy or recordings. The separate
@@ -9,6 +10,11 @@ not contain the estimator, Docker CLI, NumPy or recordings. The separate
 artifacts and the two prepared camera-image directories.
 The [workspace contract](hosted-workspace.md) describes authentication, ownership
 and retention. The original static explorer is also served at `/index.html`.
+
+As of the 2026-10-19 comparison qualification, the new comparison release is
+validated locally. Its hosted rollout is pending restoration of the qualified
+native image and deployment access. See the [comparison evidence](../results/comparisons/README.md)
+for the distinction between prepared sources, local checks and hosted validation.
 
 ## Services and isolation
 
@@ -110,6 +116,12 @@ The database initialization script runs only on a new empty volume. Changing
 environment passwords does not rotate an existing PostgreSQL role's password;
 perform explicit role and secret rotation together. Migrations run as a separate
 deployment step, not once per Gunicorn worker.
+
+Saved comparisons add database metadata and use the existing investigation mounts;
+they require no additional service, dataset copy or API dependency. Apply the
+comparison migration before replacing the API and worker. Both images include the
+same standard-library comparison module because Django's worker startup checks
+also import the URL configuration.
 
 For an application-only upgrade, preserve the existing database container with
 `--no-recreate`; moving to a new source-release directory otherwise changes the
@@ -253,7 +265,9 @@ For local computation and investigation, additionally include
 private artifact directory and a dedicated 128 MiB tmpfs with identical host and
 worker paths. A Docker local volume with `type=tmpfs` and a keeper container can
 provide this on a development host without a system-wide mount change. Use its
-actual host mountpoint as `MERIDIAN_JOB_SCRATCH_ROOT`. The development-only worker
+actual host mountpoint as `MERIDIAN_JOB_SCRATCH_ROOT`. After a local Docker restart,
+start that keeper before the worker; an ordinary directory at the same path is
+not a substitute for the tmpfs. The development-only worker
 option `--ignore-capacity` bypasses admission thresholds only with Django debug
 enabled; it does not remove native process or scratch limits. Do not enable this
 override on the shared server.
@@ -283,7 +297,7 @@ Scheduled backups, off-server copies and a verified restoration procedure are
 not established by the Compose file. Until those are configured, treat the
 hosted application as a preview, not the only copy of engineering work.
 No user recording upload exists in this increment; only the maintained room1
-profile executes. Run comparisons and independent exports remain later increments.
+profile executes. Independent exports remain a later increment.
 If operators retain database snapshots, deleted records may remain in them until
 those snapshots are removed; publish their retention period before relying on
 such a backup service.

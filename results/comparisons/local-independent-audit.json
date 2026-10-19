@@ -1,0 +1,264 @@
+{
+  "schema_version": 1,
+  "passed": true,
+  "comparisons_checked": 2,
+  "checks": [
+    {
+      "comparison_id": "583236e5-76a1-45b1-8b14-24362b196d4e",
+      "analysis_sha256": "2613092ea50c8eaea7775235fc2f8c565550931d34ba56905c820948c5da6dd7",
+      "kind": "repeated_execution",
+      "passed": true,
+      "runs": {
+        "baseline": {
+          "job_id": "643f2a73-17c5-486b-8baa-3dca1dd5fcc5",
+          "specification_sha256": "98e780babbc5fd1b8214a3afbe65e5b5dbe39196017a83361b93f7f7cd3e5f73",
+          "trajectory_sha256": "5640a2349c71c67c1ffeda44a59b0226cb8d5f9ea86ec58d068a78b30660462e",
+          "investigation_sha256": "82413a70b7e1d2eede4190210211a8c891d52b61ccbc97cc78ccef2d345f1238",
+          "state": "succeeded",
+          "published_files_verified": 18,
+          "publication_manifest_sha256": "be70e389583a9dcd3f482e7eca46b34ee1cadfee22752f45b4ae55d5c540c935",
+          "counts": {
+            "estimate_samples": 2689,
+            "expected_camera_samples": 2821,
+            "evaluated_camera_samples": 2624,
+            "associated_camera_samples": 2624,
+            "reference_supported_camera_samples": 2756
+          },
+          "own_metrics": {
+            "ate_rmse_m": 0.051132041394887494,
+            "position_error_mean_m": 0.04787200345164509,
+            "position_error_max_m": 0.11970868362413112,
+            "orientation_rmse_deg": 1.532136616154553,
+            "orientation_rmse_rad": 0.026740828542261494,
+            "orientation_error_mean_deg": 1.3471094574226024,
+            "orientation_error_max_deg": 4.428362220743539
+          },
+          "geometry_check": {
+            "max_position_error_residual_m": 4.2327252813834093e-16,
+            "max_orientation_error_residual_deg": 2.8338775770464508e-11
+          }
+        },
+        "candidate": {
+          "job_id": "2332f7f5-20aa-4b97-ad80-d6a7d33cdb5d",
+          "specification_sha256": "98e780babbc5fd1b8214a3afbe65e5b5dbe39196017a83361b93f7f7cd3e5f73",
+          "trajectory_sha256": "5640a2349c71c67c1ffeda44a59b0226cb8d5f9ea86ec58d068a78b30660462e",
+          "investigation_sha256": "79bfd5e5412fdf975acad60ced00565cca98842106888f8fefabb4b072c75ddd",
+          "state": "succeeded",
+          "published_files_verified": 18,
+          "publication_manifest_sha256": "982ef41710c9732eabe9d15e38c777e35d60e697f3093f548cba4ae41ebcf1c4",
+          "counts": {
+            "estimate_samples": 2689,
+            "expected_camera_samples": 2821,
+            "evaluated_camera_samples": 2624,
+            "associated_camera_samples": 2624,
+            "reference_supported_camera_samples": 2756
+          },
+          "own_metrics": {
+            "ate_rmse_m": 0.051132041394887494,
+            "position_error_mean_m": 0.04787200345164509,
+            "position_error_max_m": 0.11970868362413112,
+            "orientation_rmse_deg": 1.532136616154553,
+            "orientation_rmse_rad": 0.026740828542261494,
+            "orientation_error_mean_deg": 1.3471094574226024,
+            "orientation_error_max_deg": 4.428362220743539
+          },
+          "geometry_check": {
+            "max_position_error_residual_m": 4.2327252813834093e-16,
+            "max_orientation_error_residual_deg": 2.8338775770464508e-11
+          }
+        }
+      },
+      "common_support": {
+        "reason": null,
+        "status": "ok",
+        "baseline_metrics": {
+          "ate_rmse_m": 0.051132041394887494,
+          "orientation_rmse_deg": 1.532136616154553,
+          "orientation_rmse_rad": 0.026740828542261494,
+          "position_error_max_m": 0.11970868362413112,
+          "position_error_mean_m": 0.04787200345164509,
+          "orientation_error_max_deg": 4.428362220743539,
+          "orientation_error_mean_deg": 1.3471094574226024
+        },
+        "candidate_metrics": {
+          "ate_rmse_m": 0.051132041394887494,
+          "orientation_rmse_deg": 1.532136616154553,
+          "orientation_rmse_rad": 0.026740828542261494,
+          "position_error_max_m": 0.11970868362413112,
+          "position_error_mean_m": 0.04787200345164509,
+          "orientation_error_max_deg": 4.428362220743539,
+          "orientation_error_mean_deg": 1.3471094574226024
+        },
+        "fraction_of_expected": 0.9301666075859625,
+        "expected_camera_samples": 2821,
+        "evaluated_camera_samples": 2624,
+        "delta_candidate_minus_baseline": {
+          "ate_rmse_m": 0.0,
+          "orientation_rmse_deg": 0.0,
+          "orientation_rmse_rad": 0.0,
+          "position_error_max_m": 0.0,
+          "position_error_mean_m": 0.0,
+          "orientation_error_max_deg": 0.0,
+          "orientation_error_mean_deg": 0.0
+        }
+      },
+      "observed_deltas": {
+        "coverage_fraction": 0.0,
+        "evaluated_fraction": 0.0,
+        "native_cpu_seconds": 0.07101100000000571,
+        "native_peak_rss_kib": 136,
+        "native_wall_seconds": 0.051278200000005825,
+        "initialization_delay_s": 0.0
+      },
+      "support_counts": {
+        "estimated": {
+          "both": 2689,
+          "neither": 132,
+          "baseline_only": 0,
+          "candidate_only": 0
+        },
+        "evaluated": {
+          "both": 2624,
+          "neither": 197,
+          "baseline_only": 0,
+          "candidate_only": 0
+        }
+      }
+    },
+    {
+      "comparison_id": "8edfd46c-e7ed-4869-bdae-fc0f432eacd5",
+      "analysis_sha256": "f34d1a25cb8a7543a0de196b58e4f0d0778c3762ee0edc5a0e7d5c5acada7835",
+      "kind": "configuration_variant",
+      "passed": true,
+      "runs": {
+        "baseline": {
+          "job_id": "196b2734-d6a7-407e-af14-8380cfa25096",
+          "specification_sha256": "521227054edeac5226ec9ab25e6a9190475affc62c64ce96057b5402bbf73677",
+          "trajectory_sha256": "d2a59ed328807d54af0a930006b7c2e850998c2dc7d6f89debd1c195ca4ed764",
+          "investigation_sha256": "b11d56efae9ce7d7e85b5839ec982dbf280a55bddbc3f4ed145734112a4fa3ba",
+          "state": "succeeded",
+          "published_files_verified": 18,
+          "publication_manifest_sha256": "9fda9dcfe85244b1744974f56770a418b95d3d90e47ff8e7121dc45211e3a515",
+          "counts": {
+            "estimate_samples": 2689,
+            "expected_camera_samples": 2821,
+            "evaluated_camera_samples": 2624,
+            "associated_camera_samples": 2624,
+            "reference_supported_camera_samples": 2756
+          },
+          "own_metrics": {
+            "ate_rmse_m": 0.06121636957422591,
+            "position_error_mean_m": 0.05697479331128086,
+            "position_error_max_m": 0.109949022489596,
+            "orientation_rmse_deg": 1.3255413925517476,
+            "orientation_rmse_rad": 0.023135061671498636,
+            "orientation_error_mean_deg": 1.2005629690623145,
+            "orientation_error_max_deg": 4.307316076259924
+          },
+          "geometry_check": {
+            "max_position_error_residual_m": 3.5388358909926865e-16,
+            "max_orientation_error_residual_deg": 2.335326376723401e-11
+          }
+        },
+        "candidate": {
+          "job_id": "643f2a73-17c5-486b-8baa-3dca1dd5fcc5",
+          "specification_sha256": "98e780babbc5fd1b8214a3afbe65e5b5dbe39196017a83361b93f7f7cd3e5f73",
+          "trajectory_sha256": "5640a2349c71c67c1ffeda44a59b0226cb8d5f9ea86ec58d068a78b30660462e",
+          "investigation_sha256": "82413a70b7e1d2eede4190210211a8c891d52b61ccbc97cc78ccef2d345f1238",
+          "state": "succeeded",
+          "published_files_verified": 18,
+          "publication_manifest_sha256": "be70e389583a9dcd3f482e7eca46b34ee1cadfee22752f45b4ae55d5c540c935",
+          "counts": {
+            "estimate_samples": 2689,
+            "expected_camera_samples": 2821,
+            "evaluated_camera_samples": 2624,
+            "associated_camera_samples": 2624,
+            "reference_supported_camera_samples": 2756
+          },
+          "own_metrics": {
+            "ate_rmse_m": 0.051132041394887494,
+            "position_error_mean_m": 0.04787200345164509,
+            "position_error_max_m": 0.11970868362413112,
+            "orientation_rmse_deg": 1.532136616154553,
+            "orientation_rmse_rad": 0.026740828542261494,
+            "orientation_error_mean_deg": 1.3471094574226024,
+            "orientation_error_max_deg": 4.428362220743539
+          },
+          "geometry_check": {
+            "max_position_error_residual_m": 4.2327252813834093e-16,
+            "max_orientation_error_residual_deg": 2.8338775770464508e-11
+          }
+        }
+      },
+      "common_support": {
+        "reason": null,
+        "status": "ok",
+        "baseline_metrics": {
+          "ate_rmse_m": 0.0612163695742259,
+          "orientation_rmse_deg": 1.3255413925517476,
+          "orientation_rmse_rad": 0.023135061671498636,
+          "position_error_max_m": 0.109949022489596,
+          "position_error_mean_m": 0.05697479331128086,
+          "orientation_error_max_deg": 4.307316076259924,
+          "orientation_error_mean_deg": 1.2005629690623145
+        },
+        "candidate_metrics": {
+          "ate_rmse_m": 0.051132041394887494,
+          "orientation_rmse_deg": 1.532136616154553,
+          "orientation_rmse_rad": 0.026740828542261494,
+          "position_error_max_m": 0.11970868362413112,
+          "position_error_mean_m": 0.04787200345164509,
+          "orientation_error_max_deg": 4.428362220743539,
+          "orientation_error_mean_deg": 1.3471094574226024
+        },
+        "fraction_of_expected": 0.9301666075859625,
+        "expected_camera_samples": 2821,
+        "evaluated_camera_samples": 2624,
+        "delta_candidate_minus_baseline": {
+          "ate_rmse_m": -0.010084328179338409,
+          "orientation_rmse_deg": 0.20659522360280547,
+          "orientation_rmse_rad": 0.0036057668707628575,
+          "position_error_max_m": 0.009759661134535122,
+          "position_error_mean_m": -0.009102789859635765,
+          "orientation_error_max_deg": 0.12104614448361506,
+          "orientation_error_mean_deg": 0.14654648836028783
+        }
+      },
+      "observed_deltas": {
+        "coverage_fraction": 0.0,
+        "evaluated_fraction": 0.0,
+        "native_cpu_seconds": -13.384318,
+        "native_peak_rss_kib": -1108,
+        "native_wall_seconds": -13.735136451000002,
+        "initialization_delay_s": 0.0
+      },
+      "support_counts": {
+        "estimated": {
+          "both": 2689,
+          "neither": 132,
+          "baseline_only": 0,
+          "candidate_only": 0
+        },
+        "evaluated": {
+          "both": 2624,
+          "neither": 197,
+          "baseline_only": 0,
+          "candidate_only": 0
+        }
+      }
+    }
+  ],
+  "method": [
+    "Verify canonical saved-analysis SHA256.",
+    "Verify exact retained investigation and trajectory SHA256.",
+    "Reconstruct envelopes and reproduce exact analysis with the recorded frozen comparison implementation.",
+    "Independently recompute common/own RMSE using math.hypot, support intersections using sets, and pose-to-reference scalar errors.",
+    "Retain missing evidence and cancellation without invented scores."
+  ],
+  "limitations": [
+    "This read-only audit launches no native execution and does not establish statistical confidence or flight performance."
+  ],
+  "source_report_sha256": "e275468893407cd243c8db279403a6afa911c6897baa82881aabb984274cb66a",
+  "canonical_snapshots_file_sha256": "16f8d7055c4a945e907a15acfe4686822438bbbc8e8e46cd81068d1e654c7610",
+  "snapshot_capture_method": "Django/Python DB reads preserve canonical JSON numeric types; browser JSON reserialization is used only for lifecycle observations."
+}

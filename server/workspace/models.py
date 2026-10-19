@@ -123,3 +123,33 @@ class JobAttempt(models.Model):
     class Meta:
         ordering = ["number"]
         constraints = [models.UniqueConstraint(fields=["job", "number"], name="job_attempt_number_unique")]
+
+
+class RunComparison(models.Model):
+    """Immutable derived result; source UUIDs survive intentional run deletion."""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="run_comparisons")
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="comparisons")
+    name = models.CharField(max_length=100)
+    description = models.CharField(max_length=2000, blank=True)
+    baseline_job_id = models.UUIDField()
+    candidate_job_id = models.UUIDField()
+    idempotency_key = models.UUIDField()
+    request_sha256 = models.CharField(max_length=64)
+    summary = models.JSONField()
+    analysis = models.JSONField()
+    analysis_sha256 = models.CharField(max_length=64)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at", "id"]
+        constraints = [
+            models.UniqueConstraint(fields=["project", "idempotency_key"], name="comparison_creation_unique"),
+            models.CheckConstraint(condition=~models.Q(baseline_job_id=models.F("candidate_job_id")),
+                                   name="comparison_distinct_runs"),
+        ]
+
+    def save(self, *args, **kwargs):
+        if not self._state.adding:
+            raise ValidationError("Run comparisons cannot be edited; create a new comparison.")
+        return super().save(*args, **kwargs)

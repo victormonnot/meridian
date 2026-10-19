@@ -63,6 +63,8 @@ export function escapeHtml(value) {
 export function parseRoute(hash) {
   if (!hash || hash === '#' || hash === '#projects') return { page: 'projects' };
   const uuid = '[a-f\\d]{8}-[a-f\\d]{4}-[a-f\\d]{4}-[a-f\\d]{4}-[a-f\\d]{12}';
+  const comparison = new RegExp(`^#project/(${uuid})/results/comparisons/(${uuid})$`, 'i').exec(hash);
+  if (comparison) return { page: 'project', id: comparison[1], section: 'results', comparisonId: comparison[2] };
   const job = new RegExp(`^#project/(${uuid})/results/(${uuid})(/investigation)?$`, 'i').exec(hash);
   if (job) return { page: 'project', id: job[1], section: 'results', jobId: job[2], ...(job[3] ? { investigation: true } : {}) };
   const experiment = new RegExp(`^#project/(${uuid})/experiments/(${uuid})(?:/revisions/([1-9]\\d*))?$`, 'i').exec(hash);

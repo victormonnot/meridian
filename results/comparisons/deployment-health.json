@@ -1,0 +1,136 @@
+{
+  "schema_version": 1,
+  "status": "local_qualification_complete; VPS deployment pending SSH relay availability",
+  "local": {
+    "checked_at_utc": "2026-10-19T21:10:03.751743+00:00",
+    "database": {
+      "container_identity_preserved": true,
+      "image_start_time_mounts_and_volume_preserved": true,
+      "preexisting_account_project_experiment_counts_preserved": true,
+      "workspace_migrations": [
+        "0001_initial",
+        "0002_versioned_experiments",
+        "0003_durable_vio_jobs",
+        "0004_run_comparisons"
+      ]
+    },
+    "services": {
+      "api": {
+        "image_id": "sha256:fe5b63e473aa361fe782def997de9b0db7143c1c2c6697bebc153449dc38d25f",
+        "health": "healthy",
+        "restart_count": 0,
+        "memory_limit_bytes": 536870912,
+        "nano_cpus": 750000000
+      },
+      "web": {
+        "image_id": "sha256:336bf519633efaed8a62e8b5b3619fd5f801ba0244a53077016e64c9fad89944",
+        "health": "healthy",
+        "restart_count": 0,
+        "memory_limit_bytes": 134217728,
+        "nano_cpus": 250000000
+      },
+      "worker": {
+        "image_id": "sha256:9f99b8a3245f1a6760cca330328b78fa153b8c9c044f656a59adf8223c7db81f",
+        "health": "healthy",
+        "restart_count": 0,
+        "memory_limit_bytes": 536870912,
+        "nano_cpus": 250000000
+      },
+      "db": {
+        "image_id": "sha256:589f742565e4f6d22149176b032974f55f8201a8a37b71ed587ec5c6902e689f",
+        "health": "healthy",
+        "restart_count": 0,
+        "memory_limit_bytes": 536870912,
+        "nano_cpus": 500000000
+      }
+    },
+    "cleanup": {
+      "exact_qa_accounts_deleted": 4,
+      "deleted_counts": {
+        "comparisons": 2,
+        "users": 4,
+        "projects": 1,
+        "experiments": 1,
+        "revisions": 2,
+        "jobs": 3,
+        "attempts": 3,
+        "sessions": 6,
+        "account_budget_windows": 5
+      },
+      "aggregate_budgets_preserved": true,
+      "remaining_exact_artifact_jobs": 0,
+      "remaining_exact_scratch_attempts": 0,
+      "compute_children": 0,
+      "dedicated_test_database_removed": true,
+      "normal_scratch_keeper_running": true
+    },
+    "image_source_verification": {
+      "api": {
+        "image_id": "sha256:fe5b63e473aa361fe782def997de9b0db7143c1c2c6697bebc153449dc38d25f",
+        "source_file_count": 31,
+        "workspace_hashes_match": true
+      },
+      "worker": {
+        "image_id": "sha256:9f99b8a3245f1a6760cca330328b78fa153b8c9c044f656a59adf8223c7db81f",
+        "source_file_count": 38,
+        "workspace_hashes_match": true
+      }
+    }
+  },
+  "hosted": {
+    "new_release_activated": false,
+    "native_image_preflight": {
+      "command": "docker image inspect --format {{.Id}} <qualified-native-manifest-id>",
+      "exit_code": 1,
+      "stderr": "No such image: sha256:54863f14d9f92d2805f5fddcfb78d146c6aac2ad77dc348e304059e2252a400a",
+      "absence_cause": "Not established",
+      "worker_health_scope": "Database heartbeat liveness; does not guarantee native runtime image availability.",
+      "failure_evidence_sha256": "97681ee881fe19ac56c3a2653f82a0d66596b3d4f1d114e2a60a4b8018c9a3bb"
+    },
+    "subsequent_access": "Existing SSH relay went offline; no remote application was changed by this release attempt.",
+    "last_readonly_inventory": {
+      "checked_at_utc": "2026-10-19T20:46:43.421013+00:00",
+      "active_release": "20261018-8230e773705d",
+      "services": {
+        "api": {
+          "health": "healthy",
+          "image_id": "sha256:551305c8581ca00c9bd873e86b9e967f3a8d676b5c15732513dd44471444428c",
+          "memory_bytes": 536870912,
+          "nano_cpus": 750000000
+        },
+        "web": {
+          "health": "healthy",
+          "image_id": "sha256:1ff6e1c7f421b13d60027a3294531eb94f551588aa1d5fe4d40cbf39835f083f",
+          "memory_bytes": 134217728,
+          "nano_cpus": 250000000
+        },
+        "db": {
+          "health": "healthy",
+          "image_id": "sha256:3645570cccdfa447589da9f57dd740faa29b30938e861289a5574b6ca6b03826",
+          "memory_bytes": 536870912,
+          "nano_cpus": 500000000
+        },
+        "worker": {
+          "health": "healthy",
+          "image_id": "sha256:b6a38145641c749c83e689601bbcf3ecaaedcc5bb0a8a2a0ec5f26fb74e136ae",
+          "memory_bytes": 536870912,
+          "nano_cpus": 250000000
+        }
+      },
+      "workspace_migrations": [
+        "0001_initial",
+        "0002_versioned_experiments",
+        "0003_durable_vio_jobs"
+      ],
+      "meridian_https_status": 200,
+      "other_existing_application_count_checked": 3,
+      "all_existing_applications_https_200": true,
+      "compute_children": 0,
+      "scratch": {
+        "filesystem": "tmpfs",
+        "capacity_bytes": 134217728,
+        "used_bytes": 0
+      }
+    }
+  }
+}

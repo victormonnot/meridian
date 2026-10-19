@@ -21,6 +21,7 @@ COPY src/meridian/__init__.py src/meridian/vio_specification.py \
     src/meridian/vio_dataset.py src/meridian/vio_evaluation.py \
     src/meridian/vio_reference.py src/meridian/vio_job_control.py \
     src/meridian/vio_job_evaluation.py src/meridian/vio_runtime_identity.py \
-    src/meridian/vio_investigation.py src/meridian/vio_investigation_metrics.py /app/src/meridian/
+    src/meridian/vio_investigation.py src/meridian/vio_investigation_metrics.py \
+    src/meridian/vio_comparison.py /app/src/meridian/
 USER 10001:10001
 CMD ["python", "server/manage.py", "run_vio_worker"]

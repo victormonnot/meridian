@@ -3,6 +3,7 @@ import { ApiError, createApiClient, escapeHtml as e, errorMessage, parseRoute, s
 import { revisionDraft, draftChanged, experimentPayload, experimentPath, createExperimentDialog, renderExperimentList, renderExperimentDetail, renderComparison, renderConflict } from './workspace-experiments.js';
 import { activeJob, jobPath, renderJobRows, renderRevisionJobs, renderJobList, renderJobDetail, renderService, jobActionDialog, createJobPoller } from './workspace-jobs.js';
 import { investigationShell, mountInvestigation } from './workspace-investigation.js';
+import { comparisonPath, comparisonPayload, terminalRuns, createComparisonDialog, selectionSummary, renderComparisonList, renderRunComparison } from './workspace-comparisons.js';
 
 initializeTheme();
 const api = createApiClient();
@@ -25,7 +26,9 @@ let comparisonRequest = 0;
 let jobView = null;
 let jobPoller;
 let investigationView;
+let runComparisonView;
 const submissions = new Map();
+const comparisonSubmissions = new Map();
 
 const integer = value => new Intl.NumberFormat('en').format(value);
 const decimal = (value, digits = 2) => Number(value).toFixed(digits);
@@ -45,6 +48,7 @@ function setSession(value) {
   jobPoller?.stop();
   investigationView?.destroy();
   submissions.clear();
+  comparisonSubmissions.clear();
   sessionEpoch += 1;
   session = value;
   authMode = 'login';
@@ -57,6 +61,7 @@ function setSession(value) {
   experimentView = null;
   draftState = null;
   jobView = null;
+  runComparisonView = null;
 }
 
 function removePrivateState() {
@@ -66,11 +71,13 @@ function removePrivateState() {
   jobPoller?.stop();
   investigationView?.destroy();
   submissions.clear();
+  comparisonSubmissions.clear();
   datasets = [];
   currentProject = null;
   experimentView = null;
   draftState = null;
   jobView = null;
+  runComparisonView = null;
   app.replaceChildren();
   account.textContent = '';
   account.hidden = true;
@@ -207,8 +214,8 @@ function renderSettings(project) {
     <p class="muted">Projects are retained until you delete them.</p><p class="form-error" role="alert"></p>
     <div class="form-actions"><button type="submit" class="primary">Save changes</button></div>
   </fieldset></form>
-  <div class="delete-panel"><h2>Delete project</h2><p>Remove this project, its experiments, saved versions and run history. Active runs must finish or be cancelled first.</p><button class="danger" data-action="delete-project" type="button">Delete project</button></div>
-  <dialog id="delete-dialog" aria-labelledby="delete-heading"><h2 id="delete-heading">Delete ${e(project.name)}?</h2><p>Permanently delete this project, its experiments, saved versions and run history? Artifact cleanup is asynchronous.</p><form id="delete-project-form"><fieldset><p class="form-error" role="alert"></p><div class="form-actions"><button type="button" data-action="close-dialog" autofocus>Keep project</button><button type="submit" class="danger">Delete project</button></div></fieldset></form></dialog>
+  <div class="delete-panel"><h2>Delete project</h2><p>Remove this project, its experiments, saved versions, run history and saved comparisons. Active runs must finish or be cancelled first.</p><button class="danger" data-action="delete-project" type="button">Delete project</button></div>
+  <dialog id="delete-dialog" aria-labelledby="delete-heading"><h2 id="delete-heading">Delete ${e(project.name)}?</h2><p>Permanently delete this project, its experiments, saved versions, run history and saved comparisons? Artifact cleanup is asynchronous.</p><form id="delete-project-form"><fieldset><p class="form-error" role="alert"></p><div class="form-actions"><button type="button" data-action="close-dialog" autofocus>Keep project</button><button type="submit" class="danger">Delete project</button></div></fieldset></form></dialog>
   </section>`;
 }
 
@@ -219,7 +226,8 @@ function renderProject(project, section) {
   if (section === 'data') content = renderDataset(dataset);
   else if (section === 'settings') content = renderSettings(project);
   else if (section === 'experiments') content = experimentView.experiment ? renderExperimentDetail(project, experimentView, draftState, renderRevisionJobs(experimentView, session.capabilities.execution, draftState?.kind === 'edit')) : renderExperimentList(project, experimentView);
-  else content = `<div id="jobs-content">${jobView.investigation ? investigationShell(jobView.job) : jobView.job ? renderJobDetail(jobView.job) : renderJobList(jobView)}</div>`;
+  else if (runComparisonView?.comparison) content = renderRunComparison(runComparisonView.comparison);
+  else content = `${runComparisonView ? `<div id="comparisons-content">${renderComparisonList(project.id, runComparisonView, jobView.jobs)}</div>` : ''}<div id="jobs-content">${jobView.investigation ? investigationShell(jobView.job) : jobView.job ? renderJobDetail(jobView.job) : renderJobList(jobView)}</div>`;
   mount(`<nav class="breadcrumb" aria-label="Breadcrumb"><a href="#projects">Projects</a><span aria-hidden="true">/</span><span>${e(project.name)}</span></nav>
     <div class="page-heading project-heading"><div><p class="eyebrow">Private project</p><h1>${e(project.name)}</h1>${project.description ? `<p class="muted project-description">${e(project.description)}</p>` : ''}</div><span class="pill">Private to your account</span></div>
     <nav class="project-nav" aria-label="Project">${tabs.map(([key, label]) => `<a href="#project/${e(project.id)}/${key}" ${key === section ? 'aria-current="page"' : ''}>${label}</a>`).join('')}</nav><p id="job-poll-status" class="job-feedback" role="status" hidden></p>${content}`, `${project.name} · ${tabs.find(([key]) => key === section)[1]}`, true);
@@ -232,7 +240,7 @@ function routeError(error) {
   const unavailable = error instanceof ApiError && error.status === 404;
   const csrf = error instanceof ApiError && error.status === 403;
   const route = parseRoute(window.location.hash);
-  const resource = route.jobId ? 'Run' : route.experimentId ? 'Experiment' : 'Project';
+  const resource = route.comparisonId ? 'Comparison' : route.jobId ? 'Run' : route.experimentId ? 'Experiment' : 'Project';
   mount(`<div class="empty error" role="alert"><h1>${unavailable ? `${resource} unavailable` : 'Unable to load the workspace'}</h1><p>${unavailable ? `This ${resource.toLowerCase()} does not exist or is not available to your account.` : e(errorMessage(error))}</p>${csrf ? '<button type="button" data-action="reload">Reload session</button>' : '<button type="button" data-action="retry">Try again</button>'} <a class="button" href="#projects">Return to Projects</a></div>`, 'Workspace unavailable', true);
 }
 
@@ -255,6 +263,7 @@ async function renderRoute() {
   currentProject = null;
   experimentView = null;
   jobView = null;
+  runComparisonView = null;
   mount('<p class="loading" role="status">Loading workspace…</p>', 'Workspace');
   try {
     const route = parseRoute(window.location.hash);
@@ -296,9 +305,19 @@ async function renderRoute() {
         if (id !== navigation) return;
         experimentView = view;
       } else if (route.section === 'results') {
-        const value = await api.request(`/projects/${route.id}/jobs${route.jobId ? `/${route.jobId}` : ''}`, { signal: controller.signal });
-        if (id !== navigation) return;
-        jobView = { ...value, investigation: Boolean(route.investigation) };
+        if (route.comparisonId) {
+          const value = await api.request(`/projects/${route.id}/comparisons/${route.comparisonId}`, { signal: controller.signal });
+          if (id !== navigation) return;
+          runComparisonView = value;
+        } else {
+          const [value, comparisons] = await Promise.all([
+            api.request(`/projects/${route.id}/jobs${route.jobId ? `/${route.jobId}` : ''}`, { signal: controller.signal }),
+            route.jobId ? null : api.request(`/projects/${route.id}/comparisons`, { signal: controller.signal }),
+          ]);
+          if (id !== navigation) return;
+          jobView = { ...value, investigation: Boolean(route.investigation) };
+          runComparisonView = comparisons;
+        }
       }
       currentProject = resource.project;
       renderProject(currentProject, route.section);
@@ -442,7 +461,7 @@ function selectedJobs(view = experimentView) {
 }
 
 function startJobPolling(route, routeId) {
-  if (route.investigation) return;
+  if (route.investigation || route.comparisonId) return;
   const detail = route.section === 'results' && route.jobId;
   const revision = route.section === 'experiments' && route.experimentId;
   if (!detail && !revision && route.section !== 'results') return;
@@ -461,6 +480,10 @@ function startJobPolling(route, routeId) {
       const serialized = JSON.stringify(detail ? value.job : value.jobs);
       if (revision) { experimentView.jobs = value.jobs; experimentView.jobLimits = value.limits; experimentView.jobService = value.service; }
       else jobView = value;
+      if (runComparisonView && !runComparisonView.comparison) {
+        const button = app.querySelector('[data-action="new-comparison"]');
+        if (button) button.disabled = terminalRuns(value.jobs).length < 2 || runComparisonView.comparisons.length >= runComparisonView.limits.comparisons;
+      }
       const service = app.querySelector('#job-service');
       if (service) service.innerHTML = renderService(value.service);
       if (serialized === previous) return;
@@ -564,6 +587,46 @@ async function submitJobAction(form, epoch, projectId) {
   announce(cancel ? 'Cancellation request processed. The current run state is shown below.' : 'Run removed. Artifact cleanup follows asynchronously.');
 }
 
+function openNewComparison() {
+  if (!jobView?.jobs || terminalRuns(jobView.jobs).length < 2) return;
+  app.querySelector('#run-comparison-dialog')?.remove();
+  app.insertAdjacentHTML('beforeend', createComparisonDialog(jobView.jobs));
+  const dialog = app.querySelector('#run-comparison-dialog');
+  dialog.addEventListener('close', () => dialog.remove(), { once: true });
+  dialog.showModal();
+}
+
+async function submitRunComparison(form, data, epoch, projectId) {
+  const routeId = navigation;
+  const path = `/projects/${projectId}/comparisons`;
+  if (form.id === 'delete-comparison-form') {
+    await api.request(`${path}/${runComparisonView.comparison.id}`, { method: 'DELETE' });
+    if (epoch !== sessionEpoch || routeId !== navigation) return;
+    await navigateTo(`#project/${projectId}/results`);
+    announce('Comparison deleted. Original runs are preserved.');
+    return;
+  }
+  const body = comparisonPayload(data, jobView.jobs);
+  const identity = JSON.stringify({ projectId, ...body });
+  const key = comparisonSubmissions.get(identity) || crypto.randomUUID();
+  comparisonSubmissions.set(identity, key);
+  try {
+    const response = await api.request(path, { method: 'POST', body: { ...body, idempotency_key: key } });
+    if (epoch !== sessionEpoch) return;
+    comparisonSubmissions.delete(identity);
+    if (routeId !== navigation) return;
+    await navigateTo(comparisonPath(projectId, response.comparison.id));
+    announce(response.reused ? 'Existing comparison recovered. No duplicate was created.' : 'Comparison saved with exact execution identities and evaluation evidence.');
+  } catch (error) {
+    if (epoch !== sessionEpoch || routeId !== navigation) return;
+    if (!(error instanceof ApiError) || error.status >= 500) {
+      const original = errorMessage(error);
+      error = new ApiError(error.status || 502, { error: { code: error.code || 'request_failed', message: `${original} Saving may have reached the server. Retry the unchanged selection to recover the same comparison.`, fields: error.fields } });
+    }
+    throw error;
+  }
+}
+
 app.addEventListener('submit', async event => {
   const form = event.target;
   if (!(form instanceof HTMLFormElement)) return;
@@ -578,6 +641,8 @@ app.addEventListener('submit', async event => {
   try {
     if (['cancel-job-form', 'delete-job-form'].includes(form.id)) {
       await submitJobAction(form, epoch, projectId);
+    } else if (['create-comparison-form', 'delete-comparison-form'].includes(form.id)) {
+      await submitRunComparison(form, data, epoch, projectId);
     } else if (['create-experiment-form', 'edit-experiment-form', 'duplicate-experiment-form', 'delete-experiment-form'].includes(form.id)) {
       await submitExperiment(form, data, epoch);
     } else if (form.id === 'auth-form') {
@@ -638,6 +703,8 @@ app.addEventListener('click', event => {
     case 'launch-job': void launchJob(button); break;
     case 'cancel-job': openJobAction('cancel'); break;
     case 'delete-job': openJobAction('delete'); break;
+    case 'new-comparison': openNewComparison(); break;
+    case 'delete-comparison': app.querySelector('#delete-comparison-dialog').showModal(); break;
     case 'edit-experiment': {
       const values = revisionDraft(experimentView.revision, experimentView.profile);
       draftState = { kind: 'edit', baseline: { ...values }, values, baseVersion: experimentView.experiment.version };
@@ -727,6 +794,10 @@ app.addEventListener('input', event => {
 });
 app.addEventListener('change', event => {
   if (event.target.matches('#compare-from, #compare-to')) compareSelectedVersions();
+  if (event.target.matches('#baseline-job, #candidate-job')) {
+    const side = event.target.id === 'baseline-job' ? 'baseline' : 'candidate';
+    app.querySelector(`#${side}-selection`).innerHTML = selectionSummary(jobView.jobs.find(job => job.id === event.target.value));
+  }
 });
 app.addEventListener('cancel', event => {
   if (event.target.querySelector('fieldset:disabled')) { event.preventDefault(); return; }

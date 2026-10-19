@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "status": "hosted_observation_pending",
+  "comparison_release_hosted_children_observed": false,
+  "reason": "The comparison release has not been deployed. No isolation observation from an older release is presented as a new measurement.",
+  "local_execution_evidence": "Three real local VIO jobs completed; their artifact/run specifications are covered by local-independent-audit.json. This file does not assert a fresh live container inspection for those local jobs."
+}

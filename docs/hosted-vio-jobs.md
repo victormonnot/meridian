@@ -135,6 +135,10 @@ restoration service. Independent downloadable reproduction packages remain a
 later increment; the browser exposes persisted execution summaries and retained
 [investigation evidence](vio-investigation.md), including valid partial outputs
 when independent evaluation is possible. The job's failure state is preserved.
+Saved [run comparisons](vio-comparisons.md) retain their derived outcome snapshots
+after source jobs or experiments are deleted. They contain exact run identities,
+specifications and comparison metrics, without copying raw sensor or pose data.
+Delete the comparison or its parent project to remove that separate snapshot.
 
 [Validation evidence](../results/jobs/README.md) separates automated failure
 fixtures, actual local crash recovery and deployed browser/native checks.

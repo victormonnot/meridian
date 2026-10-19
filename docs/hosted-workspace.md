@@ -20,12 +20,14 @@ Projects expose Data, Experiments, Results and Settings views. Experiments conta
 saved configurations and history. Results lists persisted jobs, execution
 attempts, failures and validated metric summaries. Retained evidence opens a
 [synchronized investigation](vio-investigation.md) of images, IMU, poses and errors.
+Results also contains [saved comparisons](vio-comparisons.md) of exact terminal
+runs, with configuration differences and explicit own/common-support metrics.
 
 Django 5.2 LTS supplies authentication, password validation/hashing, server-side
 sessions, CSRF protection and database migrations. This replaces the earlier
 FastAPI candidate for the initial metadata service. PostgreSQL persists accounts,
-sessions, projects, experiments, jobs, attempts and submission/authentication budgets. The HTTP service
-imports only the shared standard-library specification and interval-summary
+sessions, projects, experiments, jobs, attempts, comparisons and submission/authentication budgets. The HTTP service
+imports only the shared standard-library specification, comparison and interval-summary
 contracts from the numerical package. The API image has no VIO runtime, NumPy,
 Docker access, host repositories or private notes. An optional deployment overlay
 mounts only published artifacts and prepared camera directories read-only for

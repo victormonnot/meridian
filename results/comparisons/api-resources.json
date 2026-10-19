@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "local": {
+    "schema_version": 1,
+    "observed_at_utc": "2026-10-19T21:08:01.837193+00:00",
+    "phase": "after_three_successful_runs_and_comparison_browser_checks",
+    "api_image_id": "sha256:fe5b63e473aa361fe782def997de9b0db7143c1c2c6697bebc153449dc38d25f",
+    "memory_current_bytes": 154845184,
+    "memory_peak_bytes": 214872064,
+    "memory_limit_bytes": 536870912,
+    "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    },
+    "oom_killed": false,
+    "restart_count": 0,
+    "measurement": "Linux cgroup v2 peak since this API container was created; includes startup and all requests, not an isolated single-request peak."
+  },
+  "hosted": {
+    "status": "pending",
+    "reason": "The release has not been activated. The existing SSH relay went offline after the native image preflight failed."
+  },
+  "limitations": [
+    "The local memory peak covers the whole API container lifetime, including startup and other QA requests.",
+    "No isolated local HTTP creation-latency measurement was recorded."
+  ]
+}

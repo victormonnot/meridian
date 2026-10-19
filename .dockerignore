@@ -20,6 +20,7 @@
 !src/meridian/vio_runtime_identity.py
 !src/meridian/vio_investigation.py
 !src/meridian/vio_investigation_metrics.py
+!src/meridian/vio_comparison.py
 !web/
 !web/package.json
 !web/package-lock.json

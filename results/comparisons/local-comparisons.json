@@ -1,0 +1,1942 @@
+[
+  {
+    "id": "583236e5-76a1-45b1-8b14-24362b196d4e",
+    "analysis": {
+      "kind": "repeated_execution",
+      "baseline": {
+        "id": "643f2a73-17c5-486b-8baa-3dca1dd5fcc5",
+        "state": "succeeded",
+        "failure": null,
+        "execution": {
+          "native_cpu_seconds": 32.858194,
+          "native_peak_rss_kib": 80600,
+          "native_wall_seconds": 32.870838494,
+          "container_wall_seconds": 33.30448925199744
+        },
+        "parameters": {
+          "num_pts": 100
+        },
+        "started_at": "2026-10-19T21:03:41.975280+00:00",
+        "finished_at": "2026-10-19T21:04:37.970541+00:00",
+        "own_support": {
+          "counts": {
+            "estimate_samples": 2689,
+            "expected_camera_samples": 2821,
+            "evaluated_camera_samples": 2624,
+            "associated_camera_samples": 2624,
+            "reference_supported_camera_samples": 2756
+          },
+          "status": "ok",
+          "metrics": {
+            "ate_rmse_m": 0.051132041394887494,
+            "orientation_rmse_deg": 1.532136616154553,
+            "orientation_rmse_rad": 0.026740828542261494,
+            "position_error_max_m": 0.11970868362413112,
+            "position_error_mean_m": 0.04787200345164509,
+            "orientation_error_max_deg": 4.428362220743539,
+            "orientation_error_mean_deg": 1.3471094574226024
+          },
+          "interval": {
+            "boundary": "closed",
+            "end_time_s": 141.004463474,
+            "start_time_s": 0.0,
+            "end_timestamp_ns": "1520530449203911100",
+            "last_camera_index": 2820,
+            "first_camera_index": 0,
+            "start_timestamp_ns": "1520530308199447626"
+          },
+          "protocol": {
+            "name": "meridian-vio-se3",
+            "version": 1,
+            "alignment": "global_se3_least_squares_over_all_evaluated_positions",
+            "weighting": "equal_weight_per_evaluated_camera_sample",
+            "scale_fitted": false,
+            "removed_gauge": "constant_world_rotation_including_roll_pitch_yaw_and_translation",
+            "time_offset_fitted": false,
+            "max_reference_gap_ns": 20000000,
+            "quaternion_convention": "Hamilton_xyzw_body_to_world",
+            "reference_association": "linear_position_shortest_arc_slerp_without_extrapolation",
+            "estimate_interpolation": false,
+            "initialization_exclusion": "none",
+            "initialization_delay_definition": "first_estimated_camera_timestamp_minus_first_expected_timestamp",
+            "max_estimate_timestamp_error_ns": 1000
+          },
+          "schema_version": 1,
+          "alignment_scope": "full_recording_global_se3_unchanged",
+          "coverage_fraction": 0.9532080822403403,
+          "evaluated_fraction": 0.9301666075859625,
+          "reference_coverage_fraction": 0.9769585253456221,
+          "evaluated_reference_fraction": 0.9521044992743106
+        },
+        "attempt_count": 1,
+        "experiment_id": "4a0ea371-b792-41dc-9860-2e8fa3bef2c4",
+        "investigation": {
+          "sha256": "82413a70b7e1d2eede4190210211a8c891d52b61ccbc97cc78ccef2d345f1238",
+          "available": true,
+          "run_state": "complete",
+          "unavailable_reason": null
+        },
+        "qualification": {
+          "checks": {
+            "evaluation_ok": true,
+            "position_error": true,
+            "estimate_coverage": true,
+            "evaluated_samples": true,
+            "orientation_error": true,
+            "evaluated_coverage": true,
+            "reference_coverage": true,
+            "initialization_delay": true
+          },
+          "passed": true
+        },
+        "specification": {
+          "dataset": {
+            "id": "tumvi-room1-512-16-v1",
+            "version": "512_16-calibrated-v1",
+            "reference_use": "independent_evaluation_only",
+            "archive_sha256": "20354392eab5cc82c9770ed29cf0130c5acce0db54a257571499008fb34c398f",
+            "reference_sha256": "69f3dcb4c5453fc8bafb0e6214172bbfe0f176e42e119953862b120208ad22ba",
+            "prepared_dataset_id": "tum-vi-room1-512-16",
+            "prepared_manifest_sha256": "e55f0480533611fc1e198d16b181814a8d34752cb748becbfeec7bcb4908ba6d"
+          },
+          "runtime": {
+            "version": {
+              "adapter": "meridian-openvins",
+              "adapter_sha256": "a577f358c893ac9171cad6a71bc2a65a49b9d90ab3dc426865d89b6ad2c8b782",
+              "opencv_version": "4.6.0",
+              "schema_version": 1,
+              "protocol_version": 1,
+              "upstream_revision": "69488123ed9362dd44b6f28e7f4680abbff1442b"
+            },
+            "image_id": "sha256:73e1213d073ce52a9a509decb15628a7c043e0690609171c4b9382ed0c2730da",
+            "provenance_sha256": {
+              "binary-sha256.txt": "7b66a083c7d5c69c6e85721e3357def42fbc1a125a5b13735f3e55ee3ad28070",
+              "dependency-versions.txt": "92d76ee986a1ff4508a96fb3f2c26439d99cb446a546f8e0d795f56d69e7023e"
+            }
+          },
+          "interval": {
+            "mode": "full_recording",
+            "imu_samples": 28122,
+            "camera_pairs": 2821,
+            "last_camera_timestamp_ns": "1520530449203911100",
+            "first_camera_timestamp_ns": "1520530308199447626"
+          },
+          "estimator": {
+            "name": "OpenVINS",
+            "adapter": "meridian-openvins",
+            "adapter_sha256": "a577f358c893ac9171cad6a71bc2a65a49b9d90ab3dc426865d89b6ad2c8b782",
+            "upstream_revision": "69488123ed9362dd44b6f28e7f4680abbff1442b",
+            "adapter_protocol_version": 1
+          },
+          "resources": {
+            "cpus": 2.0,
+            "pids": 128,
+            "rootfs": "read-only",
+            "tmp_mb": 128,
+            "network": "none",
+            "memory_mb": 4096,
+            "timeout_s": 900.0
+          },
+          "evaluation": {
+            "alignment": "global_SE3_over_all_evaluated_positions_scale_fixed_to_one",
+            "evaluator_sha256": "539f07a0e3dbabe5fd3b4874b42218db1938e5f3733d8ac3bd9c714900a8cca6",
+            "protocol_version": 1,
+            "time_offset_fitting": false,
+            "estimate_interpolation": false,
+            "qualification_criteria": {
+              "maximum_ate_rmse_m": 0.5,
+              "minimum_coverage_fraction": 0.9,
+              "minimum_evaluated_samples": 100,
+              "minimum_evaluated_fraction": 0.9,
+              "maximum_orientation_rmse_deg": 15.0,
+              "maximum_initialization_delay_s": 10.0,
+              "minimum_reference_coverage_fraction": 0.95
+            },
+            "reference_extrapolation": false,
+            "maximum_reference_bracket_ns": 20000000,
+            "reference_position_interpolation": "linear",
+            "maximum_estimate_timestamp_error_ns": 1000,
+            "reference_orientation_interpolation": "shortest_arc_slerp"
+          },
+          "parameters": {
+            "num_pts": 100
+          },
+          "profile_id": "openvins-tumvi-room1-v1",
+          "scheduling": {
+            "version": 1,
+            "imu_policy": "feed_through_first_sample_strictly_after_camera_plus_current_estimated_offset",
+            "time_origin": "subtract_first_sensor_timestamp_as_integer_before_seconds_conversion",
+            "camera_policy": "every_pair_with_available_imu_bracket",
+            "stereo_pairing": "exact_timestamp_pairs",
+            "wall_clock_pacing": false,
+            "callback_frequency_throttle": false
+          },
+          "conventions": {
+            "gyro_unit": "rad/s",
+            "body_frame": "imu",
+            "orientation": "unit_Hamilton_xyzw_body_to_world",
+            "position_unit": "m",
+            "initialization": "static_inertial_and_visual_no_reference_initialization",
+            "timestamp_unit": "ns",
+            "image_conversion": "uint16_to_uint8_OpenCV_convertTo_scale_255_over_65535",
+            "camera_extrinsics": "T_cam_imu_maps_imu_to_camera",
+            "accelerometer_unit": "m/s^2",
+            "dataset_preprocessing": "already_calibrated_imu_and_synchronized_clocks_no_second_correction",
+            "absolute_timestamp_encoding": "decimal_integer_string",
+            "initial_camera_imu_offset_s": 0.0
+          },
+          "configuration": {
+            "operation": "replace_exact_num_pts_line_in_pinned_baseline",
+            "baseline_files": {
+              "mask_tumvi0.png": {
+                "sha256": "62dfc1053f336d1adb4ae01519579532370d1b211894566a7a4ec167dd8c3f4f",
+                "size_bytes": 12277
+              },
+              "mask_tumvi1.png": {
+                "sha256": "67ff644599f862f2437026d9c43ef0a0887907470179a53e34447fb95cbd35ba",
+                "size_bytes": 11930
+              },
+              "estimator_config.yaml": {
+                "sha256": "10c37c00c52a07ba5a86ce3d6d2846c2430397d6fa6a9e190dfdc47aa10c2045",
+                "size_bytes": 3689
+              },
+              "kalibr_imu_chain.yaml": {
+                "sha256": "cb598952ee3766492a332eaae8567fe2b63a9bf6d63b9c0a7b9d988471600a3d",
+                "size_bytes": 1351
+              },
+              "kalibr_imucam_chain.yaml": {
+                "sha256": "072d26e3dd20844ae7402f508c51cf7e899a401634ba6b0db0e08cd2880b7dab",
+                "size_bytes": 1530
+              }
+            },
+            "rendered_files": {
+              "mask_tumvi0.png": {
+                "sha256": "62dfc1053f336d1adb4ae01519579532370d1b211894566a7a4ec167dd8c3f4f",
+                "size_bytes": 12277
+              },
+              "mask_tumvi1.png": {
+                "sha256": "67ff644599f862f2437026d9c43ef0a0887907470179a53e34447fb95cbd35ba",
+                "size_bytes": 11930
+              },
+              "estimator_config.yaml": {
+                "sha256": "b20864246ac6c7d8d0b23b430568ba8860249fdc2207142f3a1095ca2a1f79f5",
+                "size_bytes": 3689
+              },
+              "kalibr_imu_chain.yaml": {
+                "sha256": "cb598952ee3766492a332eaae8567fe2b63a9bf6d63b9c0a7b9d988471600a3d",
+                "size_bytes": 1351
+              },
+              "kalibr_imucam_chain.yaml": {
+                "sha256": "072d26e3dd20844ae7402f508c51cf7e899a401634ba6b0db0e08cd2880b7dab",
+                "size_bytes": 1530
+              }
+            },
+            "rendering_version": 1
+          },
+          "schema_version": 1,
+          "reproducibility": {
+            "seed": null,
+            "claim": "same_runtime_and_inputs_only_no_cross_hardware_bit_identity_guarantee",
+            "omp_threads": 1,
+            "seed_policy": "no_random_seed_control_exposed_by_this_qualified_adapter",
+            "opencv_threads": 1,
+            "openblas_threads": 1
+          }
+        },
+        "experiment_name": "Room1 feature budget",
+        "revision_version": 2,
+        "published_attempt": "e111edf7-a332-4291-85b2-abbef3ad113f",
+        "recorded_full_run": {
+          "counts": {
+            "estimate_samples": 2689,
+            "reference_samples": 16541,
+            "expected_camera_samples": 2821,
+            "evaluated_camera_samples": 2624,
+            "missing_initial_camera_samples": 132,
+            "missing_interior_camera_samples": 0,
+            "missing_trailing_camera_samples": 0,
+            "reference_supported_camera_samples": 2756
+          },
+          "status": "ok",
+          "metrics": {
+            "ate_rmse_m": 0.051132041394887494,
+            "orientation_rmse_deg": 1.532136616154553,
+            "orientation_rmse_rad": 0.026740828542261494,
+            "position_error_max_m": 0.11970868362413112,
+            "position_error_mean_m": 0.047872003451645086,
+            "orientation_error_max_deg": 4.428362220743539,
+            "orientation_error_mean_deg": 1.3471094574226026
+          },
+          "protocol": {
+            "name": "meridian-vio-se3",
+            "version": 1,
+            "alignment": "global_se3_least_squares_over_all_evaluated_positions",
+            "weighting": "equal_weight_per_evaluated_camera_sample",
+            "scale_fitted": false,
+            "removed_gauge": "constant_world_rotation_including_roll_pitch_yaw_and_translation",
+            "time_offset_fitted": false,
+            "max_reference_gap_ns": 20000000,
+            "quaternion_convention": "Hamilton_xyzw_body_to_world",
+            "reference_association": "linear_position_shortest_arc_slerp_without_extrapolation",
+            "estimate_interpolation": false,
+            "initialization_exclusion": "none",
+            "initialization_delay_definition": "first_estimated_camera_timestamp_minus_first_expected_timestamp",
+            "max_estimate_timestamp_error_ns": 1000
+          },
+          "coverage_fraction": 0.9532080822403403,
+          "evaluated_fraction": 0.9301666075859625,
+          "initialization_delay_s": 6.600339685000001,
+          "reference_coverage_fraction": 0.9769585253456221
+        },
+        "evidence_provenance": {
+          "imu_sha256": "8cd471ca2c1425260534228fbe0f3e27bd6711199dfce7c971447cdf184569e2",
+          "builder_sha256": "b25a6b015c44d6264e4fc84cb87f8a3a28199e0d753250bf2ae47a4124360bf2",
+          "evaluator_sha256": "539f07a0e3dbabe5fd3b4874b42218db1938e5f3733d8ac3bd9c714900a8cca6",
+          "reference_sha256": "69f3dcb4c5453fc8bafb0e6214172bbfe0f176e42e119953862b120208ad22ba",
+          "evaluation_sha256": "7eeb3e06260325d133b4eb078b664f63a1071416698d9f860e5b544b806686a7",
+          "trajectory_sha256": "5640a2349c71c67c1ffeda44a59b0226cb8d5f9ea86ec58d068a78b30660462e",
+          "interval_scorer_sha256": "8c04325c8ac8804987ea2911ce3629a9c8a28417beefd39b2541bbcb2b77b736"
+        },
+        "specification_sha256": "98e780babbc5fd1b8214a3afbe65e5b5dbe39196017a83361b93f7f7cd3e5f73",
+        "initialization_delay_s": 6.600339685000001
+      },
+      "interval": {
+        "boundary": "closed",
+        "end_time_s": 141.004463474,
+        "start_time_s": 0.0,
+        "end_timestamp_ns": "1520530449203911100",
+        "last_camera_index": 2820,
+        "first_camera_index": 0,
+        "start_timestamp_ns": "1520530308199447626"
+      },
+      "protocol": {
+        "ranking": false,
+        "version": 1,
+        "evaluation": {
+          "name": "meridian-vio-se3",
+          "version": 1,
+          "alignment": "global_se3_least_squares_over_all_evaluated_positions",
+          "weighting": "equal_weight_per_evaluated_camera_sample",
+          "scale_fitted": false,
+          "removed_gauge": "constant_world_rotation_including_roll_pitch_yaw_and_translation",
+          "time_offset_fitted": false,
+          "max_reference_gap_ns": 20000000,
+          "quaternion_convention": "Hamilton_xyzw_body_to_world",
+          "reference_association": "linear_position_shortest_arc_slerp_without_extrapolation",
+          "estimate_interpolation": false,
+          "initialization_exclusion": "none",
+          "initialization_delay_definition": "first_estimated_camera_timestamp_minus_first_expected_timestamp",
+          "max_estimate_timestamp_error_ns": 1000
+        },
+        "common_support": "intersection_of_evaluated_camera_samples",
+        "alignment_scope": "original_per_run_full_recording_global_se3_unchanged",
+        "delta_convention": "candidate_minus_baseline",
+        "repeated_execution_aggregation": "none"
+      },
+      "warnings": [
+        {
+          "code": "global_alignment_retained",
+          "message": "Each run keeps its own full-recording SE3 alignment; interval and common-support scores do not refit it."
+        },
+        {
+          "code": "no_automatic_ranking",
+          "message": "Error deltas are observations, not a ranking. Read them together with failures, qualification and support loss."
+        },
+        {
+          "code": "host_cost_not_controlled",
+          "message": "Execution costs are observed host measurements; load and hardware are not controlled by this comparison."
+        },
+        {
+          "code": "two_run_repeat_only",
+          "message": "These two run requests share one saved specification. Available observations remain separate, without pooling or statistical confidence."
+        }
+      ],
+      "candidate": {
+        "id": "2332f7f5-20aa-4b97-ad80-d6a7d33cdb5d",
+        "state": "succeeded",
+        "failure": null,
+        "execution": {
+          "native_cpu_seconds": 32.929205,
+          "native_peak_rss_kib": 80736,
+          "native_wall_seconds": 32.922116694,
+          "container_wall_seconds": 33.4001728660005
+        },
+        "parameters": {
+          "num_pts": 100
+        },
+        "started_at": "2026-10-19T21:04:37.991158+00:00",
+        "finished_at": "2026-10-19T21:05:39.082553+00:00",
+        "own_support": {
+          "counts": {
+            "estimate_samples": 2689,
+            "expected_camera_samples": 2821,
+            "evaluated_camera_samples": 2624,
+            "associated_camera_samples": 2624,
+            "reference_supported_camera_samples": 2756
+          },
+          "status": "ok",
+          "metrics": {
+            "ate_rmse_m": 0.051132041394887494,
+            "orientation_rmse_deg": 1.532136616154553,
+            "orientation_rmse_rad": 0.026740828542261494,
+            "position_error_max_m": 0.11970868362413112,
+            "position_error_mean_m": 0.04787200345164509,
+            "orientation_error_max_deg": 4.428362220743539,
+            "orientation_error_mean_deg": 1.3471094574226024
+          },
+          "interval": {
+            "boundary": "closed",
+            "end_time_s": 141.004463474,
+            "start_time_s": 0.0,
+            "end_timestamp_ns": "1520530449203911100",
+            "last_camera_index": 2820,
+            "first_camera_index": 0,
+            "start_timestamp_ns": "1520530308199447626"
+          },
+          "protocol": {
+            "name": "meridian-vio-se3",
+            "version": 1,
+            "alignment": "global_se3_least_squares_over_all_evaluated_positions",
+            "weighting": "equal_weight_per_evaluated_camera_sample",
+            "scale_fitted": false,
+            "removed_gauge": "constant_world_rotation_including_roll_pitch_yaw_and_translation",
+            "time_offset_fitted": false,
+            "max_reference_gap_ns": 20000000,
+            "quaternion_convention": "Hamilton_xyzw_body_to_world",
+            "reference_association": "linear_position_shortest_arc_slerp_without_extrapolation",
+            "estimate_interpolation": false,
+            "initialization_exclusion": "none",
+            "initialization_delay_definition": "first_estimated_camera_timestamp_minus_first_expected_timestamp",
+            "max_estimate_timestamp_error_ns": 1000
+          },
+          "schema_version": 1,
+          "alignment_scope": "full_recording_global_se3_unchanged",
+          "coverage_fraction": 0.9532080822403403,
+          "evaluated_fraction": 0.9301666075859625,
+          "reference_coverage_fraction": 0.9769585253456221,
+          "evaluated_reference_fraction": 0.9521044992743106
+        },
+        "attempt_count": 1,
+        "experiment_id": "4a0ea371-b792-41dc-9860-2e8fa3bef2c4",
+        "investigation": {
+          "sha256": "79bfd5e5412fdf975acad60ced00565cca98842106888f8fefabb4b072c75ddd",
+          "available": true,
+          "run_state": "complete",
+          "unavailable_reason": null
+        },
+        "qualification": {
+          "checks": {
+            "evaluation_ok": true,
+            "position_error": true,
+            "estimate_coverage": true,
+            "evaluated_samples": true,
+            "orientation_error": true,
+            "evaluated_coverage": true,
+            "reference_coverage": true,
+            "initialization_delay": true
+          },
+          "passed": true
+        },
+        "specification": {
+          "dataset": {
+            "id": "tumvi-room1-512-16-v1",
+            "version": "512_16-calibrated-v1",
+            "reference_use": "independent_evaluation_only",
+            "archive_sha256": "20354392eab5cc82c9770ed29cf0130c5acce0db54a257571499008fb34c398f",
+            "reference_sha256": "69f3dcb4c5453fc8bafb0e6214172bbfe0f176e42e119953862b120208ad22ba",
+            "prepared_dataset_id": "tum-vi-room1-512-16",
+            "prepared_manifest_sha256": "e55f0480533611fc1e198d16b181814a8d34752cb748becbfeec7bcb4908ba6d"
+          },
+          "runtime": {
+            "version": {
+              "adapter": "meridian-openvins",
+              "adapter_sha256": "a577f358c893ac9171cad6a71bc2a65a49b9d90ab3dc426865d89b6ad2c8b782",
+              "opencv_version": "4.6.0",
+              "schema_version": 1,
+              "protocol_version": 1,
+              "upstream_revision": "69488123ed9362dd44b6f28e7f4680abbff1442b"
+            },
+            "image_id": "sha256:73e1213d073ce52a9a509decb15628a7c043e0690609171c4b9382ed0c2730da",
+            "provenance_sha256": {
+              "binary-sha256.txt": "7b66a083c7d5c69c6e85721e3357def42fbc1a125a5b13735f3e55ee3ad28070",
+              "dependency-versions.txt": "92d76ee986a1ff4508a96fb3f2c26439d99cb446a546f8e0d795f56d69e7023e"
+            }
+          },
+          "interval": {
+            "mode": "full_recording",
+            "imu_samples": 28122,
+            "camera_pairs": 2821,
+            "last_camera_timestamp_ns": "1520530449203911100",
+            "first_camera_timestamp_ns": "1520530308199447626"
+          },
+          "estimator": {
+            "name": "OpenVINS",
+            "adapter": "meridian-openvins",
+            "adapter_sha256": "a577f358c893ac9171cad6a71bc2a65a49b9d90ab3dc426865d89b6ad2c8b782",
+            "upstream_revision": "69488123ed9362dd44b6f28e7f4680abbff1442b",
+            "adapter_protocol_version": 1
+          },
+          "resources": {
+            "cpus": 2.0,
+            "pids": 128,
+            "rootfs": "read-only",
+            "tmp_mb": 128,
+            "network": "none",
+            "memory_mb": 4096,
+            "timeout_s": 900.0
+          },
+          "evaluation": {
+            "alignment": "global_SE3_over_all_evaluated_positions_scale_fixed_to_one",
+            "evaluator_sha256": "539f07a0e3dbabe5fd3b4874b42218db1938e5f3733d8ac3bd9c714900a8cca6",
+            "protocol_version": 1,
+            "time_offset_fitting": false,
+            "estimate_interpolation": false,
+            "qualification_criteria": {
+              "maximum_ate_rmse_m": 0.5,
+              "minimum_coverage_fraction": 0.9,
+              "minimum_evaluated_samples": 100,
+              "minimum_evaluated_fraction": 0.9,
+              "maximum_orientation_rmse_deg": 15.0,
+              "maximum_initialization_delay_s": 10.0,
+              "minimum_reference_coverage_fraction": 0.95
+            },
+            "reference_extrapolation": false,
+            "maximum_reference_bracket_ns": 20000000,
+            "reference_position_interpolation": "linear",
+            "maximum_estimate_timestamp_error_ns": 1000,
+            "reference_orientation_interpolation": "shortest_arc_slerp"
+          },
+          "parameters": {
+            "num_pts": 100
+          },
+          "profile_id": "openvins-tumvi-room1-v1",
+          "scheduling": {
+            "version": 1,
+            "imu_policy": "feed_through_first_sample_strictly_after_camera_plus_current_estimated_offset",
+            "time_origin": "subtract_first_sensor_timestamp_as_integer_before_seconds_conversion",
+            "camera_policy": "every_pair_with_available_imu_bracket",
+            "stereo_pairing": "exact_timestamp_pairs",
+            "wall_clock_pacing": false,
+            "callback_frequency_throttle": false
+          },
+          "conventions": {
+            "gyro_unit": "rad/s",
+            "body_frame": "imu",
+            "orientation": "unit_Hamilton_xyzw_body_to_world",
+            "position_unit": "m",
+            "initialization": "static_inertial_and_visual_no_reference_initialization",
+            "timestamp_unit": "ns",
+            "image_conversion": "uint16_to_uint8_OpenCV_convertTo_scale_255_over_65535",
+            "camera_extrinsics": "T_cam_imu_maps_imu_to_camera",
+            "accelerometer_unit": "m/s^2",
+            "dataset_preprocessing": "already_calibrated_imu_and_synchronized_clocks_no_second_correction",
+            "absolute_timestamp_encoding": "decimal_integer_string",
+            "initial_camera_imu_offset_s": 0.0
+          },
+          "configuration": {
+            "operation": "replace_exact_num_pts_line_in_pinned_baseline",
+            "baseline_files": {
+              "mask_tumvi0.png": {
+                "sha256": "62dfc1053f336d1adb4ae01519579532370d1b211894566a7a4ec167dd8c3f4f",
+                "size_bytes": 12277
+              },
+              "mask_tumvi1.png": {
+                "sha256": "67ff644599f862f2437026d9c43ef0a0887907470179a53e34447fb95cbd35ba",
+                "size_bytes": 11930
+              },
+              "estimator_config.yaml": {
+                "sha256": "10c37c00c52a07ba5a86ce3d6d2846c2430397d6fa6a9e190dfdc47aa10c2045",
+                "size_bytes": 3689
+              },
+              "kalibr_imu_chain.yaml": {
+                "sha256": "cb598952ee3766492a332eaae8567fe2b63a9bf6d63b9c0a7b9d988471600a3d",
+                "size_bytes": 1351
+              },
+              "kalibr_imucam_chain.yaml": {
+                "sha256": "072d26e3dd20844ae7402f508c51cf7e899a401634ba6b0db0e08cd2880b7dab",
+                "size_bytes": 1530
+              }
+            },
+            "rendered_files": {
+              "mask_tumvi0.png": {
+                "sha256": "62dfc1053f336d1adb4ae01519579532370d1b211894566a7a4ec167dd8c3f4f",
+                "size_bytes": 12277
+              },
+              "mask_tumvi1.png": {
+                "sha256": "67ff644599f862f2437026d9c43ef0a0887907470179a53e34447fb95cbd35ba",
+                "size_bytes": 11930
+              },
+              "estimator_config.yaml": {
+                "sha256": "b20864246ac6c7d8d0b23b430568ba8860249fdc2207142f3a1095ca2a1f79f5",
+                "size_bytes": 3689
+              },
+              "kalibr_imu_chain.yaml": {
+                "sha256": "cb598952ee3766492a332eaae8567fe2b63a9bf6d63b9c0a7b9d988471600a3d",
+                "size_bytes": 1351
+              },
+              "kalibr_imucam_chain.yaml": {
+                "sha256": "072d26e3dd20844ae7402f508c51cf7e899a401634ba6b0db0e08cd2880b7dab",
+                "size_bytes": 1530
+              }
+            },
+            "rendering_version": 1
+          },
+          "schema_version": 1,
+          "reproducibility": {
+            "seed": null,
+            "claim": "same_runtime_and_inputs_only_no_cross_hardware_bit_identity_guarantee",
+            "omp_threads": 1,
+            "seed_policy": "no_random_seed_control_exposed_by_this_qualified_adapter",
+            "opencv_threads": 1,
+            "openblas_threads": 1
+          }
+        },
+        "experiment_name": "Room1 feature budget",
+        "revision_version": 2,
+        "published_attempt": "3df67a8e-6ec9-4453-abda-ede276ce7445",
+        "recorded_full_run": {
+          "counts": {
+            "estimate_samples": 2689,
+            "reference_samples": 16541,
+            "expected_camera_samples": 2821,
+            "evaluated_camera_samples": 2624,
+            "missing_initial_camera_samples": 132,
+            "missing_interior_camera_samples": 0,
+            "missing_trailing_camera_samples": 0,
+            "reference_supported_camera_samples": 2756
+          },
+          "status": "ok",
+          "metrics": {
+            "ate_rmse_m": 0.051132041394887494,
+            "orientation_rmse_deg": 1.532136616154553,
+            "orientation_rmse_rad": 0.026740828542261494,
+            "position_error_max_m": 0.11970868362413112,
+            "position_error_mean_m": 0.047872003451645086,
+            "orientation_error_max_deg": 4.428362220743539,
+            "orientation_error_mean_deg": 1.3471094574226026
+          },
+          "protocol": {
+            "name": "meridian-vio-se3",
+            "version": 1,
+            "alignment": "global_se3_least_squares_over_all_evaluated_positions",
+            "weighting": "equal_weight_per_evaluated_camera_sample",
+            "scale_fitted": false,
+            "removed_gauge": "constant_world_rotation_including_roll_pitch_yaw_and_translation",
+            "time_offset_fitted": false,
+            "max_reference_gap_ns": 20000000,
+            "quaternion_convention": "Hamilton_xyzw_body_to_world",
+            "reference_association": "linear_position_shortest_arc_slerp_without_extrapolation",
+            "estimate_interpolation": false,
+            "initialization_exclusion": "none",
+            "initialization_delay_definition": "first_estimated_camera_timestamp_minus_first_expected_timestamp",
+            "max_estimate_timestamp_error_ns": 1000
+          },
+          "coverage_fraction": 0.9532080822403403,
+          "evaluated_fraction": 0.9301666075859625,
+          "initialization_delay_s": 6.600339685000001,
+          "reference_coverage_fraction": 0.9769585253456221
+        },
+        "evidence_provenance": {
+          "imu_sha256": "8cd471ca2c1425260534228fbe0f3e27bd6711199dfce7c971447cdf184569e2",
+          "builder_sha256": "b25a6b015c44d6264e4fc84cb87f8a3a28199e0d753250bf2ae47a4124360bf2",
+          "evaluator_sha256": "539f07a0e3dbabe5fd3b4874b42218db1938e5f3733d8ac3bd9c714900a8cca6",
+          "reference_sha256": "69f3dcb4c5453fc8bafb0e6214172bbfe0f176e42e119953862b120208ad22ba",
+          "evaluation_sha256": "7eeb3e06260325d133b4eb078b664f63a1071416698d9f860e5b544b806686a7",
+          "trajectory_sha256": "5640a2349c71c67c1ffeda44a59b0226cb8d5f9ea86ec58d068a78b30660462e",
+          "interval_scorer_sha256": "8c04325c8ac8804987ea2911ce3629a9c8a28417beefd39b2541bbcb2b77b736"
+        },
+        "specification_sha256": "98e780babbc5fd1b8214a3afbe65e5b5dbe39196017a83361b93f7f7cd3e5f73",
+        "initialization_delay_s": 6.600339685000001
+      },
+      "provenance": {
+        "interval_scorer_sha256": "8c04325c8ac8804987ea2911ce3629a9c8a28417beefd39b2541bbcb2b77b736",
+        "comparison_source_sha256": "9f1f5d42aee087ae9aaae5f5356713896141e15b0989113c3a4b83db7c304f39"
+      },
+      "common_support": {
+        "reason": null,
+        "status": "ok",
+        "baseline_metrics": {
+          "ate_rmse_m": 0.051132041394887494,
+          "orientation_rmse_deg": 1.532136616154553,
+          "orientation_rmse_rad": 0.026740828542261494,
+          "position_error_max_m": 0.11970868362413112,
+          "position_error_mean_m": 0.04787200345164509,
+          "orientation_error_max_deg": 4.428362220743539,
+          "orientation_error_mean_deg": 1.3471094574226024
+        },
+        "candidate_metrics": {
+          "ate_rmse_m": 0.051132041394887494,
+          "orientation_rmse_deg": 1.532136616154553,
+          "orientation_rmse_rad": 0.026740828542261494,
+          "position_error_max_m": 0.11970868362413112,
+          "position_error_mean_m": 0.04787200345164509,
+          "orientation_error_max_deg": 4.428362220743539,
+          "orientation_error_mean_deg": 1.3471094574226024
+        },
+        "fraction_of_expected": 0.9301666075859625,
+        "expected_camera_samples": 2821,
+        "evaluated_camera_samples": 2624,
+        "delta_candidate_minus_baseline": {
+          "ate_rmse_m": 0.0,
+          "orientation_rmse_deg": 0.0,
+          "orientation_rmse_rad": 0.0,
+          "position_error_max_m": 0.0,
+          "position_error_mean_m": 0.0,
+          "orientation_error_max_deg": 0.0,
+          "orientation_error_mean_deg": 0.0
+        }
+      },
+      "schema_version": 1,
+      "observed_deltas": {
+        "coverage_fraction": 0.0,
+        "evaluated_fraction": 0.0,
+        "native_cpu_seconds": 0.07101100000000571,
+        "native_peak_rss_kib": 136,
+        "native_wall_seconds": 0.051278200000005825,
+        "initialization_delay_s": 0.0
+      },
+      "support_difference": {
+        "estimated": {
+          "both": {
+            "intervals": [
+              {
+                "sample_count": 2689,
+                "end_timestamp_ns": "1520530449203911100",
+                "last_camera_index": 2820,
+                "first_camera_index": 132,
+                "start_timestamp_ns": "1520530314799787311"
+              }
+            ],
+            "sample_count": 2689
+          },
+          "neither": {
+            "intervals": [
+              {
+                "sample_count": 132,
+                "end_timestamp_ns": "1520530314749782311",
+                "last_camera_index": 131,
+                "first_camera_index": 0,
+                "start_timestamp_ns": "1520530308199447626"
+              }
+            ],
+            "sample_count": 132
+          },
+          "baseline_only": {
+            "intervals": [],
+            "sample_count": 0
+          },
+          "candidate_only": {
+            "intervals": [],
+            "sample_count": 0
+          }
+        },
+        "evaluated": {
+          "both": {
+            "intervals": [
+              {
+                "sample_count": 677,
+                "end_timestamp_ns": "1520530348601421556",
+                "last_camera_index": 808,
+                "first_camera_index": 132,
+                "start_timestamp_ns": "1520530314799787311"
+              },
+              {
+                "sample_count": 4,
+                "end_timestamp_ns": "1520530348851314539",
+                "last_camera_index": 813,
+                "first_camera_index": 810,
+                "start_timestamp_ns": "1520530348701424556"
+              },
+              {
+                "sample_count": 5,
+                "end_timestamp_ns": "1520530349401109995",
+                "last_camera_index": 824,
+                "first_camera_index": 820,
+                "start_timestamp_ns": "1520530349201325539"
+              },
+              {
+                "sample_count": 133,
+                "end_timestamp_ns": "1520530356101540907",
+                "last_camera_index": 958,
+                "first_camera_index": 826,
+                "start_timestamp_ns": "1520530349501113995"
+              },
+              {
+                "sample_count": 1,
+                "end_timestamp_ns": "1520530356451382977",
+                "last_camera_index": 965,
+                "first_camera_index": 965,
+                "start_timestamp_ns": "1520530356451382977"
+              },
+              {
+                "sample_count": 143,
+                "end_timestamp_ns": "1520530363651748205",
+                "last_camera_index": 1109,
+                "first_camera_index": 967,
+                "start_timestamp_ns": "1520530356551385977"
+              },
+              {
+                "sample_count": 5,
+                "end_timestamp_ns": "1520530363951779942",
+                "last_camera_index": 1115,
+                "first_camera_index": 1111,
+                "start_timestamp_ns": "1520530363751751205"
+              },
+              {
+                "sample_count": 174,
+                "end_timestamp_ns": "1520530372701961293",
+                "last_camera_index": 1290,
+                "first_camera_index": 1117,
+                "start_timestamp_ns": "1520530364051783942"
+              },
+              {
+                "sample_count": 9,
+                "end_timestamp_ns": "1520530374051589398",
+                "last_camera_index": 1317,
+                "first_camera_index": 1309,
+                "start_timestamp_ns": "1520530373651465749"
+              },
+              {
+                "sample_count": 125,
+                "end_timestamp_ns": "1520530380352160433",
+                "last_camera_index": 1443,
+                "first_camera_index": 1319,
+                "start_timestamp_ns": "1520530374151592398"
+              },
+              {
+                "sample_count": 178,
+                "end_timestamp_ns": "1520530389302933767",
+                "last_camera_index": 1622,
+                "first_camera_index": 1445,
+                "start_timestamp_ns": "1520530380452163433"
+              },
+              {
+                "sample_count": 343,
+                "end_timestamp_ns": "1520530406503485293",
+                "last_camera_index": 1966,
+                "first_camera_index": 1624,
+                "start_timestamp_ns": "1520530389402937767"
+              },
+              {
+                "sample_count": 204,
+                "end_timestamp_ns": "1520530417753470346",
+                "last_camera_index": 2191,
+                "first_camera_index": 1988,
+                "start_timestamp_ns": "1520530407603192784"
+              },
+              {
+                "sample_count": 220,
+                "end_timestamp_ns": "1520530428803458083",
+                "last_camera_index": 2412,
+                "first_camera_index": 2193,
+                "start_timestamp_ns": "1520530417853473346"
+              },
+              {
+                "sample_count": 403,
+                "end_timestamp_ns": "1520530449203911100",
+                "last_camera_index": 2820,
+                "first_camera_index": 2418,
+                "start_timestamp_ns": "1520530429103447311"
+              }
+            ],
+            "sample_count": 2624
+          },
+          "neither": {
+            "intervals": [
+              {
+                "sample_count": 132,
+                "end_timestamp_ns": "1520530314749782311",
+                "last_camera_index": 131,
+                "first_camera_index": 0,
+                "start_timestamp_ns": "1520530308199447626"
+              },
+              {
+                "sample_count": 1,
+                "end_timestamp_ns": "1520530348651423556",
+                "last_camera_index": 809,
+                "first_camera_index": 809,
+                "start_timestamp_ns": "1520530348651423556"
+              },
+              {
+                "sample_count": 6,
+                "end_timestamp_ns": "1520530349151324539",
+                "last_camera_index": 819,
+                "first_camera_index": 814,
+                "start_timestamp_ns": "1520530348901315539"
+              },
+              {
+                "sample_count": 1,
+                "end_timestamp_ns": "1520530349451111995",
+                "last_camera_index": 825,
+                "first_camera_index": 825,
+                "start_timestamp_ns": "1520530349451111995"
+              },
+              {
+                "sample_count": 6,
+                "end_timestamp_ns": "1520530356401381977",
+                "last_camera_index": 964,
+                "first_camera_index": 959,
+                "start_timestamp_ns": "1520530356151541907"
+              },
+              {
+                "sample_count": 1,
+                "end_timestamp_ns": "1520530356501384977",
+                "last_camera_index": 966,
+                "first_camera_index": 966,
+                "start_timestamp_ns": "1520530356501384977"
+              },
+              {
+                "sample_count": 1,
+                "end_timestamp_ns": "1520530363701749205",
+                "last_camera_index": 1110,
+                "first_camera_index": 1110,
+                "start_timestamp_ns": "1520530363701749205"
+              },
+              {
+                "sample_count": 1,
+                "end_timestamp_ns": "1520530364001781942",
+                "last_camera_index": 1116,
+                "first_camera_index": 1116,
+                "start_timestamp_ns": "1520530364001781942"
+              },
+              {
+                "sample_count": 18,
+                "end_timestamp_ns": "1520530373601464749",
+                "last_camera_index": 1308,
+                "first_camera_index": 1291,
+                "start_timestamp_ns": "1520530372751963293"
+              },
+              {
+                "sample_count": 1,
+                "end_timestamp_ns": "1520530374101591398",
+                "last_camera_index": 1318,
+                "first_camera_index": 1318,
+                "start_timestamp_ns": "1520530374101591398"
+              },
+              {
+                "sample_count": 1,
+                "end_timestamp_ns": "1520530380402162433",
+                "last_camera_index": 1444,
+                "first_camera_index": 1444,
+                "start_timestamp_ns": "1520530380402162433"
+              },
+              {
+                "sample_count": 1,
+                "end_timestamp_ns": "1520530389352935767",
+                "last_camera_index": 1623,
+                "first_camera_index": 1623,
+                "start_timestamp_ns": "1520530389352935767"
+              },
+              {
+                "sample_count": 21,
+                "end_timestamp_ns": "1520530407553190784",
+                "last_camera_index": 1987,
+                "first_camera_index": 1967,
+                "start_timestamp_ns": "1520530406553487293"
+              },
+              {
+                "sample_count": 1,
+                "end_timestamp_ns": "1520530417803472346",
+                "last_camera_index": 2192,
+                "first_camera_index": 2192,
+                "start_timestamp_ns": "1520530417803472346"
+              },
+              {
+                "sample_count": 5,
+                "end_timestamp_ns": "1520530429053445311",
+                "last_camera_index": 2417,
+                "first_camera_index": 2413,
+                "start_timestamp_ns": "1520530428853460083"
+              }
+            ],
+            "sample_count": 197
+          },
+          "baseline_only": {
+            "intervals": [],
+            "sample_count": 0
+          },
+          "candidate_only": {
+            "intervals": [],
+            "sample_count": 0
+          }
+        }
+      },
+      "configuration_changes": []
+    },
+    "analysis_sha256": "2613092ea50c8eaea7775235fc2f8c565550931d34ba56905c820948c5da6dd7",
+    "baseline_job_id": "643f2a73-17c5-486b-8baa-3dca1dd5fcc5",
+    "candidate_job_id": "2332f7f5-20aa-4b97-ad80-d6a7d33cdb5d"
+  },
+  {
+    "id": "8edfd46c-e7ed-4869-bdae-fc0f432eacd5",
+    "analysis": {
+      "kind": "configuration_variant",
+      "baseline": {
+        "id": "196b2734-d6a7-407e-af14-8380cfa25096",
+        "state": "succeeded",
+        "failure": null,
+        "execution": {
+          "native_cpu_seconds": 46.242512,
+          "native_peak_rss_kib": 81708,
+          "native_wall_seconds": 46.605974945,
+          "container_wall_seconds": 47.09377975299867
+        },
+        "parameters": {
+          "num_pts": 200
+        },
+        "started_at": "2026-10-19T21:02:24.745396+00:00",
+        "finished_at": "2026-10-19T21:03:41.951962+00:00",
+        "own_support": {
+          "counts": {
+            "estimate_samples": 2689,
+            "expected_camera_samples": 2821,
+            "evaluated_camera_samples": 2624,
+            "associated_camera_samples": 2624,
+            "reference_supported_camera_samples": 2756
+          },
+          "status": "ok",
+          "metrics": {
+            "ate_rmse_m": 0.0612163695742259,
+            "orientation_rmse_deg": 1.3255413925517476,
+            "orientation_rmse_rad": 0.023135061671498636,
+            "position_error_max_m": 0.109949022489596,
+            "position_error_mean_m": 0.05697479331128086,
+            "orientation_error_max_deg": 4.307316076259924,
+            "orientation_error_mean_deg": 1.2005629690623145
+          },
+          "interval": {
+            "boundary": "closed",
+            "end_time_s": 141.004463474,
+            "start_time_s": 0.0,
+            "end_timestamp_ns": "1520530449203911100",
+            "last_camera_index": 2820,
+            "first_camera_index": 0,
+            "start_timestamp_ns": "1520530308199447626"
+          },
+          "protocol": {
+            "name": "meridian-vio-se3",
+            "version": 1,
+            "alignment": "global_se3_least_squares_over_all_evaluated_positions",
+            "weighting": "equal_weight_per_evaluated_camera_sample",
+            "scale_fitted": false,
+            "removed_gauge": "constant_world_rotation_including_roll_pitch_yaw_and_translation",
+            "time_offset_fitted": false,
+            "max_reference_gap_ns": 20000000,
+            "quaternion_convention": "Hamilton_xyzw_body_to_world",
+            "reference_association": "linear_position_shortest_arc_slerp_without_extrapolation",
+            "estimate_interpolation": false,
+            "initialization_exclusion": "none",
+            "initialization_delay_definition": "first_estimated_camera_timestamp_minus_first_expected_timestamp",
+            "max_estimate_timestamp_error_ns": 1000
+          },
+          "schema_version": 1,
+          "alignment_scope": "full_recording_global_se3_unchanged",
+          "coverage_fraction": 0.9532080822403403,
+          "evaluated_fraction": 0.9301666075859625,
+          "reference_coverage_fraction": 0.9769585253456221,
+          "evaluated_reference_fraction": 0.9521044992743106
+        },
+        "attempt_count": 1,
+        "experiment_id": "4a0ea371-b792-41dc-9860-2e8fa3bef2c4",
+        "investigation": {
+          "sha256": "b11d56efae9ce7d7e85b5839ec982dbf280a55bddbc3f4ed145734112a4fa3ba",
+          "available": true,
+          "run_state": "complete",
+          "unavailable_reason": null
+        },
+        "qualification": {
+          "checks": {
+            "evaluation_ok": true,
+            "position_error": true,
+            "estimate_coverage": true,
+            "evaluated_samples": true,
+            "orientation_error": true,
+            "evaluated_coverage": true,
+            "reference_coverage": true,
+            "initialization_delay": true
+          },
+          "passed": true
+        },
+        "specification": {
+          "dataset": {
+            "id": "tumvi-room1-512-16-v1",
+            "version": "512_16-calibrated-v1",
+            "reference_use": "independent_evaluation_only",
+            "archive_sha256": "20354392eab5cc82c9770ed29cf0130c5acce0db54a257571499008fb34c398f",
+            "reference_sha256": "69f3dcb4c5453fc8bafb0e6214172bbfe0f176e42e119953862b120208ad22ba",
+            "prepared_dataset_id": "tum-vi-room1-512-16",
+            "prepared_manifest_sha256": "e55f0480533611fc1e198d16b181814a8d34752cb748becbfeec7bcb4908ba6d"
+          },
+          "runtime": {
+            "version": {
+              "adapter": "meridian-openvins",
+              "adapter_sha256": "a577f358c893ac9171cad6a71bc2a65a49b9d90ab3dc426865d89b6ad2c8b782",
+              "opencv_version": "4.6.0",
+              "schema_version": 1,
+              "protocol_version": 1,
+              "upstream_revision": "69488123ed9362dd44b6f28e7f4680abbff1442b"
+            },
+            "image_id": "sha256:73e1213d073ce52a9a509decb15628a7c043e0690609171c4b9382ed0c2730da",
+            "provenance_sha256": {
+              "binary-sha256.txt": "7b66a083c7d5c69c6e85721e3357def42fbc1a125a5b13735f3e55ee3ad28070",
+              "dependency-versions.txt": "92d76ee986a1ff4508a96fb3f2c26439d99cb446a546f8e0d795f56d69e7023e"
+            }
+          },
+          "interval": {
+            "mode": "full_recording",
+            "imu_samples": 28122,
+            "camera_pairs": 2821,
+            "last_camera_timestamp_ns": "1520530449203911100",
+            "first_camera_timestamp_ns": "1520530308199447626"
+          },
+          "estimator": {
+            "name": "OpenVINS",
+            "adapter": "meridian-openvins",
+            "adapter_sha256": "a577f358c893ac9171cad6a71bc2a65a49b9d90ab3dc426865d89b6ad2c8b782",
+            "upstream_revision": "69488123ed9362dd44b6f28e7f4680abbff1442b",
+            "adapter_protocol_version": 1
+          },
+          "resources": {
+            "cpus": 2.0,
+            "pids": 128,
+            "rootfs": "read-only",
+            "tmp_mb": 128,
+            "network": "none",
+            "memory_mb": 4096,
+            "timeout_s": 900.0
+          },
+          "evaluation": {
+            "alignment": "global_SE3_over_all_evaluated_positions_scale_fixed_to_one",
+            "evaluator_sha256": "539f07a0e3dbabe5fd3b4874b42218db1938e5f3733d8ac3bd9c714900a8cca6",
+            "protocol_version": 1,
+            "time_offset_fitting": false,
+            "estimate_interpolation": false,
+            "qualification_criteria": {
+              "maximum_ate_rmse_m": 0.5,
+              "minimum_coverage_fraction": 0.9,
+              "minimum_evaluated_samples": 100,
+              "minimum_evaluated_fraction": 0.9,
+              "maximum_orientation_rmse_deg": 15.0,
+              "maximum_initialization_delay_s": 10.0,
+              "minimum_reference_coverage_fraction": 0.95
+            },
+            "reference_extrapolation": false,
+            "maximum_reference_bracket_ns": 20000000,
+            "reference_position_interpolation": "linear",
+            "maximum_estimate_timestamp_error_ns": 1000,
+            "reference_orientation_interpolation": "shortest_arc_slerp"
+          },
+          "parameters": {
+            "num_pts": 200
+          },
+          "profile_id": "openvins-tumvi-room1-v1",
+          "scheduling": {
+            "version": 1,
+            "imu_policy": "feed_through_first_sample_strictly_after_camera_plus_current_estimated_offset",
+            "time_origin": "subtract_first_sensor_timestamp_as_integer_before_seconds_conversion",
+            "camera_policy": "every_pair_with_available_imu_bracket",
+            "stereo_pairing": "exact_timestamp_pairs",
+            "wall_clock_pacing": false,
+            "callback_frequency_throttle": false
+          },
+          "conventions": {
+            "gyro_unit": "rad/s",
+            "body_frame": "imu",
+            "orientation": "unit_Hamilton_xyzw_body_to_world",
+            "position_unit": "m",
+            "initialization": "static_inertial_and_visual_no_reference_initialization",
+            "timestamp_unit": "ns",
+            "image_conversion": "uint16_to_uint8_OpenCV_convertTo_scale_255_over_65535",
+            "camera_extrinsics": "T_cam_imu_maps_imu_to_camera",
+            "accelerometer_unit": "m/s^2",
+            "dataset_preprocessing": "already_calibrated_imu_and_synchronized_clocks_no_second_correction",
+            "absolute_timestamp_encoding": "decimal_integer_string",
+            "initial_camera_imu_offset_s": 0.0
+          },
+          "configuration": {
+            "operation": "replace_exact_num_pts_line_in_pinned_baseline",
+            "baseline_files": {
+              "mask_tumvi0.png": {
+                "sha256": "62dfc1053f336d1adb4ae01519579532370d1b211894566a7a4ec167dd8c3f4f",
+                "size_bytes": 12277
+              },
+              "mask_tumvi1.png": {
+                "sha256": "67ff644599f862f2437026d9c43ef0a0887907470179a53e34447fb95cbd35ba",
+                "size_bytes": 11930
+              },
+              "estimator_config.yaml": {
+                "sha256": "10c37c00c52a07ba5a86ce3d6d2846c2430397d6fa6a9e190dfdc47aa10c2045",
+                "size_bytes": 3689
+              },
+              "kalibr_imu_chain.yaml": {
+                "sha256": "cb598952ee3766492a332eaae8567fe2b63a9bf6d63b9c0a7b9d988471600a3d",
+                "size_bytes": 1351
+              },
+              "kalibr_imucam_chain.yaml": {
+                "sha256": "072d26e3dd20844ae7402f508c51cf7e899a401634ba6b0db0e08cd2880b7dab",
+                "size_bytes": 1530
+              }
+            },
+            "rendered_files": {
+              "mask_tumvi0.png": {
+                "sha256": "62dfc1053f336d1adb4ae01519579532370d1b211894566a7a4ec167dd8c3f4f",
+                "size_bytes": 12277
+              },
+              "mask_tumvi1.png": {
+                "sha256": "67ff644599f862f2437026d9c43ef0a0887907470179a53e34447fb95cbd35ba",
+                "size_bytes": 11930
+              },
+              "estimator_config.yaml": {
+                "sha256": "10c37c00c52a07ba5a86ce3d6d2846c2430397d6fa6a9e190dfdc47aa10c2045",
+                "size_bytes": 3689
+              },
+              "kalibr_imu_chain.yaml": {
+                "sha256": "cb598952ee3766492a332eaae8567fe2b63a9bf6d63b9c0a7b9d988471600a3d",
+                "size_bytes": 1351
+              },
+              "kalibr_imucam_chain.yaml": {
+                "sha256": "072d26e3dd20844ae7402f508c51cf7e899a401634ba6b0db0e08cd2880b7dab",
+                "size_bytes": 1530
+              }
+            },
+            "rendering_version": 1
+          },
+          "schema_version": 1,
+          "reproducibility": {
+            "seed": null,
+            "claim": "same_runtime_and_inputs_only_no_cross_hardware_bit_identity_guarantee",
+            "omp_threads": 1,
+            "seed_policy": "no_random_seed_control_exposed_by_this_qualified_adapter",
+            "opencv_threads": 1,
+            "openblas_threads": 1
+          }
+        },
+        "experiment_name": "Room1 feature budget",
+        "revision_version": 1,
+        "published_attempt": "aa593041-c0e8-477c-8eae-42681fdb5819",
+        "recorded_full_run": {
+          "counts": {
+            "estimate_samples": 2689,
+            "reference_samples": 16541,
+            "expected_camera_samples": 2821,
+            "evaluated_camera_samples": 2624,
+            "missing_initial_camera_samples": 132,
+            "missing_interior_camera_samples": 0,
+            "missing_trailing_camera_samples": 0,
+            "reference_supported_camera_samples": 2756
+          },
+          "status": "ok",
+          "metrics": {
+            "ate_rmse_m": 0.0612163695742259,
+            "orientation_rmse_deg": 1.3255413925517476,
+            "orientation_rmse_rad": 0.023135061671498636,
+            "position_error_max_m": 0.109949022489596,
+            "position_error_mean_m": 0.05697479331128086,
+            "orientation_error_max_deg": 4.307316076259924,
+            "orientation_error_mean_deg": 1.2005629690623147
+          },
+          "protocol": {
+            "name": "meridian-vio-se3",
+            "version": 1,
+            "alignment": "global_se3_least_squares_over_all_evaluated_positions",
+            "weighting": "equal_weight_per_evaluated_camera_sample",
+            "scale_fitted": false,
+            "removed_gauge": "constant_world_rotation_including_roll_pitch_yaw_and_translation",
+            "time_offset_fitted": false,
+            "max_reference_gap_ns": 20000000,
+            "quaternion_convention": "Hamilton_xyzw_body_to_world",
+            "reference_association": "linear_position_shortest_arc_slerp_without_extrapolation",
+            "estimate_interpolation": false,
+            "initialization_exclusion": "none",
+            "initialization_delay_definition": "first_estimated_camera_timestamp_minus_first_expected_timestamp",
+            "max_estimate_timestamp_error_ns": 1000
+          },
+          "coverage_fraction": 0.9532080822403403,
+          "evaluated_fraction": 0.9301666075859625,
+          "initialization_delay_s": 6.600339685000001,
+          "reference_coverage_fraction": 0.9769585253456221
+        },
+        "evidence_provenance": {
+          "imu_sha256": "8cd471ca2c1425260534228fbe0f3e27bd6711199dfce7c971447cdf184569e2",
+          "builder_sha256": "b25a6b015c44d6264e4fc84cb87f8a3a28199e0d753250bf2ae47a4124360bf2",
+          "evaluator_sha256": "539f07a0e3dbabe5fd3b4874b42218db1938e5f3733d8ac3bd9c714900a8cca6",
+          "reference_sha256": "69f3dcb4c5453fc8bafb0e6214172bbfe0f176e42e119953862b120208ad22ba",
+          "evaluation_sha256": "cc0dcfe2141fecd188e2b3af263ab53e75251f6fbea0a5f5230620a1b662f7ef",
+          "trajectory_sha256": "d2a59ed328807d54af0a930006b7c2e850998c2dc7d6f89debd1c195ca4ed764",
+          "interval_scorer_sha256": "8c04325c8ac8804987ea2911ce3629a9c8a28417beefd39b2541bbcb2b77b736"
+        },
+        "specification_sha256": "521227054edeac5226ec9ab25e6a9190475affc62c64ce96057b5402bbf73677",
+        "initialization_delay_s": 6.600339685000001
+      },
+      "interval": {
+        "boundary": "closed",
+        "end_time_s": 141.004463474,
+        "start_time_s": 0.0,
+        "end_timestamp_ns": "1520530449203911100",
+        "last_camera_index": 2820,
+        "first_camera_index": 0,
+        "start_timestamp_ns": "1520530308199447626"
+      },
+      "protocol": {
+        "ranking": false,
+        "version": 1,
+        "evaluation": {
+          "name": "meridian-vio-se3",
+          "version": 1,
+          "alignment": "global_se3_least_squares_over_all_evaluated_positions",
+          "weighting": "equal_weight_per_evaluated_camera_sample",
+          "scale_fitted": false,
+          "removed_gauge": "constant_world_rotation_including_roll_pitch_yaw_and_translation",
+          "time_offset_fitted": false,
+          "max_reference_gap_ns": 20000000,
+          "quaternion_convention": "Hamilton_xyzw_body_to_world",
+          "reference_association": "linear_position_shortest_arc_slerp_without_extrapolation",
+          "estimate_interpolation": false,
+          "initialization_exclusion": "none",
+          "initialization_delay_definition": "first_estimated_camera_timestamp_minus_first_expected_timestamp",
+          "max_estimate_timestamp_error_ns": 1000
+        },
+        "common_support": "intersection_of_evaluated_camera_samples",
+        "alignment_scope": "original_per_run_full_recording_global_se3_unchanged",
+        "delta_convention": "candidate_minus_baseline",
+        "repeated_execution_aggregation": "none"
+      },
+      "warnings": [
+        {
+          "code": "global_alignment_retained",
+          "message": "Each run keeps its own full-recording SE3 alignment; interval and common-support scores do not refit it."
+        },
+        {
+          "code": "no_automatic_ranking",
+          "message": "Error deltas are observations, not a ranking. Read them together with failures, qualification and support loss."
+        },
+        {
+          "code": "host_cost_not_controlled",
+          "message": "Execution costs are observed host measurements; load and hardware are not controlled by this comparison."
+        }
+      ],
+      "candidate": {
+        "id": "643f2a73-17c5-486b-8baa-3dca1dd5fcc5",
+        "state": "succeeded",
+        "failure": null,
+        "execution": {
+          "native_cpu_seconds": 32.858194,
+          "native_peak_rss_kib": 80600,
+          "native_wall_seconds": 32.870838494,
+          "container_wall_seconds": 33.30448925199744
+        },
+        "parameters": {
+          "num_pts": 100
+        },
+        "started_at": "2026-10-19T21:03:41.975280+00:00",
+        "finished_at": "2026-10-19T21:04:37.970541+00:00",
+        "own_support": {
+          "counts": {
+            "estimate_samples": 2689,
+            "expected_camera_samples": 2821,
+            "evaluated_camera_samples": 2624,
+            "associated_camera_samples": 2624,
+            "reference_supported_camera_samples": 2756
+          },
+          "status": "ok",
+          "metrics": {
+            "ate_rmse_m": 0.051132041394887494,
+            "orientation_rmse_deg": 1.532136616154553,
+            "orientation_rmse_rad": 0.026740828542261494,
+            "position_error_max_m": 0.11970868362413112,
+            "position_error_mean_m": 0.04787200345164509,
+            "orientation_error_max_deg": 4.428362220743539,
+            "orientation_error_mean_deg": 1.3471094574226024
+          },
+          "interval": {
+            "boundary": "closed",
+            "end_time_s": 141.004463474,
+            "start_time_s": 0.0,
+            "end_timestamp_ns": "1520530449203911100",
+            "last_camera_index": 2820,
+            "first_camera_index": 0,
+            "start_timestamp_ns": "1520530308199447626"
+          },
+          "protocol": {
+            "name": "meridian-vio-se3",
+            "version": 1,
+            "alignment": "global_se3_least_squares_over_all_evaluated_positions",
+            "weighting": "equal_weight_per_evaluated_camera_sample",
+            "scale_fitted": false,
+            "removed_gauge": "constant_world_rotation_including_roll_pitch_yaw_and_translation",
+            "time_offset_fitted": false,
+            "max_reference_gap_ns": 20000000,
+            "quaternion_convention": "Hamilton_xyzw_body_to_world",
+            "reference_association": "linear_position_shortest_arc_slerp_without_extrapolation",
+            "estimate_interpolation": false,
+            "initialization_exclusion": "none",
+            "initialization_delay_definition": "first_estimated_camera_timestamp_minus_first_expected_timestamp",
+            "max_estimate_timestamp_error_ns": 1000
+          },
+          "schema_version": 1,
+          "alignment_scope": "full_recording_global_se3_unchanged",
+          "coverage_fraction": 0.9532080822403403,
+          "evaluated_fraction": 0.9301666075859625,
+          "reference_coverage_fraction": 0.9769585253456221,
+          "evaluated_reference_fraction": 0.9521044992743106
+        },
+        "attempt_count": 1,
+        "experiment_id": "4a0ea371-b792-41dc-9860-2e8fa3bef2c4",
+        "investigation": {
+          "sha256": "82413a70b7e1d2eede4190210211a8c891d52b61ccbc97cc78ccef2d345f1238",
+          "available": true,
+          "run_state": "complete",
+          "unavailable_reason": null
+        },
+        "qualification": {
+          "checks": {
+            "evaluation_ok": true,
+            "position_error": true,
+            "estimate_coverage": true,
+            "evaluated_samples": true,
+            "orientation_error": true,
+            "evaluated_coverage": true,
+            "reference_coverage": true,
+            "initialization_delay": true
+          },
+          "passed": true
+        },
+        "specification": {
+          "dataset": {
+            "id": "tumvi-room1-512-16-v1",
+            "version": "512_16-calibrated-v1",
+            "reference_use": "independent_evaluation_only",
+            "archive_sha256": "20354392eab5cc82c9770ed29cf0130c5acce0db54a257571499008fb34c398f",
+            "reference_sha256": "69f3dcb4c5453fc8bafb0e6214172bbfe0f176e42e119953862b120208ad22ba",
+            "prepared_dataset_id": "tum-vi-room1-512-16",
+            "prepared_manifest_sha256": "e55f0480533611fc1e198d16b181814a8d34752cb748becbfeec7bcb4908ba6d"
+          },
+          "runtime": {
+            "version": {
+              "adapter": "meridian-openvins",
+              "adapter_sha256": "a577f358c893ac9171cad6a71bc2a65a49b9d90ab3dc426865d89b6ad2c8b782",
+              "opencv_version": "4.6.0",
+              "schema_version": 1,
+              "protocol_version": 1,
+              "upstream_revision": "69488123ed9362dd44b6f28e7f4680abbff1442b"
+            },
+            "image_id": "sha256:73e1213d073ce52a9a509decb15628a7c043e0690609171c4b9382ed0c2730da",
+            "provenance_sha256": {
+              "binary-sha256.txt": "7b66a083c7d5c69c6e85721e3357def42fbc1a125a5b13735f3e55ee3ad28070",
+              "dependency-versions.txt": "92d76ee986a1ff4508a96fb3f2c26439d99cb446a546f8e0d795f56d69e7023e"
+            }
+          },
+          "interval": {
+            "mode": "full_recording",
+            "imu_samples": 28122,
+            "camera_pairs": 2821,
+            "last_camera_timestamp_ns": "1520530449203911100",
+            "first_camera_timestamp_ns": "1520530308199447626"
+          },
+          "estimator": {
+            "name": "OpenVINS",
+            "adapter": "meridian-openvins",
+            "adapter_sha256": "a577f358c893ac9171cad6a71bc2a65a49b9d90ab3dc426865d89b6ad2c8b782",
+            "upstream_revision": "69488123ed9362dd44b6f28e7f4680abbff1442b",
+            "adapter_protocol_version": 1
+          },
+          "resources": {
+            "cpus": 2.0,
+            "pids": 128,
+            "rootfs": "read-only",
+            "tmp_mb": 128,
+            "network": "none",
+            "memory_mb": 4096,
+            "timeout_s": 900.0
+          },
+          "evaluation": {
+            "alignment": "global_SE3_over_all_evaluated_positions_scale_fixed_to_one",
+            "evaluator_sha256": "539f07a0e3dbabe5fd3b4874b42218db1938e5f3733d8ac3bd9c714900a8cca6",
+            "protocol_version": 1,
+            "time_offset_fitting": false,
+            "estimate_interpolation": false,
+            "qualification_criteria": {
+              "maximum_ate_rmse_m": 0.5,
+              "minimum_coverage_fraction": 0.9,
+              "minimum_evaluated_samples": 100,
+              "minimum_evaluated_fraction": 0.9,
+              "maximum_orientation_rmse_deg": 15.0,
+              "maximum_initialization_delay_s": 10.0,
+              "minimum_reference_coverage_fraction": 0.95
+            },
+            "reference_extrapolation": false,
+            "maximum_reference_bracket_ns": 20000000,
+            "reference_position_interpolation": "linear",
+            "maximum_estimate_timestamp_error_ns": 1000,
+            "reference_orientation_interpolation": "shortest_arc_slerp"
+          },
+          "parameters": {
+            "num_pts": 100
+          },
+          "profile_id": "openvins-tumvi-room1-v1",
+          "scheduling": {
+            "version": 1,
+            "imu_policy": "feed_through_first_sample_strictly_after_camera_plus_current_estimated_offset",
+            "time_origin": "subtract_first_sensor_timestamp_as_integer_before_seconds_conversion",
+            "camera_policy": "every_pair_with_available_imu_bracket",
+            "stereo_pairing": "exact_timestamp_pairs",
+            "wall_clock_pacing": false,
+            "callback_frequency_throttle": false
+          },
+          "conventions": {
+            "gyro_unit": "rad/s",
+            "body_frame": "imu",
+            "orientation": "unit_Hamilton_xyzw_body_to_world",
+            "position_unit": "m",
+            "initialization": "static_inertial_and_visual_no_reference_initialization",
+            "timestamp_unit": "ns",
+            "image_conversion": "uint16_to_uint8_OpenCV_convertTo_scale_255_over_65535",
+            "camera_extrinsics": "T_cam_imu_maps_imu_to_camera",
+            "accelerometer_unit": "m/s^2",
+            "dataset_preprocessing": "already_calibrated_imu_and_synchronized_clocks_no_second_correction",
+            "absolute_timestamp_encoding": "decimal_integer_string",
+            "initial_camera_imu_offset_s": 0.0
+          },
+          "configuration": {
+            "operation": "replace_exact_num_pts_line_in_pinned_baseline",
+            "baseline_files": {
+              "mask_tumvi0.png": {
+                "sha256": "62dfc1053f336d1adb4ae01519579532370d1b211894566a7a4ec167dd8c3f4f",
+                "size_bytes": 12277
+              },
+              "mask_tumvi1.png": {
+                "sha256": "67ff644599f862f2437026d9c43ef0a0887907470179a53e34447fb95cbd35ba",
+                "size_bytes": 11930
+              },
+              "estimator_config.yaml": {
+                "sha256": "10c37c00c52a07ba5a86ce3d6d2846c2430397d6fa6a9e190dfdc47aa10c2045",
+                "size_bytes": 3689
+              },
+              "kalibr_imu_chain.yaml": {
+                "sha256": "cb598952ee3766492a332eaae8567fe2b63a9bf6d63b9c0a7b9d988471600a3d",
+                "size_bytes": 1351
+              },
+              "kalibr_imucam_chain.yaml": {
+                "sha256": "072d26e3dd20844ae7402f508c51cf7e899a401634ba6b0db0e08cd2880b7dab",
+                "size_bytes": 1530
+              }
+            },
+            "rendered_files": {
+              "mask_tumvi0.png": {
+                "sha256": "62dfc1053f336d1adb4ae01519579532370d1b211894566a7a4ec167dd8c3f4f",
+                "size_bytes": 12277
+              },
+              "mask_tumvi1.png": {
+                "sha256": "67ff644599f862f2437026d9c43ef0a0887907470179a53e34447fb95cbd35ba",
+                "size_bytes": 11930
+              },
+              "estimator_config.yaml": {
+                "sha256": "b20864246ac6c7d8d0b23b430568ba8860249fdc2207142f3a1095ca2a1f79f5",
+                "size_bytes": 3689
+              },
+              "kalibr_imu_chain.yaml": {
+                "sha256": "cb598952ee3766492a332eaae8567fe2b63a9bf6d63b9c0a7b9d988471600a3d",
+                "size_bytes": 1351
+              },
+              "kalibr_imucam_chain.yaml": {
+                "sha256": "072d26e3dd20844ae7402f508c51cf7e899a401634ba6b0db0e08cd2880b7dab",
+                "size_bytes": 1530
+              }
+            },
+            "rendering_version": 1
+          },
+          "schema_version": 1,
+          "reproducibility": {
+            "seed": null,
+            "claim": "same_runtime_and_inputs_only_no_cross_hardware_bit_identity_guarantee",
+            "omp_threads": 1,
+            "seed_policy": "no_random_seed_control_exposed_by_this_qualified_adapter",
+            "opencv_threads": 1,
+            "openblas_threads": 1
+          }
+        },
+        "experiment_name": "Room1 feature budget",
+        "revision_version": 2,
+        "published_attempt": "e111edf7-a332-4291-85b2-abbef3ad113f",
+        "recorded_full_run": {
+          "counts": {
+            "estimate_samples": 2689,
+            "reference_samples": 16541,
+            "expected_camera_samples": 2821,
+            "evaluated_camera_samples": 2624,
+            "missing_initial_camera_samples": 132,
+            "missing_interior_camera_samples": 0,
+            "missing_trailing_camera_samples": 0,
+            "reference_supported_camera_samples": 2756
+          },
+          "status": "ok",
+          "metrics": {
+            "ate_rmse_m": 0.051132041394887494,
+            "orientation_rmse_deg": 1.532136616154553,
+            "orientation_rmse_rad": 0.026740828542261494,
+            "position_error_max_m": 0.11970868362413112,
+            "position_error_mean_m": 0.047872003451645086,
+            "orientation_error_max_deg": 4.428362220743539,
+            "orientation_error_mean_deg": 1.3471094574226026
+          },
+          "protocol": {
+            "name": "meridian-vio-se3",
+            "version": 1,
+            "alignment": "global_se3_least_squares_over_all_evaluated_positions",
+            "weighting": "equal_weight_per_evaluated_camera_sample",
+            "scale_fitted": false,
+            "removed_gauge": "constant_world_rotation_including_roll_pitch_yaw_and_translation",
+            "time_offset_fitted": false,
+            "max_reference_gap_ns": 20000000,
+            "quaternion_convention": "Hamilton_xyzw_body_to_world",
+            "reference_association": "linear_position_shortest_arc_slerp_without_extrapolation",
+            "estimate_interpolation": false,
+            "initialization_exclusion": "none",
+            "initialization_delay_definition": "first_estimated_camera_timestamp_minus_first_expected_timestamp",
+            "max_estimate_timestamp_error_ns": 1000
+          },
+          "coverage_fraction": 0.9532080822403403,
+          "evaluated_fraction": 0.9301666075859625,
+          "initialization_delay_s": 6.600339685000001,
+          "reference_coverage_fraction": 0.9769585253456221
+        },
+        "evidence_provenance": {
+          "imu_sha256": "8cd471ca2c1425260534228fbe0f3e27bd6711199dfce7c971447cdf184569e2",
+          "builder_sha256": "b25a6b015c44d6264e4fc84cb87f8a3a28199e0d753250bf2ae47a4124360bf2",
+          "evaluator_sha256": "539f07a0e3dbabe5fd3b4874b42218db1938e5f3733d8ac3bd9c714900a8cca6",
+          "reference_sha256": "69f3dcb4c5453fc8bafb0e6214172bbfe0f176e42e119953862b120208ad22ba",
+          "evaluation_sha256": "7eeb3e06260325d133b4eb078b664f63a1071416698d9f860e5b544b806686a7",
+          "trajectory_sha256": "5640a2349c71c67c1ffeda44a59b0226cb8d5f9ea86ec58d068a78b30660462e",
+          "interval_scorer_sha256": "8c04325c8ac8804987ea2911ce3629a9c8a28417beefd39b2541bbcb2b77b736"
+        },
+        "specification_sha256": "98e780babbc5fd1b8214a3afbe65e5b5dbe39196017a83361b93f7f7cd3e5f73",
+        "initialization_delay_s": 6.600339685000001
+      },
+      "provenance": {
+        "interval_scorer_sha256": "8c04325c8ac8804987ea2911ce3629a9c8a28417beefd39b2541bbcb2b77b736",
+        "comparison_source_sha256": "9f1f5d42aee087ae9aaae5f5356713896141e15b0989113c3a4b83db7c304f39"
+      },
+      "common_support": {
+        "reason": null,
+        "status": "ok",
+        "baseline_metrics": {
+          "ate_rmse_m": 0.0612163695742259,
+          "orientation_rmse_deg": 1.3255413925517476,
+          "orientation_rmse_rad": 0.023135061671498636,
+          "position_error_max_m": 0.109949022489596,
+          "position_error_mean_m": 0.05697479331128086,
+          "orientation_error_max_deg": 4.307316076259924,
+          "orientation_error_mean_deg": 1.2005629690623145
+        },
+        "candidate_metrics": {
+          "ate_rmse_m": 0.051132041394887494,
+          "orientation_rmse_deg": 1.532136616154553,
+          "orientation_rmse_rad": 0.026740828542261494,
+          "position_error_max_m": 0.11970868362413112,
+          "position_error_mean_m": 0.04787200345164509,
+          "orientation_error_max_deg": 4.428362220743539,
+          "orientation_error_mean_deg": 1.3471094574226024
+        },
+        "fraction_of_expected": 0.9301666075859625,
+        "expected_camera_samples": 2821,
+        "evaluated_camera_samples": 2624,
+        "delta_candidate_minus_baseline": {
+          "ate_rmse_m": -0.010084328179338409,
+          "orientation_rmse_deg": 0.20659522360280547,
+          "orientation_rmse_rad": 0.0036057668707628575,
+          "position_error_max_m": 0.009759661134535122,
+          "position_error_mean_m": -0.009102789859635765,
+          "orientation_error_max_deg": 0.12104614448361506,
+          "orientation_error_mean_deg": 0.14654648836028783
+        }
+      },
+      "schema_version": 1,
+      "observed_deltas": {
+        "coverage_fraction": 0.0,
+        "evaluated_fraction": 0.0,
+        "native_cpu_seconds": -13.384318,
+        "native_peak_rss_kib": -1108,
+        "native_wall_seconds": -13.735136451000002,
+        "initialization_delay_s": 0.0
+      },
+      "support_difference": {
+        "estimated": {
+          "both": {
+            "intervals": [
+              {
+                "sample_count": 2689,
+                "end_timestamp_ns": "1520530449203911100",
+                "last_camera_index": 2820,
+                "first_camera_index": 132,
+                "start_timestamp_ns": "1520530314799787311"
+              }
+            ],
+            "sample_count": 2689
+          },
+          "neither": {
+            "intervals": [
+              {
+                "sample_count": 132,
+                "end_timestamp_ns": "1520530314749782311",
+                "last_camera_index": 131,
+                "first_camera_index": 0,
+                "start_timestamp_ns": "1520530308199447626"
+              }
+            ],
+            "sample_count": 132
+          },
+          "baseline_only": {
+            "intervals": [],
+            "sample_count": 0
+          },
+          "candidate_only": {
+            "intervals": [],
+            "sample_count": 0
+          }
+        },
+        "evaluated": {
+          "both": {
+            "intervals": [
+              {
+                "sample_count": 677,
+                "end_timestamp_ns": "1520530348601421556",
+                "last_camera_index": 808,
+                "first_camera_index": 132,
+                "start_timestamp_ns": "1520530314799787311"
+              },
+              {
+                "sample_count": 4,
+                "end_timestamp_ns": "1520530348851314539",
+                "last_camera_index": 813,
+                "first_camera_index": 810,
+                "start_timestamp_ns": "1520530348701424556"
+              },
+              {
+                "sample_count": 5,
+                "end_timestamp_ns": "1520530349401109995",
+                "last_camera_index": 824,
+                "first_camera_index": 820,
+                "start_timestamp_ns": "1520530349201325539"
+              },
+              {
+                "sample_count": 133,
+                "end_timestamp_ns": "1520530356101540907",
+                "last_camera_index": 958,
+                "first_camera_index": 826,
+                "start_timestamp_ns": "1520530349501113995"
+              },
+              {
+                "sample_count": 1,
+                "end_timestamp_ns": "1520530356451382977",
+                "last_camera_index": 965,
+                "first_camera_index": 965,
+                "start_timestamp_ns": "1520530356451382977"
+              },
+              {
+                "sample_count": 143,
+                "end_timestamp_ns": "1520530363651748205",
+                "last_camera_index": 1109,
+                "first_camera_index": 967,
+                "start_timestamp_ns": "1520530356551385977"
+              },
+              {
+                "sample_count": 5,
+                "end_timestamp_ns": "1520530363951779942",
+                "last_camera_index": 1115,
+                "first_camera_index": 1111,
+                "start_timestamp_ns": "1520530363751751205"
+              },
+              {
+                "sample_count": 174,
+                "end_timestamp_ns": "1520530372701961293",
+                "last_camera_index": 1290,
+                "first_camera_index": 1117,
+                "start_timestamp_ns": "1520530364051783942"
+              },
+              {
+                "sample_count": 9,
+                "end_timestamp_ns": "1520530374051589398",
+                "last_camera_index": 1317,
+                "first_camera_index": 1309,
+                "start_timestamp_ns": "1520530373651465749"
+              },
+              {
+                "sample_count": 125,
+                "end_timestamp_ns": "1520530380352160433",
+                "last_camera_index": 1443,
+                "first_camera_index": 1319,
+                "start_timestamp_ns": "1520530374151592398"
+              },
+              {
+                "sample_count": 178,
+                "end_timestamp_ns": "1520530389302933767",
+                "last_camera_index": 1622,
+                "first_camera_index": 1445,
+                "start_timestamp_ns": "1520530380452163433"
+              },
+              {
+                "sample_count": 343,
+                "end_timestamp_ns": "1520530406503485293",
+                "last_camera_index": 1966,
+                "first_camera_index": 1624,
+                "start_timestamp_ns": "1520530389402937767"
+              },
+              {
+                "sample_count": 204,
+                "end_timestamp_ns": "1520530417753470346",
+                "last_camera_index": 2191,
+                "first_camera_index": 1988,
+                "start_timestamp_ns": "1520530407603192784"
+              },
+              {
+                "sample_count": 220,
+                "end_timestamp_ns": "1520530428803458083",
+                "last_camera_index": 2412,
+                "first_camera_index": 2193,
+                "start_timestamp_ns": "1520530417853473346"
+              },
+              {
+                "sample_count": 403,
+                "end_timestamp_ns": "1520530449203911100",
+                "last_camera_index": 2820,
+                "first_camera_index": 2418,
+                "start_timestamp_ns": "1520530429103447311"
+              }
+            ],
+            "sample_count": 2624
+          },
+          "neither": {
+            "intervals": [
+              {
+                "sample_count": 132,
+                "end_timestamp_ns": "1520530314749782311",
+                "last_camera_index": 131,
+                "first_camera_index": 0,
+                "start_timestamp_ns": "1520530308199447626"
+              },
+              {
+                "sample_count": 1,
+                "end_timestamp_ns": "1520530348651423556",
+                "last_camera_index": 809,
+                "first_camera_index": 809,
+                "start_timestamp_ns": "1520530348651423556"
+              },
+              {
+                "sample_count": 6,
+                "end_timestamp_ns": "1520530349151324539",
+                "last_camera_index": 819,
+                "first_camera_index": 814,
+                "start_timestamp_ns": "1520530348901315539"
+              },
+              {
+                "sample_count": 1,
+                "end_timestamp_ns": "1520530349451111995",
+                "last_camera_index": 825,
+                "first_camera_index": 825,
+                "start_timestamp_ns": "1520530349451111995"
+              },
+              {
+                "sample_count": 6,
+                "end_timestamp_ns": "1520530356401381977",
+                "last_camera_index": 964,
+                "first_camera_index": 959,
+                "start_timestamp_ns": "1520530356151541907"
+              },
+              {
+                "sample_count": 1,
+                "end_timestamp_ns": "1520530356501384977",
+                "last_camera_index": 966,
+                "first_camera_index": 966,
+                "start_timestamp_ns": "1520530356501384977"
+              },
+              {
+                "sample_count": 1,
+                "end_timestamp_ns": "1520530363701749205",
+                "last_camera_index": 1110,
+                "first_camera_index": 1110,
+                "start_timestamp_ns": "1520530363701749205"
+              },
+              {
+                "sample_count": 1,
+                "end_timestamp_ns": "1520530364001781942",
+                "last_camera_index": 1116,
+                "first_camera_index": 1116,
+                "start_timestamp_ns": "1520530364001781942"
+              },
+              {
+                "sample_count": 18,
+                "end_timestamp_ns": "1520530373601464749",
+                "last_camera_index": 1308,
+                "first_camera_index": 1291,
+                "start_timestamp_ns": "1520530372751963293"
+              },
+              {
+                "sample_count": 1,
+                "end_timestamp_ns": "1520530374101591398",
+                "last_camera_index": 1318,
+                "first_camera_index": 1318,
+                "start_timestamp_ns": "1520530374101591398"
+              },
+              {
+                "sample_count": 1,
+                "end_timestamp_ns": "1520530380402162433",
+                "last_camera_index": 1444,
+                "first_camera_index": 1444,
+                "start_timestamp_ns": "1520530380402162433"
+              },
+              {
+                "sample_count": 1,
+                "end_timestamp_ns": "1520530389352935767",
+                "last_camera_index": 1623,
+                "first_camera_index": 1623,
+                "start_timestamp_ns": "1520530389352935767"
+              },
+              {
+                "sample_count": 21,
+                "end_timestamp_ns": "1520530407553190784",
+                "last_camera_index": 1987,
+                "first_camera_index": 1967,
+                "start_timestamp_ns": "1520530406553487293"
+              },
+              {
+                "sample_count": 1,
+                "end_timestamp_ns": "1520530417803472346",
+                "last_camera_index": 2192,
+                "first_camera_index": 2192,
+                "start_timestamp_ns": "1520530417803472346"
+              },
+              {
+                "sample_count": 5,
+                "end_timestamp_ns": "1520530429053445311",
+                "last_camera_index": 2417,
+                "first_camera_index": 2413,
+                "start_timestamp_ns": "1520530428853460083"
+              }
+            ],
+            "sample_count": 197
+          },
+          "baseline_only": {
+            "intervals": [],
+            "sample_count": 0
+          },
+          "candidate_only": {
+            "intervals": [],
+            "sample_count": 0
+          }
+        }
+      },
+      "configuration_changes": [
+        {
+          "unit": "features (total across two cameras after initialization)",
+          "label": "Feature target",
+          "baseline": 200,
+          "candidate": 100,
+          "parameter": "num_pts"
+        }
+      ]
+    },
+    "analysis_sha256": "f34d1a25cb8a7543a0de196b58e4f0d0778c3762ee0edc5a0e7d5c5acada7835",
+    "baseline_job_id": "196b2734-d6a7-407e-af14-8380cfa25096",
+    "candidate_job_id": "643f2a73-17c5-486b-8baa-3dca1dd5fcc5"
+  }
+]

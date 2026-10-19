@@ -306,8 +306,9 @@ hosted workflow into eight sequential increments. Increment 1.1 has
 Increment 1.2 adds a [validated hosted private workspace](../results/workspace/README.md).
 Increment 1.3 adds [versioned VIO experiments](versioned-experiments.md), with
 immutable specifications consumed unchanged by the local runner. Increment 1.4
-adds durable isolated VIO jobs using those same specifications. Investigation,
-comparison, independent exports and full hosted acceptance remain planned.
+adds durable isolated VIO jobs using those same specifications. Increment 1.5
+adds synchronized investigation, and increment 1.6 adds saved comparisons with
+explicit common support. Independent exports and full hosted acceptance remain planned.
 
 ## Existing tools and research
 
@@ -332,8 +333,8 @@ engineers. No source review establishes that any feature is unique.
 
 ## Decisions still required
 
-The remaining part 1 work builds comparison and independent reproduction on
-versioned configurations, durable VIO execution and synchronized investigation, then
+The remaining part 1 work builds independent reproduction on versioned
+configurations, durable VIO execution, synchronized investigation and saved comparisons, then
 qualifies the complete hosted workflow. Preserve the evaluation protocol and
 reserved sequence. Numerical formulations,
 additional formats/sensors, and automation tasks will be specified with their

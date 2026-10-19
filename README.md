@@ -12,6 +12,8 @@ reference-data metadata and versioned VIO configurations.
 isolated containers and retain independently evaluated results.
 [Synchronized investigation](docs/vio-investigation.md) links camera images,
 IMU measurements, trajectories and full-resolution interval metrics.
+[Saved run comparisons](docs/vio-comparisons.md) preserve configuration
+differences, outcomes and errors on each run's own support and shared support.
 
 The repository also contains the original single-axis roll/bias study: Python
 and C++ filters, simulations, and recorded IMU replay. Its static explorer remains
@@ -32,11 +34,13 @@ estimation without reliable GNSS. It covers estimator development, external
 implementations, and automated engineering workflows. The
 [local VIO reference](docs/vio-reference.md), private project workspace and
 [versioned experiments](docs/versioned-experiments.md) underpin the hosted
-execution and investigation workflow. Run comparison, independent exports and
+execution, investigation and comparison workflow. Independent exports and
 broader estimator development remain planned.
 
 The hosted preview uses a temporary HTTPS address. Password recovery and
-recording uploads remain unavailable. The [initial workspace report](results/workspace/README.md)
+recording uploads remain unavailable. Saved run comparisons are implemented and
+locally validated; their hosted rollout is pending. The preview currently retains
+the investigation release. The [initial workspace report](results/workspace/README.md)
 records the authentication foundation; [job validation](results/jobs/README.md)
 records execution, recovery and the maintained room1 profile.
 
@@ -52,6 +56,8 @@ records execution, recovery and the maintained room1 profile.
   cancellation, bounded recovery, isolated evaluation and persistent metrics.
 - A shared investigation timeline for stereo images, IMU, trajectory, attitude,
   error and coverage, with interval scores that preserve the global alignment.
+- Saved private comparisons of exact executions, with compatibility checks,
+  common-support errors, missing-data regions, initialization and host costs.
 - A pinned, ROS-free OpenVINS reference running real TUM-VI stereo/IMU inputs
   in an isolated container, with independent evaluation, provenance and
   [three repeatable qualification runs](results/vio-reference/README.md).
@@ -104,6 +110,7 @@ The simulations include known motion for comparison; the historical log does not
 
 | Study | What it looks at |
 | --- | --- |
+| [Saved VIO comparisons](results/comparisons/README.md) | Actual baseline, variant and repeat executions; own/common support, configuration tradeoffs and immutable private snapshots. |
 | [Synchronized VIO investigation](results/investigation/README.md) | Original stereo images, input IMU, aligned poses, missing support and full-resolution interval metrics for retained executions. |
 | [Durable VIO jobs](results/jobs/README.md) | Persistent execution, isolated evaluation, cancellation, worker recovery and hosted validation. |
 | [Versioned experiment validation](results/experiments/README.md) | Immutable configurations, concurrent edits, browser workflows and unchanged API specifications executed by the local VIO runner. |

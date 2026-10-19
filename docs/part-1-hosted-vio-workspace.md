@@ -1,6 +1,8 @@
 # Part 1: hosted workspace and reference VIO workflow
 
-**Status: increments 1.1–1.5 completed by 2026-10-18; increments 1.6–1.8 remain planned.**
+**Status: increments 1.1–1.5 completed by 2026-10-18. Increment 1.6 is implemented
+and locally validated on 2026-10-19; hosted rollout remains pending. Increments
+1.7–1.8 remain planned.**
 This plan details part 1 of the [development roadmap](professional-estimation-roadmap.md).
 The current [implementation](../README.md) includes the qualified
 [local VIO reference](../results/vio-reference/README.md), the original single-axis
@@ -9,7 +11,8 @@ adds accounts, private projects, catalog metadata and versioned experiments.
 [Durable VIO jobs](hosted-vio-jobs.md) add isolated execution and independent
 evaluation of saved specifications. [Synchronized investigation](vio-investigation.md)
 connects retained executions to stereo images, input IMU, poses, support and
-traceable interval metrics.
+traceable interval metrics. [Saved comparisons](vio-comparisons.md) preserve
+configuration differences and outcomes on each run's own and common support.
 
 ## Outcome and scope
 
@@ -92,7 +95,9 @@ the resulting estimates and independent reference. Validated artifacts are
 published with hashes and an immutable manifest. The UI reads authorized job
 summaries and evaluated metrics. Increment 1.5 adds authenticated reads of
 manifest-verified investigation artifacts and original camera images, with a
-shared timeline and full-resolution interval scoring. Independent reproduction
+shared timeline and full-resolution interval scoring. Increment 1.6 adds compact,
+immutable comparison snapshots with exact run identities and support regions.
+Independent reproduction
 downloads remain planned for increment 1.7.
 
 Heavy computation must not run inside an HTTP request or rely on in-process
@@ -133,7 +138,8 @@ under the documented retention policy.
 
 Every increment includes its relevant UI states, failure handling, checks, and
 documentation. Later integration testing does not defer those responsibilities.
-Increments 1.1–1.5 are complete; later increments remain pending.
+Increments 1.1–1.5 are complete. Increment 1.6 has passed local validation and
+awaits hosted rollout; later increments remain pending.
 
 ### 1.1 — Executable reference and evaluation protocol
 
@@ -294,6 +300,11 @@ as such and do not imply embedded or real-time performance. The view remains
 usable with representative full-recording sizes and failed/partial runs.
 
 ### 1.6 — Comparable configuration experiments
+
+**Implemented and locally validated:** [comparison contract](vio-comparisons.md)
+and [actual-run evidence](../results/comparisons/README.md). Hosted rollout and
+HTTPS validation remain pending; the requirements below remain the acceptance
+contract.
 
 **Dependency:** 1.5.
 

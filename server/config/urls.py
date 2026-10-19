@@ -1,5 +1,5 @@
 from django.urls import path, re_path
-from workspace import api, experiments, investigation, jobs
+from workspace import api, comparisons, experiments, investigation, jobs
 
 urlpatterns = [
     path("api/v1/session", api.session),
@@ -21,6 +21,8 @@ urlpatterns = [
     path("api/v1/projects/<uuid:project_id>/jobs/<uuid:job_id>/investigation", investigation.investigation),
     path("api/v1/projects/<uuid:project_id>/jobs/<uuid:job_id>/investigation/metrics", investigation.metrics),
     path("api/v1/projects/<uuid:project_id>/jobs/<uuid:job_id>/investigation/images/<slug:camera>/<int:frame_index>", investigation.image),
+    path("api/v1/projects/<uuid:project_id>/comparisons", comparisons.comparisons),
+    path("api/v1/projects/<uuid:project_id>/comparisons/<uuid:comparison_id>", comparisons.comparison),
     path("api/v1/datasets", api.datasets),
     path("api/v1/datasets/<slug:dataset_id>", api.dataset),
     path("api/health", api.health),
