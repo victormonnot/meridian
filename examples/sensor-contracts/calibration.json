@@ -1,0 +1,125 @@
+{
+  "format": "meridian-sensor-contract",
+  "schema_version": 1,
+  "kind": "calibration",
+  "id": "synthetic-calibration",
+  "acquisition": {
+    "id": "synthetic-stereo",
+    "sha256": "6da9d872e5cba97909422c5eaef1e13c5d162eed776fef50c82697929da7230c"
+  },
+  "state": "supplied",
+  "method": {
+    "name": "analytic-fixture",
+    "version": "1"
+  },
+  "cameras": [
+    {
+      "sensor_id": "cam0",
+      "frame_id": "cam0",
+      "resolution": [
+        8,
+        6
+      ],
+      "projection": "pinhole",
+      "distortion": "radtan",
+      "intrinsics": [
+        4.0,
+        4.0,
+        3.5,
+        2.5
+      ],
+      "coefficients": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "sensor_id": "cam1",
+      "frame_id": "cam1",
+      "resolution": [
+        8,
+        6
+      ],
+      "projection": "pinhole",
+      "distortion": "radtan",
+      "intrinsics": [
+        4.0,
+        4.0,
+        3.5,
+        2.5
+      ],
+      "coefficients": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    }
+  ],
+  "imu": null,
+  "transforms": [
+    {
+      "source_frame": "imu",
+      "target_frame": "cam0",
+      "rotation": [
+        [
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ],
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "translation_m": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "source_frame": "imu",
+      "target_frame": "cam1",
+      "rotation": [
+        [
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ],
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "translation_m": [
+        -0.1,
+        0.0,
+        0.0
+      ]
+    }
+  ],
+  "applicability": {
+    "description": "Synthetic convention example, not a fitted calibration.",
+    "imu_intrinsics": "not_applicable"
+  },
+  "validation": {
+    "status": "not_provided",
+    "acquisitions": [],
+    "report": null
+  }
+}

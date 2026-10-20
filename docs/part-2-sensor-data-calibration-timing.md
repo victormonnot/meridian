@@ -1,6 +1,6 @@
 # Part 2 — Sensor data, calibration, and timing
 
-**Status: proposed plan, 2026-10-20. No part 2 increment is implemented.**
+**Status: increment 2.1 implemented, 2026-10-20. Increments 2.2–2.13 remain planned.**
 
 The intended outcome is a private, versioned acquisition with traceable sensor
 semantics, calibration and timing, usable by a supported estimator and
@@ -27,8 +27,8 @@ workflow and the negative room2 coverage result.
 | [Exports](vio-exports.md) and [backup](workspace-backup.md) | Exports reacquire public inputs; backups cover metadata and published job artifacts. | Private original inputs need portable delivery and coherent recovery coverage. |
 | [DataFlash](dataflash-audit.md) and [bench](bench-acquisition.md) | Snapshot audit and roll replay exist; new physical acquisition and reference-window evaluation do not. | Preserve snapshot semantics and add actual bench evidence without implying a camera rig already exists. |
 
-No new numerical experiment, physical acquisition or deployment is part of
-this planning record.
+Increment 2.1 adds local metadata contracts and synthetic convention checks.
+No new real recording, calibration fit, VIO execution or deployment is claimed.
 
 ## Proposed boundaries
 
@@ -72,6 +72,14 @@ runs. A failed or inconclusive calibration is a valid recorded outcome; it must
 not become a validated artifact merely because a process exited successfully.
 
 ### 2.1 — Acquisition, calibration and clock contracts
+
+**Implemented:** [contract and transfer format](sensor-contract.md),
+[synthetic examples](../examples/sensor-contracts/README.md), and
+[source reservations](sensor-data-sources.md). A standard-library validator
+checks four record kinds and linked identities; independent tests exercise units,
+rigid transforms, exact clocks, reference separation and invalid declarations.
+The existing hosted v1 execution path remains unchanged. Payload import and
+verification belong to 2.2.
 
 **Dependency:** completed part 1.
 

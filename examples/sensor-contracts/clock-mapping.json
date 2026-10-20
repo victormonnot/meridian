@@ -1,0 +1,25 @@
+{
+  "format": "meridian-sensor-contract",
+  "schema_version": 1,
+  "kind": "clock_mapping",
+  "id": "synthetic-clock-offset",
+  "acquisition": {
+    "id": "synthetic-replay",
+    "sha256": "bd26b4fa3691adfe4612ea0937f2baa930d3e16ad881ed1078dce01b3ececc17"
+  },
+  "source_stream_id": "imu0",
+  "source_segment_id": "segment0",
+  "target_clock_id": "camera-clock",
+  "purpose": "clock_domain_mapping",
+  "model": "constant_offset_ns",
+  "source_origin_ns": "1520530308199447626",
+  "target_origin_ns": "1520530308199447626",
+  "offset_ns": "2",
+  "first_source_ns": "1520530308194447626",
+  "last_source_ns": "1520530308254447626",
+  "evidence": {
+    "status": "declared",
+    "description": "Analytic +2 ns example only.",
+    "report": null
+  }
+}

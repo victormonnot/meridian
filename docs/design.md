@@ -27,8 +27,13 @@ independent export replay. Its reserved room2 evaluation fails the unchanged
 reference/evaluated coverage gates, despite repeatable native completion.
 The [backup helper](workspace-backup.md) supports an isolated recovery rehearsal;
 scheduled backups and a persistent disaster-recovery deployment remain separate.
-The [part 2 proposal](part-2-sensor-data-calibration-timing.md) describes the next
-data, calibration and timing increments; it does not add implemented capability.
+The [part 2 plan](part-2-sensor-data-calibration-timing.md) describes the data,
+calibration and timing increments. Its first increment implements
+[sensor contracts](sensor-contract.md), exact clock/unit/geometry checks and
+synthetic linked examples. Descriptor validity does not establish payload quality
+or estimator readiness; import, hosted uploads and calibration execution remain
+unimplemented. [Recording reservations](sensor-data-sources.md) separate future
+fitting and evaluation before any new payload inspection.
 General 3D estimator development, broader visual-inertial development and
 engineering automation remain planned work.
 

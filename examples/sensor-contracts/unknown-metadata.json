@@ -1,0 +1,206 @@
+{
+  "format": "meridian-sensor-contract",
+  "schema_version": 1,
+  "kind": "acquisition",
+  "id": "synthetic-unknown-metadata",
+  "purpose": "fixture",
+  "rig": {
+    "id": "synthetic-rig",
+    "revision": "1"
+  },
+  "provenance": {
+    "source": "generate.py analytic fixture",
+    "license": "unspecified",
+    "attribution": "Meridian synthetic contract fixtures",
+    "session_id": "synthetic-session",
+    "synthetic": true
+  },
+  "frames": [
+    {
+      "id": "imu",
+      "axes": null
+    },
+    {
+      "id": "cam0",
+      "axes": [
+        "right",
+        "down",
+        "forward"
+      ]
+    },
+    {
+      "id": "cam1",
+      "axes": [
+        "right",
+        "down",
+        "forward"
+      ]
+    },
+    {
+      "id": "world",
+      "axes": [
+        "east",
+        "north",
+        "up"
+      ]
+    }
+  ],
+  "clocks": [
+    {
+      "id": "camera-clock",
+      "unit": "ns",
+      "epoch": "unix"
+    },
+    {
+      "id": "imu-clock",
+      "unit": "ns",
+      "epoch": "device"
+    }
+  ],
+  "files": [
+    {
+      "path": "sensors/cam0/data.csv",
+      "sha256": "7bcabdd66249d96434cdf8f12f376d741f6d46de3ef03f2eef6a0627ee016493",
+      "size_bytes": 128,
+      "role": "sensor"
+    },
+    {
+      "path": "sensors/cam0/images/0.png",
+      "sha256": "20c3c549db70ff649e16e5c8886a89c8964d5b3efa30db69c6cd601a1f23457d",
+      "size_bytes": 122,
+      "role": "sensor"
+    },
+    {
+      "path": "sensors/cam0/images/1.png",
+      "sha256": "20c3c549db70ff649e16e5c8886a89c8964d5b3efa30db69c6cd601a1f23457d",
+      "size_bytes": 122,
+      "role": "sensor"
+    },
+    {
+      "path": "sensors/cam1/data.csv",
+      "sha256": "7bcabdd66249d96434cdf8f12f376d741f6d46de3ef03f2eef6a0627ee016493",
+      "size_bytes": 128,
+      "role": "sensor"
+    },
+    {
+      "path": "sensors/cam1/images/0.png",
+      "sha256": "20c3c549db70ff649e16e5c8886a89c8964d5b3efa30db69c6cd601a1f23457d",
+      "size_bytes": 122,
+      "role": "sensor"
+    },
+    {
+      "path": "sensors/cam1/images/1.png",
+      "sha256": "20c3c549db70ff649e16e5c8886a89c8964d5b3efa30db69c6cd601a1f23457d",
+      "size_bytes": 122,
+      "role": "sensor"
+    },
+    {
+      "path": "sensors/imu0/data.csv",
+      "sha256": "af1eea6940805b1e340deddf150ee40d7596409c770c22e4e398c1ae108fd081",
+      "size_bytes": 190,
+      "role": "sensor"
+    }
+  ],
+  "streams": [
+    {
+      "id": "cam0",
+      "kind": "camera",
+      "sensor_instance": "cam0",
+      "frame_id": "cam0",
+      "clock_id": "camera-clock",
+      "timestamp_semantics": "exposure_midpoint",
+      "measurement_semantics": "image",
+      "index_path": "sensors/cam0/data.csv",
+      "segments": [
+        {
+          "id": "segment0",
+          "first_tick": "1520530308199447626",
+          "last_tick": "1520530308249447626",
+          "sample_count": 2
+        }
+      ],
+      "processing": {
+        "calibration": "not_applied",
+        "filtering": "none",
+        "clock_correction": "not_applied",
+        "description": "Analytic synthetic fixture; no physical acquisition."
+      },
+      "camera": {
+        "resolution": [
+          8,
+          6
+        ],
+        "encoding": "mono8",
+        "shutter": "global"
+      }
+    },
+    {
+      "id": "cam1",
+      "kind": "camera",
+      "sensor_instance": "cam1",
+      "frame_id": "cam1",
+      "clock_id": "camera-clock",
+      "timestamp_semantics": "exposure_midpoint",
+      "measurement_semantics": "image",
+      "index_path": "sensors/cam1/data.csv",
+      "segments": [
+        {
+          "id": "segment0",
+          "first_tick": "1520530308199447626",
+          "last_tick": "1520530308249447626",
+          "sample_count": 2
+        }
+      ],
+      "processing": {
+        "calibration": "not_applied",
+        "filtering": "none",
+        "clock_correction": "not_applied",
+        "description": "Analytic synthetic fixture; no physical acquisition."
+      },
+      "camera": {
+        "resolution": [
+          8,
+          6
+        ],
+        "encoding": "mono8",
+        "shutter": "global"
+      }
+    },
+    {
+      "id": "imu0",
+      "kind": "imu",
+      "sensor_instance": "imu0",
+      "frame_id": "imu",
+      "clock_id": "imu-clock",
+      "timestamp_semantics": "unknown",
+      "measurement_semantics": "instantaneous_imu",
+      "index_path": "sensors/imu0/data.csv",
+      "segments": [
+        {
+          "id": "segment0",
+          "first_tick": "1520530308194447626",
+          "last_tick": "1520530308254447626",
+          "sample_count": 3
+        }
+      ],
+      "processing": {
+        "calibration": "unknown",
+        "filtering": "none",
+        "clock_correction": "not_applied",
+        "description": "Analytic synthetic fixture; no physical acquisition."
+      },
+      "imu": {
+        "angular_velocity_unit": "rad/s",
+        "specific_force_unit": "m/s^2",
+        "local_gravity_m_s2": null
+      }
+    }
+  ],
+  "stereo_pairing": {
+    "camera_ids": [
+      "cam0",
+      "cam1"
+    ],
+    "policy": "exact_timestamp_pairs"
+  }
+}

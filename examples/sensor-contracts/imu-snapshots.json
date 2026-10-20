@@ -1,0 +1,81 @@
+{
+  "format": "meridian-sensor-contract",
+  "schema_version": 1,
+  "kind": "acquisition",
+  "id": "synthetic-imu-snapshots",
+  "purpose": "fixture",
+  "rig": {
+    "id": "synthetic-rig",
+    "revision": "1"
+  },
+  "provenance": {
+    "source": "generate.py analytic fixture",
+    "license": "unspecified",
+    "attribution": "Meridian synthetic contract fixtures",
+    "session_id": "synthetic-session",
+    "synthetic": true
+  },
+  "frames": [
+    {
+      "id": "imu",
+      "axes": [
+        "forward",
+        "right",
+        "down"
+      ]
+    }
+  ],
+  "clocks": [
+    {
+      "id": "imu-clock",
+      "unit": "us",
+      "epoch": "boot"
+    }
+  ],
+  "files": [
+    {
+      "path": "sensors/snapshots/data.csv",
+      "sha256": "75f6c30520d4e2288302a154fd9aaf62c0ce0f22fac1d64f00abeeef2c36bcc2",
+      "size_bytes": 195,
+      "role": "sensor"
+    }
+  ],
+  "streams": [
+    {
+      "id": "imu0",
+      "kind": "imu",
+      "sensor_instance": "imu0",
+      "frame_id": "imu",
+      "clock_id": "imu-clock",
+      "timestamp_semantics": "message_write",
+      "measurement_semantics": "filtered_snapshot",
+      "index_path": "sensors/snapshots/data.csv",
+      "segments": [
+        {
+          "id": "segment0",
+          "first_tick": "1000000",
+          "last_tick": "1040000",
+          "sample_count": 2
+        },
+        {
+          "id": "segment1",
+          "first_tick": "100",
+          "last_tick": "40100",
+          "sample_count": 2
+        }
+      ],
+      "processing": {
+        "calibration": "applied",
+        "filtering": "applied",
+        "clock_correction": "unknown",
+        "description": "Synthetic representation of processed logger snapshots; not a DataFlash acquisition."
+      },
+      "imu": {
+        "angular_velocity_unit": "rad/s",
+        "specific_force_unit": "m/s^2",
+        "local_gravity_m_s2": null
+      }
+    }
+  ],
+  "stereo_pairing": null
+}

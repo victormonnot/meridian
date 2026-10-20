@@ -38,8 +38,10 @@ implementations, and automated engineering workflows. The
 [versioned experiments](docs/versioned-experiments.md) underpin the hosted
 execution, investigation, comparison and export workflow. Broader estimator
 development remains planned. The
-[part 2 proposal](docs/part-2-sensor-data-calibration-timing.md) details sensor
-imports, calibration and timing; none of those increments is implemented yet.
+[part 2 plan](docs/part-2-sensor-data-calibration-timing.md) details sensor
+imports, calibration and timing. Its first increment adds
+[local sensor-contract validation](docs/sensor-contract.md); recording import
+and calibration execution remain planned.
 
 The hosted preview is available at
 [meridian.victormonnot.com](https://meridian.victormonnot.com/); the previous
@@ -82,6 +84,9 @@ The [earlier export report](results/exports/README.md) and
   Python after each prediction and correction.
 - Tools to inspect recorded drone sensor data and replay a selected log segment
   through the filters offline.
+- Versioned sensor-data descriptors with exact integer clocks, explicit
+  calibration provenance, linked preparation metadata and synthetic convention
+  checks. These validate declarations; they do not enable recording uploads.
 
 The original roll study still needs a new bench recording with known angles
 to check the estimates against a physical reference. The historical

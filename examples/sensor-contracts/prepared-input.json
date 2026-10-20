@@ -1,0 +1,124 @@
+{
+  "format": "meridian-sensor-contract",
+  "schema_version": 1,
+  "kind": "prepared_input",
+  "id": "synthetic-prepared",
+  "acquisition": {
+    "id": "synthetic-replay",
+    "sha256": "bd26b4fa3691adfe4612ea0937f2baa930d3e16ad881ed1078dce01b3ececc17"
+  },
+  "calibration": {
+    "id": "synthetic-calibration",
+    "sha256": "5f8870931bd94f619c9429fc67d7cb84b7b26fd6dc1b8b77152c4f64499e1911"
+  },
+  "clock_mappings": [
+    {
+      "id": "synthetic-clock-offset",
+      "sha256": "096cf6540412608b9c74b98762c631fa79f817b81c70aa3e9e77c4753bf35890"
+    }
+  ],
+  "method": {
+    "name": "analytic-fixture-generator",
+    "version": "1"
+  },
+  "selections": [
+    {
+      "stream_id": "cam0",
+      "segment_id": "segment0",
+      "first_tick": "1520530308199447626",
+      "last_tick": "1520530308249447626"
+    },
+    {
+      "stream_id": "cam1",
+      "segment_id": "segment0",
+      "first_tick": "1520530308199447626",
+      "last_tick": "1520530308249447626"
+    },
+    {
+      "stream_id": "imu0",
+      "segment_id": "segment0",
+      "first_tick": "1520530308194447626",
+      "last_tick": "1520530308254447626"
+    }
+  ],
+  "operations": [
+    {
+      "kind": "clock_mapping",
+      "stream_id": "imu0",
+      "artifact": {
+        "id": "synthetic-clock-offset",
+        "sha256": "096cf6540412608b9c74b98762c631fa79f817b81c70aa3e9e77c4753bf35890"
+      },
+      "description": "Add exactly 2 ns while preserving row identity and measurement values.",
+      "parameters": {}
+    }
+  ],
+  "outputs": [
+    {
+      "stream_id": "cam0",
+      "index_path": "sensors/cam0/data.csv",
+      "frame_id": "cam0",
+      "clock_id": "camera-clock",
+      "timestamp_unit": "ns"
+    },
+    {
+      "stream_id": "cam1",
+      "index_path": "sensors/cam1/data.csv",
+      "frame_id": "cam1",
+      "clock_id": "camera-clock",
+      "timestamp_unit": "ns"
+    },
+    {
+      "stream_id": "imu0",
+      "index_path": "sensors/prepared-imu0/data.csv",
+      "frame_id": "imu",
+      "clock_id": "camera-clock",
+      "timestamp_unit": "ns"
+    }
+  ],
+  "files": [
+    {
+      "path": "sensors/cam0/data.csv",
+      "sha256": "7bcabdd66249d96434cdf8f12f376d741f6d46de3ef03f2eef6a0627ee016493",
+      "size_bytes": 128,
+      "role": "sensor"
+    },
+    {
+      "path": "sensors/cam0/images/0.png",
+      "sha256": "20c3c549db70ff649e16e5c8886a89c8964d5b3efa30db69c6cd601a1f23457d",
+      "size_bytes": 122,
+      "role": "sensor"
+    },
+    {
+      "path": "sensors/cam0/images/1.png",
+      "sha256": "20c3c549db70ff649e16e5c8886a89c8964d5b3efa30db69c6cd601a1f23457d",
+      "size_bytes": 122,
+      "role": "sensor"
+    },
+    {
+      "path": "sensors/cam1/data.csv",
+      "sha256": "7bcabdd66249d96434cdf8f12f376d741f6d46de3ef03f2eef6a0627ee016493",
+      "size_bytes": 128,
+      "role": "sensor"
+    },
+    {
+      "path": "sensors/cam1/images/0.png",
+      "sha256": "20c3c549db70ff649e16e5c8886a89c8964d5b3efa30db69c6cd601a1f23457d",
+      "size_bytes": 122,
+      "role": "sensor"
+    },
+    {
+      "path": "sensors/cam1/images/1.png",
+      "sha256": "20c3c549db70ff649e16e5c8886a89c8964d5b3efa30db69c6cd601a1f23457d",
+      "size_bytes": 122,
+      "role": "sensor"
+    },
+    {
+      "path": "sensors/prepared-imu0/data.csv",
+      "sha256": "7758b033f58ef3ba2852893accd33ca47b34391afa7c11330822de3dad321971",
+      "size_bytes": 190,
+      "role": "sensor"
+    }
+  ],
+  "target_profile": "stereo_imu_candidate_v1"
+}
