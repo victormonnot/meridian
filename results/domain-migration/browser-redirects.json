@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "checked_at": "2026-10-20T13:35:48.263Z",
+  "passed": true,
+  "browser_version": "155.0.8059.84",
+  "tls_validation_enabled": true,
+  "fresh_unauthenticated_context": true,
+  "records": [
+    {
+      "source": "https://meridian.151.80.144.150.sslip.io/?migration=domain#projects",
+      "final_url": "https://meridian.victormonnot.com/?migration=domain#projects",
+      "final_status": 200,
+      "signin_visible": true,
+      "path_query_fragment_preserved": true,
+      "security_details": {
+        "issuer": "YR2",
+        "protocol": "TLS 1.3",
+        "subjectName": "meridian.victormonnot.com",
+        "validFrom": 1792499585,
+        "validTo": 1800275584
+      },
+      "redirects": [
+        {
+          "url": "https://meridian.151.80.144.150.sslip.io/?migration=domain",
+          "status": 301,
+          "location": "https://meridian.victormonnot.com/?migration=domain"
+        }
+      ]
+    },
+    {
+      "source": "http://meridian.151.80.144.150.sslip.io/?migration=domain#projects",
+      "final_url": "https://meridian.victormonnot.com/?migration=domain#projects",
+      "final_status": 200,
+      "signin_visible": true,
+      "path_query_fragment_preserved": true,
+      "security_details": {
+        "issuer": "YR2",
+        "protocol": "QUIC",
+        "subjectName": "meridian.victormonnot.com",
+        "validFrom": 1792499585,
+        "validTo": 1800275584
+      },
+      "redirects": [
+        {
+          "url": "http://meridian.151.80.144.150.sslip.io/?migration=domain",
+          "status": 301,
+          "location": "https://meridian.victormonnot.com/?migration=domain"
+        }
+      ]
+    }
+  ],
+  "uncaught_javascript_errors": [],
+  "raw_report_sha256": "a24abdb238bb709ea0d25f5632d50ddb838fc587d2d553ea3327d534d9b696d4",
+  "limitations": [
+    "Fresh browser session; old-host session cookies are not transferred to the new hostname. Users sign in again using their existing credentials.",
+    "Redirect fragments are browser state and are not sent in HTTP requests."
+  ]
+}

@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "checked_at": "2026-10-20T13:35:35.081278+00:00",
+  "normal_dns_and_tls_validation": true,
+  "requests": [
+    {
+      "url": "https://meridian.victormonnot.com/",
+      "status": 200,
+      "location": null,
+      "body_bytes": 2270,
+      "body_sha256": "bf43f40d947dbce6e4c8654eb5d6660c2c6429e2718490ed890ce119b4347fe8"
+    },
+    {
+      "url": "https://meridian.victormonnot.com/api/health",
+      "status": 200,
+      "location": null,
+      "body_bytes": 37,
+      "body_sha256": "a5c96ec925b80f7a8a6847b579cd78e4f38ac8d9506f2f8c3d5f752dcc28ae1d",
+      "health": {
+        "schema_version": 1,
+        "status": "ok"
+      }
+    },
+    {
+      "url": "http://meridian.victormonnot.com/api/health?domain=check",
+      "status": 301,
+      "location": "https://meridian.victormonnot.com/api/health?domain=check",
+      "body_bytes": 17,
+      "body_sha256": "d18ed36671b8618520016c81125aa889a5b800872038c5e009ef49cd305088cd"
+    },
+    {
+      "url": "http://meridian.151.80.144.150.sslip.io/workspace?domain=check&encoded=%2F",
+      "status": 301,
+      "location": "https://meridian.victormonnot.com/workspace?domain=check&encoded=%2F",
+      "body_bytes": 17,
+      "body_sha256": "d18ed36671b8618520016c81125aa889a5b800872038c5e009ef49cd305088cd"
+    },
+    {
+      "url": "https://meridian.151.80.144.150.sslip.io/workspace?domain=check&encoded=%2F",
+      "status": 301,
+      "location": "https://meridian.victormonnot.com/workspace?domain=check&encoded=%2F",
+      "body_bytes": 17,
+      "body_sha256": "d18ed36671b8618520016c81125aa889a5b800872038c5e009ef49cd305088cd"
+    }
+  ],
+  "certificate": {
+    "subject_alt_names": [
+      [
+        "DNS",
+        "meridian.victormonnot.com"
+      ]
+    ],
+    "issuer": [
+      [
+        [
+          "countryName",
+          "US"
+        ]
+      ],
+      [
+        [
+          "organizationName",
+          "Let's Encrypt"
+        ]
+      ],
+      [
+        [
+          "commonName",
+          "YR2"
+        ]
+      ]
+    ],
+    "not_before": "Oct 20 12:33:05 2026 GMT",
+    "not_after": "Jan 18 12:33:04 2027 GMT",
+    "sha256": "2c60f4f374a5f904ab02818641496a53c49a23c1ed9c3ae208aced417444ba62",
+    "tls_version": "TLSv1.3"
+  },
+  "sibling_https": {
+    "argos.victormonnot.com": 200,
+    "iris.victormonnot.com": 200,
+    "argoslab.victormonnot.com": 200
+  },
+  "passed": true
+}

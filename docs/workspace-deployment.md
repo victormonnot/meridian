@@ -3,6 +3,11 @@
 This deployment serves accounts, private projects, versioned experiments and
 durable VIO jobs with synchronized result investigation, saved run comparisons
 and source-only experiment exports.
+The canonical deployment is
+[meridian.victormonnot.com](https://meridian.victormonnot.com/).
+The [hostname migration report](../results/domain-migration/README.md) records
+DNS, TLS, redirects and authenticated access checks; earlier release reports
+retain the hostname used during their original qualification.
 Computation is opt-in: the `compute` Compose profile adds a
 trusted worker after the qualified native image, prepared reference dataset and
 bounded scratch filesystem have been installed separately. The API image does
@@ -359,3 +364,51 @@ reverse database migrations. Future data migrations require a backup and an
 explicit rollback plan. Switching the hostname requires updating its DNS record,
 the environment, allowed origins and the Meridian router together; other DNS
 records and proxy routes remain unchanged.
+
+## Changing the canonical hostname
+
+Use an explicit A record for the new hostname pointing to the VPS. Check
+authoritative DNS, public resolvers and any competing AAAA/CNAME records before
+switching. Preserve the domain's other records. Certificate issuance must be
+permitted by its CAA policy.
+
+At an idle queue, retain a private copy of the deployment environment and current
+release metadata. Keep the same secrets, application images, database and worker.
+Set `MERIDIAN_DOMAIN` to the new hostname. The base Compose file derives the
+API's allowed host, trusted CSRF origin and proxy routes from this value.
+
+To preserve old links, also set `MERIDIAN_LEGACY_DOMAIN` to the previous hostname
+and include [`compose.canonical-domain.yaml`](../deploy/workspace/compose.canonical-domain.yaml)
+after the existing overrides. The two hostnames must differ. Both must continue
+to resolve to the VPS so the old HTTPS certificate can renew.
+
+```sh
+docker compose --project-name meridian-workspace \
+  --env-file /private/meridian.env \
+  -f deploy/workspace/compose.yaml \
+  -f deploy/workspace/compose.investigation.yaml \
+  -f deploy/workspace/compose.canonical-domain.yaml \
+  up -d --wait --no-build --pull never --no-deps api web
+```
+
+Use the environment path and exact source release already supplying the
+deployment. Retain the canonical-domain override in subsequent deployment
+commands; omitting it removes the legacy redirect. It adds HTTP/HTTPS routes
+only for the previous hostname and redirects to the fixed canonical HTTPS
+origin while retaining the path and query. The
+[Traefik replacement syntax](https://doc.traefik.io/traefik/reference/routing-configuration/http/middlewares/redirectregex/)
+uses a doubled dollar sign in Compose, producing `${1}` in the actual Docker
+label. `docker compose config` may serialize the escaped representation.
+
+Verify normal TLS validation, `/api/health`, redirects, sign-in, CSRF protection,
+private project persistence and other hosted applications. Session cookies are
+host-only: users sign in again on the new domain with their existing credentials;
+their accounts and project data stay in the same database. Update API clients to
+use the canonical origin directly rather than relying on redirects for mutations.
+
+Compare retained application metadata and authentication/submission budgets before
+and after the switch. A running worker updates the scheduling heartbeat normally;
+that operational timestamp is not an immutable application-data fingerprint.
+If a check fails, restore the prior environment and API/web configuration without
+recreating the database or worker. Keep the observed failure and correction in
+the migration report. DNS changes require their own explicit rollback decision.

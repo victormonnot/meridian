@@ -1,0 +1,121 @@
+{
+  "schema_version": 1,
+  "checked_at": "2026-10-20T13:35:23.658Z",
+  "target_origin": "https://meridian.victormonnot.com",
+  "browser_version": "155.0.8059.84",
+  "passed": true,
+  "tls_validation_enabled": true,
+  "records": [
+    {
+      "kind": "first_document",
+      "origin": "https://meridian.victormonnot.com",
+      "status": 200,
+      "security_details": {
+        "issuer": "YR2",
+        "protocol": "TLS 1.3",
+        "subjectName": "meridian.victormonnot.com",
+        "validFrom": 1792499585,
+        "validTo": 1800275584
+      },
+      "server_address": {
+        "ipAddress": "151.80.144.150",
+        "port": 443
+      }
+    },
+    {
+      "kind": "successful_authentication",
+      "endpoint": "/api/v1/auth/register",
+      "status": 201,
+      "cache_control": "no-store",
+      "strict_transport_security": "max-age=3600",
+      "cookie_attributes": [
+        {
+          "name": "meridian_csrf",
+          "attributes": [
+            "HttpOnly",
+            "Max-Age=31449600",
+            "Path=/",
+            "SameSite=Lax",
+            "Secure"
+          ]
+        },
+        {
+          "name": "meridian_session",
+          "attributes": [
+            "HttpOnly",
+            "Max-Age=28800",
+            "Path=/",
+            "SameSite=Lax",
+            "Secure"
+          ]
+        }
+      ],
+      "host_only_cookies": true
+    },
+    {
+      "kind": "successful_authentication",
+      "endpoint": "/api/v1/auth/register",
+      "status": 201,
+      "cache_control": "no-store",
+      "strict_transport_security": "max-age=3600",
+      "cookie_attributes": [
+        {
+          "name": "meridian_csrf",
+          "attributes": [
+            "HttpOnly",
+            "Max-Age=31449600",
+            "Path=/",
+            "SameSite=Lax",
+            "Secure"
+          ]
+        },
+        {
+          "name": "meridian_session",
+          "attributes": [
+            "HttpOnly",
+            "Max-Age=28800",
+            "Path=/",
+            "SameSite=Lax",
+            "Secure"
+          ]
+        }
+      ],
+      "host_only_cookies": true
+    },
+    {
+      "kind": "successful_authentication",
+      "endpoint": "/api/v1/auth/login",
+      "status": 200,
+      "cache_control": "no-store",
+      "strict_transport_security": "max-age=3600",
+      "cookie_attributes": [
+        {
+          "name": "meridian_csrf",
+          "attributes": [
+            "HttpOnly",
+            "Max-Age=31449600",
+            "Path=/",
+            "SameSite=Lax",
+            "Secure"
+          ]
+        },
+        {
+          "name": "meridian_session",
+          "attributes": [
+            "HttpOnly",
+            "Max-Age=28800",
+            "Path=/",
+            "SameSite=Lax",
+            "Secure"
+          ]
+        }
+      ],
+      "host_only_cookies": true
+    }
+  ],
+  "raw_report_sha256": "25d2aa7feadf0edab3ea1a820d18fb65fb0d79b645c7c7007f94c229465c1d99",
+  "limitations": [
+    "Read-only observation of real browser authentication responses and TLS metadata; no cookie values, tokens or credentials are included.",
+    "This is not a general TLS audit."
+  ]
+}

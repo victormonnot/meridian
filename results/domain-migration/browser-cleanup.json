@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "checked_at": "2026-10-20T13:36:09.704349+00:00",
+  "passed": true,
+  "scope": "Exact two QA accounts from the completed custom-domain metadata browser check.",
+  "no_vio_jobs_created": true,
+  "deleted_model_counts": {
+    "auth.User": 2
+  },
+  "deleted_sessions": 2,
+  "deleted_exact_account_budget_windows": 2,
+  "aggregate_budgets_preserved": true,
+  "unrelated_rows_preserved": true,
+  "remaining_unrelated_counts": {
+    "users": 0,
+    "projects": 0,
+    "experiments": 0,
+    "revisions": 0,
+    "jobs": 0,
+    "attempts": 0,
+    "comparisons": 0
+  },
+  "browser_report_sha256": "38641fc11c4e74230c057a764b4f083ab02369507a5080530d9a09b180683a69",
+  "account_binding_sha256": "d4054add9a238f308ee3e17975a78b18a2811642bfe591784b910caf5445bce3",
+  "exact_account_id_and_username_bindings_verified": true,
+  "owned_projects_and_configurations_deleted_by_browser": true,
+  "no_owned_jobs_or_comparisons_existed": true,
+  "raw_report_sha256": "1b2d067b958f00e39893134d7e35582761750ead77da23ee941fcbea12cc6430",
+  "limitations": [
+    "Operator cleanup targets only the exact two accounts created by this successful browser run. It does not reset aggregate authentication or compute budgets."
+  ]
+}

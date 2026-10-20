@@ -6,8 +6,11 @@ OpenVINS configurations, historical snapshots, duplication and exact differences
 [Durable VIO jobs](hosted-vio-jobs.md) execute a saved revision through a separate
 worker and independent evaluator; the qualified local runner remains available.
 
-The [hosted preview](https://meridian.151.80.144.150.sslip.io/) is available on a
-temporary HTTPS hostname. The [initial workspace report](../results/workspace/README.md)
+The [hosted preview](https://meridian.victormonnot.com/) uses the canonical
+HTTPS hostname; the earlier temporary address redirects there.
+[Domain validation](../results/domain-migration/README.md) records the migration
+and the required fresh sign-in on the new host.
+The [initial workspace report](../results/workspace/README.md)
 and [experiment validation](../results/experiments/README.md) record the checked
 releases and limits.
 

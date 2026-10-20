@@ -1,0 +1,102 @@
+{
+  "schema_version": 1,
+  "passed": true,
+  "scope": "Canonical hostname activation with unchanged application release.",
+  "application_release": "20261020-6a7122a290ca",
+  "application_bundle_sha256": "6a7122a290ca19bc90300f96758022aa7fe821bf1defc10188bbc927b8ec3294",
+  "application_source_commit": "cf536acd849292b7696a8130615446ded0eafbbd",
+  "application_source_files_verified": 103,
+  "images": {
+    "api_image_id": "sha256:476e582284cd9f54bf53d39852d175800b05870e815b9470bdefc2b51f3f90d8",
+    "web_image_id": "sha256:1423c3ec104979a4a16f65a9fd8a0784f699e1a54bb82f29fd04d589ee295181",
+    "worker_image_id": "sha256:78c446525791b0631d2f15d56c9e212d58a1cc253e12305defc762ee37988ef5",
+    "native_image_id": "sha256:54863f14d9f92d2805f5fddcfb78d146c6aac2ad77dc348e304059e2252a400a"
+  },
+  "prepared_manifest_sha256": "e55f0480533611fc1e198d16b181814a8d34752cb748becbfeec7bcb4908ba6d",
+  "compose_validation": {
+    "compose_valid": true,
+    "actual_created_container_never_started": true,
+    "actual_redirect_replacement": "https://meridian.victormonnot.com/${1}",
+    "legacy_rule": "Host(`meridian.151.80.144.150.sslip.io`)",
+    "note": "Compose config serializes escaped dollar signs; actual Docker labels contain the required single-dollar capture."
+  },
+  "first_attempt": {
+    "started_at": "2026-10-20T13:31:02.399653+00:00",
+    "verified_tls_health_at": "2026-10-20T13:31:37.015939+00:00",
+    "passed": false,
+    "error_type": "AssertionError",
+    "original_configuration_restored": true,
+    "failure": "The verifier treated the live worker scheduling heartbeat as immutable table content.",
+    "correction": "Exclude workspace_computequeue from row fingerprint comparison; retain all ten table counts, nine table fingerprints, migrations and retained-job checks.",
+    "application_defect_observed": false,
+    "raw_report_sha256": "9ce4c6b654597fad199c351d8b46689726fe3515df0c58295d9879a9f59554dd"
+  },
+  "successful_migration": {
+    "schema_version": 1,
+    "started_at": "2026-10-20T13:34:11.100483+00:00",
+    "passed": true,
+    "canonical_domain": "meridian.victormonnot.com",
+    "legacy_domain": "meridian.151.80.144.150.sslip.io",
+    "application_release": "20261020-6a7122a290ca",
+    "application_images_unchanged": true,
+    "overlay_sha256": "efdba75e51fc4e584193b7c3c5b0cc7a026c9c38f16c44c35b2167f9cc056e0e",
+    "dns_managed_separately": true,
+    "verified_tls_health_at": "2026-10-20T13:34:34.906723+00:00",
+    "finished_at": "2026-10-20T13:34:39.702461+00:00",
+    "application_metadata_and_auth_budgets_unchanged": true,
+    "verified_table_count": 9,
+    "live_operational_heartbeat_excluded_from_row_comparison": true,
+    "database_container_and_mounts_unchanged": true,
+    "worker_container_and_mounts_unchanged": true,
+    "service_health": {
+      "api": "healthy",
+      "web": "healthy",
+      "worker": "healthy",
+      "db": "healthy"
+    },
+    "actual_allowed_host": "meridian.victormonnot.com",
+    "actual_csrf_origin": "https://meridian.victormonnot.com",
+    "actual_redirect_replacement": "https://meridian.victormonnot.com/${1}"
+  },
+  "all_ten_table_counts_migrations_and_retained_jobs_unchanged_during_switch": true,
+  "final_check": {
+    "checked_at": "2026-10-20T13:40:07.819348+00:00",
+    "passed": true,
+    "application_bundle_sha256": "6a7122a290ca19bc90300f96758022aa7fe821bf1defc10188bbc927b8ec3294",
+    "canonical_domain": "meridian.victormonnot.com",
+    "legacy_domain": "meridian.151.80.144.150.sslip.io",
+    "overlay_sha256": "efdba75e51fc4e584193b7c3c5b0cc7a026c9c38f16c44c35b2167f9cc056e0e",
+    "application_and_native_images_unchanged": true,
+    "database_and_worker_identity_start_time_mounts_unchanged": true,
+    "service_health": {
+      "db": "healthy",
+      "api": "healthy",
+      "web": "healthy",
+      "worker": "healthy"
+    },
+    "all_sources_match_application_commit": "cf536acd849292b7696a8130615446ded0eafbbd"
+  },
+  "sibling_https_before": {
+    "checked_at": "2026-10-20T13:30:50.544642+00:00",
+    "https": {
+      "meridian.151.80.144.150.sslip.io": 200,
+      "argos.victormonnot.com": 200,
+      "iris.victormonnot.com": 200,
+      "argoslab.victormonnot.com": 200
+    }
+  },
+  "sibling_https_after": {
+    "checked_at": "2026-10-20T13:35:35.081278+00:00",
+    "https": {
+      "argos.victormonnot.com": 200,
+      "iris.victormonnot.com": 200,
+      "argoslab.victormonnot.com": 200
+    }
+  },
+  "limitations": [
+    "Only API and web containers were recreated. No schema migration, estimator computation or application-image build was performed.",
+    "Database invariants were compared during the switch before browser QA. Browser requests subsequently consumed normal authentication budgets; cleanup did not reset aggregate counters.",
+    "Point-in-time service and transport checks do not establish an uptime or certificate-renewal guarantee.",
+    "Private environment snapshots, account bindings, raw database fingerprints and container mount paths are not included."
+  ]
+}

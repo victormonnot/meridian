@@ -1,0 +1,19 @@
+# Optional migration override: retain the previous hostname as a redirect.
+# Use with compose.yaml and the same deployment's environment file.
+# MERIDIAN_LEGACY_DOMAIN must differ from MERIDIAN_DOMAIN.
+services:
+  web:
+    labels:
+      traefik.http.routers.meridian-workspace-legacy-http.rule: Host(`${MERIDIAN_LEGACY_DOMAIN:?Set the previous hostname}`)
+      traefik.http.routers.meridian-workspace-legacy-http.entrypoints: http
+      traefik.http.routers.meridian-workspace-legacy-http.middlewares: meridian-workspace-canonical
+      traefik.http.routers.meridian-workspace-legacy-http.service: meridian-workspace
+      traefik.http.routers.meridian-workspace-legacy-https.rule: Host(`${MERIDIAN_LEGACY_DOMAIN}`)
+      traefik.http.routers.meridian-workspace-legacy-https.entrypoints: https
+      traefik.http.routers.meridian-workspace-legacy-https.tls: "true"
+      traefik.http.routers.meridian-workspace-legacy-https.tls.certresolver: letsencrypt
+      traefik.http.routers.meridian-workspace-legacy-https.middlewares: meridian-workspace-canonical
+      traefik.http.routers.meridian-workspace-legacy-https.service: meridian-workspace
+      traefik.http.middlewares.meridian-workspace-canonical.redirectregex.regex: ^https?://[^/]+/(.*)
+      traefik.http.middlewares.meridian-workspace-canonical.redirectregex.replacement: https://${MERIDIAN_DOMAIN}/$${1}
+      traefik.http.middlewares.meridian-workspace-canonical.redirectregex.permanent: "true"

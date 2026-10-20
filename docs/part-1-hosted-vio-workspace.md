@@ -359,8 +359,10 @@ export formats explicitly.
 independent export replay pass. All three reserved room2 runs fail the frozen
 reference/evaluated coverage gates; no parameters, intervals or thresholds were
 changed to produce a pass. Evaluation used an automated engineering harness,
-not an external expert usability study. The temporary HTTPS hostname works;
-custom-domain activation and scheduled backups remain unavailable.
+not an external expert usability study.
+[Custom-domain activation](../results/domain-migration/README.md) subsequently
+moves the hosted entry point to `meridian.victormonnot.com`, preserving old links
+through redirects. Scheduled backups remain unavailable.
 
 **Dependency:** 1.7.
 

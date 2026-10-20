@@ -26,7 +26,7 @@ available below. The VIO reference supports both hosted jobs and local execution
 *An actual hosted computation on TUM-VI room1, with a fictional test account
 and project. [Screenshot details](docs/media/README.md).*
 
-[Open the hosted preview](https://meridian.151.80.144.150.sslip.io/) ·
+[Open the hosted preview](https://meridian.victormonnot.com/) ·
 [Results](#experiments-and-results) ·
 [Technical setup](#technical-setup) · [Design notes](docs/design.md)
 
@@ -39,7 +39,10 @@ implementations, and automated engineering workflows. The
 execution, investigation, comparison and export workflow. Broader estimator
 development remains planned.
 
-The hosted preview uses a temporary HTTPS address. Password recovery and
+The hosted preview is available at
+[meridian.victormonnot.com](https://meridian.victormonnot.com/); the previous
+address redirects there. [Domain validation](results/domain-migration/README.md)
+records DNS, HTTPS and authenticated browser checks. Password recovery and
 recording uploads remain unavailable. The
 [complete acceptance report](results/hosted-acceptance/README.md) records the
 browser workflow, fault and quota checks, off-server backup restoration and

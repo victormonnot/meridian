@@ -1,0 +1,358 @@
+{
+  "schema_version": 1,
+  "checked_at": "2026-10-20T13:30:07.105350+00:00",
+  "target": "meridian.victormonnot.com",
+  "expected_ipv4": "151.80.144.150",
+  "before": {
+    "observed_on": "2026-10-20",
+    "recorded_at": "2026-10-20T13:26:59.378725+00:00",
+    "timestamp_note": "Prior observation was recorded on the stated date; exact DNS request timestamps were not retained.",
+    "nameservers": [
+      "ns1.vercel-dns.com",
+      "ns2.vercel-dns.com"
+    ],
+    "meridian_A": [
+      "216.198.79.1",
+      "216.198.79.65"
+    ],
+    "meridian_A_TTL_seconds": 1800,
+    "meridian_AAAA": [],
+    "meridian_CNAME": [],
+    "apex_CAA": [
+      "0 issue \"letsencrypt.org\"",
+      "0 issue \"pki.goog\"",
+      "0 issue \"sectigo.com\""
+    ],
+    "apex_CAA_TTL_seconds": 60,
+    "other_subdomain_before_snapshot_available": false
+  },
+  "checks": {
+    "both_authoritative_nameservers_target_exact_vps": true,
+    "google_cloudflare_and_local_target_exact_vps": true,
+    "no_meridian_AAAA_or_CNAME": true,
+    "dns_changed_by_verification_tools": false
+  },
+  "limitations": [
+    "DNS control-panel edit was performed by the domain owner.",
+    "Recursive observations are point-in-time checks, not a guarantee that every resolver cache has expired.",
+    "Apex/ARGOS/IRIS/Lab records were observed after migration; exact before snapshots were not available for comparison."
+  ],
+  "after": {
+    "authoritative": [
+      {
+        "checked_at": "2026-10-20T13:30:06.409896+00:00",
+        "nameserver": "ns1.vercel-dns.com",
+        "name": "meridian.victormonnot.com",
+        "type": "A",
+        "exit_code": 0,
+        "authoritative_answer": true,
+        "records": [
+          {
+            "name": "meridian.victormonnot.com.",
+            "ttl": "60",
+            "class": "IN",
+            "type": "A",
+            "data": "151.80.144.150"
+          }
+        ]
+      },
+      {
+        "checked_at": "2026-10-20T13:30:06.410170+00:00",
+        "nameserver": "ns1.vercel-dns.com",
+        "name": "meridian.victormonnot.com",
+        "type": "AAAA",
+        "exit_code": 0,
+        "authoritative_answer": true,
+        "records": [
+          {
+            "name": "victormonnot.com.",
+            "ttl": "600",
+            "class": "IN",
+            "type": "SOA",
+            "data": "ns1.vercel-dns.com. hostmaster.nsone.net. 1773836630 43200 7200 1209600 600"
+          }
+        ]
+      },
+      {
+        "checked_at": "2026-10-20T13:30:06.410255+00:00",
+        "nameserver": "ns1.vercel-dns.com",
+        "name": "meridian.victormonnot.com",
+        "type": "CNAME",
+        "exit_code": 0,
+        "authoritative_answer": true,
+        "records": [
+          {
+            "name": "victormonnot.com.",
+            "ttl": "600",
+            "class": "IN",
+            "type": "SOA",
+            "data": "ns1.vercel-dns.com. hostmaster.nsone.net. 1773836630 43200 7200 1209600 600"
+          }
+        ]
+      },
+      {
+        "checked_at": "2026-10-20T13:30:06.410307+00:00",
+        "nameserver": "ns2.vercel-dns.com",
+        "name": "meridian.victormonnot.com",
+        "type": "A",
+        "exit_code": 0,
+        "authoritative_answer": true,
+        "records": [
+          {
+            "name": "meridian.victormonnot.com.",
+            "ttl": "60",
+            "class": "IN",
+            "type": "A",
+            "data": "151.80.144.150"
+          }
+        ]
+      },
+      {
+        "checked_at": "2026-10-20T13:30:06.450801+00:00",
+        "nameserver": "ns2.vercel-dns.com",
+        "name": "meridian.victormonnot.com",
+        "type": "AAAA",
+        "exit_code": 0,
+        "authoritative_answer": true,
+        "records": [
+          {
+            "name": "victormonnot.com.",
+            "ttl": "600",
+            "class": "IN",
+            "type": "SOA",
+            "data": "ns1.vercel-dns.com. hostmaster.nsone.net. 1773836630 43200 7200 1209600 600"
+          }
+        ]
+      },
+      {
+        "checked_at": "2026-10-20T13:30:06.452356+00:00",
+        "nameserver": "ns2.vercel-dns.com",
+        "name": "meridian.victormonnot.com",
+        "type": "CNAME",
+        "exit_code": 0,
+        "authoritative_answer": true,
+        "records": [
+          {
+            "name": "victormonnot.com.",
+            "ttl": "600",
+            "class": "IN",
+            "type": "SOA",
+            "data": "ns1.vercel-dns.com. hostmaster.nsone.net. 1773836630 43200 7200 1209600 600"
+          }
+        ]
+      },
+      {
+        "checked_at": "2026-10-20T13:30:06.457357+00:00",
+        "nameserver": "ns1.vercel-dns.com",
+        "name": "victormonnot.com",
+        "type": "A",
+        "exit_code": 0,
+        "authoritative_answer": true,
+        "records": [
+          {
+            "name": "victormonnot.com.",
+            "ttl": "60",
+            "class": "IN",
+            "type": "A",
+            "data": "151.80.144.150"
+          }
+        ]
+      },
+      {
+        "checked_at": "2026-10-20T13:30:06.484467+00:00",
+        "nameserver": "ns1.vercel-dns.com",
+        "name": "victormonnot.com",
+        "type": "AAAA",
+        "exit_code": 0,
+        "authoritative_answer": true,
+        "records": [
+          {
+            "name": "victormonnot.com.",
+            "ttl": "600",
+            "class": "IN",
+            "type": "SOA",
+            "data": "ns1.vercel-dns.com. hostmaster.nsone.net. 1773836630 43200 7200 1209600 600"
+          }
+        ]
+      },
+      {
+        "checked_at": "2026-10-20T13:30:06.489749+00:00",
+        "nameserver": "ns1.vercel-dns.com",
+        "name": "victormonnot.com",
+        "type": "CNAME",
+        "exit_code": 0,
+        "authoritative_answer": true,
+        "records": [
+          {
+            "name": "victormonnot.com.",
+            "ttl": "600",
+            "class": "IN",
+            "type": "SOA",
+            "data": "ns1.vercel-dns.com. hostmaster.nsone.net. 1773836630 43200 7200 1209600 600"
+          }
+        ]
+      },
+      {
+        "checked_at": "2026-10-20T13:30:06.570410+00:00",
+        "nameserver": "ns1.vercel-dns.com",
+        "name": "victormonnot.com",
+        "type": "CAA",
+        "exit_code": 0,
+        "authoritative_answer": true,
+        "records": [
+          {
+            "name": "victormonnot.com.",
+            "ttl": "60",
+            "class": "IN",
+            "type": "CAA",
+            "data": "0 issue \"letsencrypt.org\""
+          },
+          {
+            "name": "victormonnot.com.",
+            "ttl": "60",
+            "class": "IN",
+            "type": "CAA",
+            "data": "0 issue \"pki.goog\""
+          },
+          {
+            "name": "victormonnot.com.",
+            "ttl": "60",
+            "class": "IN",
+            "type": "CAA",
+            "data": "0 issue \"sectigo.com\""
+          }
+        ]
+      },
+      {
+        "checked_at": "2026-10-20T13:30:06.582909+00:00",
+        "nameserver": "ns1.vercel-dns.com",
+        "name": "victormonnot.com",
+        "type": "NS",
+        "exit_code": 0,
+        "authoritative_answer": true,
+        "records": [
+          {
+            "name": "victormonnot.com.",
+            "ttl": "86400",
+            "class": "IN",
+            "type": "NS",
+            "data": "ns1.vercel-dns.com."
+          },
+          {
+            "name": "victormonnot.com.",
+            "ttl": "86400",
+            "class": "IN",
+            "type": "NS",
+            "data": "ns2.vercel-dns.com."
+          }
+        ]
+      }
+    ],
+    "public_recursive": [
+      {
+        "checked_at": "2026-10-20T13:30:06.483397+00:00",
+        "provider": "google",
+        "name": "meridian.victormonnot.com",
+        "type": "A",
+        "status": 0,
+        "answers": [
+          {
+            "name": "meridian.victormonnot.com.",
+            "type": 1,
+            "TTL": 60,
+            "data": "151.80.144.150"
+          }
+        ],
+        "authority": []
+      },
+      {
+        "checked_at": "2026-10-20T13:30:06.579807+00:00",
+        "provider": "google",
+        "name": "meridian.victormonnot.com",
+        "type": "AAAA",
+        "status": 0,
+        "answers": [],
+        "authority": [
+          {
+            "name": "victormonnot.com.",
+            "type": 6,
+            "TTL": 600,
+            "data": "ns1.vercel-dns.com. hostmaster.nsone.net. 1773836630 43200 7200 1209600 600"
+          }
+        ]
+      },
+      {
+        "checked_at": "2026-10-20T13:30:06.662126+00:00",
+        "provider": "google",
+        "name": "meridian.victormonnot.com",
+        "type": "CNAME",
+        "status": 0,
+        "answers": [],
+        "authority": [
+          {
+            "name": "victormonnot.com.",
+            "type": 6,
+            "TTL": 600,
+            "data": "ns1.vercel-dns.com. hostmaster.nsone.net. 1773836630 43200 7200 1209600 600"
+          }
+        ]
+      },
+      {
+        "checked_at": "2026-10-20T13:30:06.740789+00:00",
+        "provider": "cloudflare",
+        "name": "meridian.victormonnot.com",
+        "type": "A",
+        "status": 0,
+        "answers": [
+          {
+            "name": "meridian.victormonnot.com",
+            "type": 1,
+            "TTL": 60,
+            "data": "151.80.144.150"
+          }
+        ],
+        "authority": []
+      },
+      {
+        "checked_at": "2026-10-20T13:30:06.839160+00:00",
+        "provider": "cloudflare",
+        "name": "meridian.victormonnot.com",
+        "type": "AAAA",
+        "status": 0,
+        "answers": [],
+        "authority": [
+          {
+            "name": "victormonnot.com",
+            "type": 6,
+            "TTL": 600,
+            "data": "ns1.vercel-dns.com. hostmaster.nsone.net. 1773836630 43200 7200 1209600 600"
+          }
+        ]
+      },
+      {
+        "checked_at": "2026-10-20T13:30:06.930934+00:00",
+        "provider": "cloudflare",
+        "name": "meridian.victormonnot.com",
+        "type": "CNAME",
+        "status": 0,
+        "answers": [],
+        "authority": [
+          {
+            "name": "victormonnot.com",
+            "type": 6,
+            "TTL": 600,
+            "data": "ns1.vercel-dns.com. hostmaster.nsone.net. 1773836630 43200 7200 1209600 600"
+          }
+        ]
+      }
+    ],
+    "local_resolver": {
+      "checked_at": "2026-10-20T13:30:07.084927+00:00",
+      "method": "socket.getaddrinfo through system resolver",
+      "addresses": [
+        "151.80.144.150"
+      ]
+    }
+  },
+  "raw_report_sha256": "c99f4ab5b07310f84d053142582f9288c9c29070a67fee3bae0bccd43d07fc55"
+}
