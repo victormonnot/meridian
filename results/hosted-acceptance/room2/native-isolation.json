@@ -1,0 +1,138 @@
+{
+  "containers": [
+    {
+      "capabilities_dropped": [
+        "ALL"
+      ],
+      "container_id": "560fd434e4c3f4a83735e882895443ac3ef24e46a41039c20e2f61d6e3cfb5d5",
+      "docker_socket_mount_present": false,
+      "image_id": "sha256:73e1213d073ce52a9a509decb15628a7c043e0690609171c4b9382ed0c2730da",
+      "memory_limit_bytes": 4294967296,
+      "memory_swap_limit_bytes": 4294967296,
+      "mounts": [
+        {
+          "destination": "/output",
+          "read_only": false,
+          "type": "bind"
+        },
+        {
+          "destination": "/sensors",
+          "read_only": true,
+          "type": "bind"
+        },
+        {
+          "destination": "/config",
+          "read_only": true,
+          "type": "bind"
+        }
+      ],
+      "nano_cpus": 2000000000,
+      "native_reference_mount_present": false,
+      "network_mode": "none",
+      "non_root_user": true,
+      "observed_at": "2026-10-20T09:29:14.643690+00:00",
+      "pids_limit": 128,
+      "read_only_rootfs": true,
+      "run_directory": "run-1",
+      "security_options": [
+        "no-new-privileges"
+      ],
+      "state": "running",
+      "tmpfs": {
+        "/tmp": "rw,noexec,nosuid,size=128m"
+      }
+    },
+    {
+      "capabilities_dropped": [
+        "ALL"
+      ],
+      "container_id": "d4b9e62051af19e1e1b854495e8af4639d6af753a54acce2460ef99eec41b00b",
+      "docker_socket_mount_present": false,
+      "image_id": "sha256:73e1213d073ce52a9a509decb15628a7c043e0690609171c4b9382ed0c2730da",
+      "memory_limit_bytes": 4294967296,
+      "memory_swap_limit_bytes": 4294967296,
+      "mounts": [
+        {
+          "destination": "/sensors",
+          "read_only": true,
+          "type": "bind"
+        },
+        {
+          "destination": "/config",
+          "read_only": true,
+          "type": "bind"
+        },
+        {
+          "destination": "/output",
+          "read_only": false,
+          "type": "bind"
+        }
+      ],
+      "nano_cpus": 2000000000,
+      "native_reference_mount_present": false,
+      "network_mode": "none",
+      "non_root_user": true,
+      "observed_at": "2026-10-20T09:30:04.054788+00:00",
+      "pids_limit": 128,
+      "read_only_rootfs": true,
+      "run_directory": "run-2",
+      "security_options": [
+        "no-new-privileges"
+      ],
+      "state": "running",
+      "tmpfs": {
+        "/tmp": "rw,noexec,nosuid,size=128m"
+      }
+    },
+    {
+      "capabilities_dropped": [
+        "ALL"
+      ],
+      "container_id": "5cf3fe2daa98c2cd4078f24d3b7c36fe112528f37a53dc68ff46f601358fe2d3",
+      "docker_socket_mount_present": false,
+      "image_id": "sha256:73e1213d073ce52a9a509decb15628a7c043e0690609171c4b9382ed0c2730da",
+      "memory_limit_bytes": 4294967296,
+      "memory_swap_limit_bytes": 4294967296,
+      "mounts": [
+        {
+          "destination": "/sensors",
+          "read_only": true,
+          "type": "bind"
+        },
+        {
+          "destination": "/config",
+          "read_only": true,
+          "type": "bind"
+        },
+        {
+          "destination": "/output",
+          "read_only": false,
+          "type": "bind"
+        }
+      ],
+      "nano_cpus": 2000000000,
+      "native_reference_mount_present": false,
+      "network_mode": "none",
+      "non_root_user": true,
+      "observed_at": "2026-10-20T09:30:53.281343+00:00",
+      "pids_limit": 128,
+      "read_only_rootfs": true,
+      "run_directory": "run-3",
+      "security_options": [
+        "no-new-privileges"
+      ],
+      "state": "running",
+      "tmpfs": {
+        "/tmp": "rw,noexec,nosuid,size=128m"
+      }
+    }
+  ],
+  "evaluation_mode": "separate_host_python_after_native_execution",
+  "limitations": [
+    "Polling observes running container configuration; does not sample every transient or prove future deployments.",
+    "Local reserved-recording acceptance uses the trusted local evaluator; hosted evaluator isolation is verified separately."
+  ],
+  "native_containers_observed": 3,
+  "process_exit_code": 1,
+  "schema_version": 1
+}

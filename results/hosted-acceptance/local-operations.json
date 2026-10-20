@@ -1,0 +1,205 @@
+{
+  "schema_version": 1,
+  "passed": true,
+  "started_at": "2026-10-20T09:49:12.758911+00:00",
+  "finished_at": "2026-10-20T09:52:27.305507+00:00",
+  "transport": "http",
+  "method": "Operator-induced faults on disposable accounts and jobs.",
+  "source_report_sha256": "591da2d41c6ccf6e89335491e58e33410478714928af9adab5483399b3473650",
+  "harness_sha256": "df96e72195dc5953f8dd25238df378278483caadbc45fe2eb857fea92465f300",
+  "images": {
+    "api": "sha256:034f591d4a4f198857ba396bdd82aabb07a810070fb174b98f82858d935bf068",
+    "worker": "sha256:cbf6286a9b6045dfbb6ce10c49d06d2f46d1b961b69892ffa580216112226478",
+    "db": "sha256:589f742565e4f6d22149176b032974f55f8201a8a37b71ed587ec5c6902e689f"
+  },
+  "checks": [
+    "initial deployment has no active jobs or native children",
+    "five disposable accounts have independent owned projects",
+    "HTTP account/project identities bind to the exact Compose database",
+    "worker recovery removes old child before retry",
+    "worker recovery preserves failed attempt and succeeds once",
+    "recovered result keeps its original saved specification",
+    "recovered export matches its transport SHA-256 and byte length",
+    "cancel interruption has no successful metrics or complete export",
+    "native interruption has no successful metrics or complete export",
+    "interrupted native output is a terminal numerical failure",
+    "execution scenarios leave no native children",
+    "corrupt retained artifact cannot be exported",
+    "restoring exact bytes restores the identical export",
+    "accelerated expiration revokes export without erasing metrics",
+    "worker physically collects the accelerated expired attempt",
+    "global queue admits eight and rejects ninth below account limit",
+    "queued cancellation releases all eight active slots",
+    "ten accepted account submissions survive cancellation and deletion",
+    "daily limit provides a positive bounded Retry-After",
+    "idempotent retry still returns its existing job at daily limit",
+    "cleanup preserves initial database record counts",
+    "cleanup physically removes all owned artifact directories"
+  ],
+  "maximum_observed_native_concurrency": 1,
+  "events": [
+    {
+      "at": "2026-10-20T09:49:20.177639+00:00",
+      "state": "queued",
+      "phase": "queued",
+      "attempt_count": 0,
+      "scenario": "worker_recovery"
+    },
+    {
+      "at": "2026-10-20T09:49:21.196220+00:00",
+      "state": "running",
+      "phase": "preparing",
+      "attempt_count": 1,
+      "scenario": "worker_recovery"
+    },
+    {
+      "at": "2026-10-20T09:49:30.398420+00:00",
+      "state": "running",
+      "phase": "estimating",
+      "attempt_count": 1,
+      "scenario": "worker_recovery"
+    },
+    {
+      "at": "2026-10-20T09:50:02.498350+00:00",
+      "state": "running",
+      "phase": "preparing",
+      "attempt_count": 2,
+      "scenario": "worker_recovery"
+    },
+    {
+      "at": "2026-10-20T09:50:12.731369+00:00",
+      "state": "running",
+      "phase": "estimating",
+      "attempt_count": 2,
+      "scenario": "worker_recovery"
+    },
+    {
+      "at": "2026-10-20T09:50:58.912622+00:00",
+      "state": "evaluating",
+      "phase": "evaluating",
+      "attempt_count": 2,
+      "scenario": "worker_recovery"
+    },
+    {
+      "at": "2026-10-20T09:51:12.218959+00:00",
+      "state": "succeeded",
+      "phase": "complete",
+      "attempt_count": 2,
+      "scenario": "worker_recovery"
+    },
+    {
+      "at": "2026-10-20T09:51:12.440796+00:00",
+      "state": "queued",
+      "phase": "queued",
+      "attempt_count": 0,
+      "scenario": "active_cancellation"
+    },
+    {
+      "at": "2026-10-20T09:51:14.497103+00:00",
+      "state": "running",
+      "phase": "preparing",
+      "attempt_count": 1,
+      "scenario": "active_cancellation"
+    },
+    {
+      "at": "2026-10-20T09:51:28.793117+00:00",
+      "state": "running",
+      "phase": "estimating",
+      "attempt_count": 1,
+      "scenario": "active_cancellation"
+    },
+    {
+      "at": "2026-10-20T09:51:34.850429+00:00",
+      "state": "cancelled",
+      "phase": "complete",
+      "attempt_count": 1,
+      "scenario": "active_cancellation"
+    },
+    {
+      "at": "2026-10-20T09:51:34.887872+00:00",
+      "state": "queued",
+      "phase": "queued",
+      "attempt_count": 0,
+      "scenario": "native_interruption"
+    },
+    {
+      "at": "2026-10-20T09:51:36.929473+00:00",
+      "state": "running",
+      "phase": "preparing",
+      "attempt_count": 1,
+      "scenario": "native_interruption"
+    },
+    {
+      "at": "2026-10-20T09:51:45.113042+00:00",
+      "state": "running",
+      "phase": "estimating",
+      "attempt_count": 1,
+      "scenario": "native_interruption"
+    },
+    {
+      "at": "2026-10-20T09:51:47.073334+00:00",
+      "state": "failed",
+      "phase": "complete",
+      "attempt_count": 1,
+      "scenario": "native_interruption"
+    }
+  ],
+  "faults": [
+    {
+      "at": "2026-10-20T09:49:32.293544+00:00",
+      "kind": "worker",
+      "scenario": "worker_recovery"
+    },
+    {
+      "at": "2026-10-20T09:51:29.696886+00:00",
+      "kind": "cancel",
+      "scenario": "active_cancellation"
+    },
+    {
+      "at": "2026-10-20T09:51:45.989134+00:00",
+      "kind": "native",
+      "scenario": "native_interruption"
+    }
+  ],
+  "recovered_export": {
+    "sha256": "5408af5de3149a78efc845410a100cd7a609f6e147e219d8a909cb052c7d0f6d",
+    "size_bytes": 681400,
+    "inventory_members_verified": 38,
+    "zip_entries": 39,
+    "specification_sha256": "521227054edeac5226ec9ab25e6a9190475affc62c64ce96057b5402bbf73677",
+    "inventory_audit": "Every declared member is independently checked with Python stdlib ZIP/SHA-256; this is not a numerical replay."
+  },
+  "cleanup": {
+    "deleted": {
+      "workspace.JobAttempt": 4,
+      "workspace.ExperimentRevision": 5,
+      "workspace.Job": 11,
+      "workspace.Experiment": 5,
+      "workspace.Project": 5,
+      "auth.User": 5
+    },
+    "global_submission_budget_preserved": true,
+    "database_after": {
+      "users": 13,
+      "projects": 4,
+      "experiments": 3,
+      "jobs": 0,
+      "comparisons": 0
+    }
+  },
+  "database_before": {
+    "users": 13,
+    "projects": 4,
+    "experiments": 3,
+    "jobs": 0,
+    "comparisons": 0
+  },
+  "limitations": [
+    "Native interruption is induced, not an observed estimator defect.",
+    "Expiration is advanced on one owned job; seven days do not elapse.",
+    "Polling and container event times are observations, not a throughput guarantee.",
+    "Global retained and daily boundaries are separately checked with PostgreSQL fixtures.",
+    "Disposable identities and raw account/job responses are omitted; source evidence remains private.",
+    "The native SIGKILL is operator-induced; numerical_failure is the actual service classification, not a discovered estimator defect."
+  ]
+}

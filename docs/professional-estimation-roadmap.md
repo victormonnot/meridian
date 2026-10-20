@@ -1,16 +1,19 @@
 # Professional state-estimation workspace
 
-**Status: development roadmap, 2026-10-18.** The product direction prioritizes
+**Status: development roadmap, 2026-10-20.** The product direction prioritizes
 professional state-estimation engineering with visual-inertial odometry (VIO)
-and operation without reliable GNSS. The major parts below describe planned
-work. Part 1 has a [detailed implementation plan](part-1-hosted-vio-workspace.md);
+and operation without reliable GNSS. Part 1's bounded hosted workflow is
+complete; the remaining major parts describe planned work.
+Part 1 has a [detailed implementation record](part-1-hosted-vio-workspace.md);
 later parts remain at outcome level. The [README](../README.md) and
 [design notes](design.md) describe the implementation available today. The first
 [local VIO reference](vio-reference.md) is implemented and qualified, and a
 [private project workspace](hosted-workspace.md) is deployed.
 [Durable VIO computation](hosted-vio-jobs.md) implements execution of maintained
-reference jobs; general estimator integration/development and AI engineering
-agents remain planned.
+reference jobs. The [complete acceptance report](../results/hosted-acceptance/README.md)
+records the full workflow, off-server recovery and independent replay, while
+preserving the reserved room2 coverage failure. User acquisitions, general
+estimator integration/development and AI engineering agents remain planned.
 
 ## Product objective
 
@@ -310,7 +313,11 @@ adds durable isolated VIO jobs using those same specifications. Increment 1.5
 adds synchronized investigation, and increment 1.6 adds saved comparisons with
 explicit common support. Increment 1.7 adds
 [independent exports and verified reproduction](../results/exports/README.md).
-Full hosted acceptance remains planned for increment 1.8.
+Increment 1.8 completes [hosted acceptance](../results/hosted-acceptance/README.md),
+including operational faults, quotas, off-server backup restoration and replay
+after deleting the source job. The separately evaluated room2 recording fails
+the unchanged coverage gates. Subsequent parts must retain that result and address
+input/reference validation; they are not detailed in advance here.
 
 ## Existing tools and research
 

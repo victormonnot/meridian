@@ -1,4 +1,4 @@
-"""Acquire the pinned room1 benchmark and separate sensor inputs from references.
+"""Acquire pinned benchmark recordings and separate sensor inputs from references.
 
 Preparation is intentionally specific to the calibrated TUM-VI EuRoC export.
 It is not a general recording importer. Manifests identify files; they are not
@@ -29,6 +29,15 @@ ROOM1 = {
     "md5": "51d2b8d93ee4ada47ec0b2d10115dcf8",
     "size_bytes": 1707110400,
 }
+ROOM2_DATASET_ID = "tum-vi-room2-512-16"
+ROOM2_ARCHIVE_ROOT = "dataset-room2_512_16"
+ROOM2 = {
+    "url": "https://vision.in.tum.de/tumvi/exported/euroc/512_16/dataset-room2_512_16.tar",
+    "archive_name": "dataset-room2_512_16.tar",
+    "sha256": "70343c5bbd9d674d0a2790bf934ee7d9cc08c1dea7cd77747a5557e4c94973f6",
+    "md5": "412ec1596f2973a5cefac6a351a43486",
+    "size_bytes": 1759395840,
+}
 LICENSE = {
     "spdx": "CC-BY-4.0",
     "url": "https://creativecommons.org/licenses/by/4.0/",
@@ -57,10 +66,6 @@ _CONFIG_PATH = re.compile(r"config/[A-Za-z0-9_-]+\.(?:yaml|yml|png)\Z")
 _SENSOR_CSV = {f"sensors/mav0/{name}/data.csv" for name in ("cam0", "cam1", "imu0")}
 _MANIFEST_KEYS = {"schema_version", "dataset_id", "source", "license", "sensor_root",
                   "reference", "streams", "files"}
-_IGNORED_DSO_LINKS = {
-    f"{ARCHIVE_ROOT}/dso/{camera}/images": f"../../mav0/{camera}/data"
-    for camera in ("cam0", "cam1")
-}
 
 
 def _plain_file(path: Path) -> None:
@@ -92,12 +97,22 @@ def _archive_identity(path: Path) -> dict:
 
 def _check_archive_identity(identity: dict, pin: dict) -> None:
     if any(identity[key] != pin[key] for key in ("sha256", "md5", "size_bytes")):
-        raise ValueError("archive does not match the pinned calibrated room1 recording")
+        sequence = "room2" if pin.get("archive_name") == ROOM2["archive_name"] else "room1"
+        raise ValueError(f"archive does not match the pinned calibrated {sequence} recording")
 
 
-def download_dataset(output_archive: Path) -> dict:
-    """Download only the pinned room1 archive; refuse an existing destination."""
-    return _download_dataset(Path(output_archive), ROOM1)
+def _dataset_profile(dataset_id: str) -> tuple[dict, str]:
+    if dataset_id == DATASET_ID:
+        return ROOM1, ARCHIVE_ROOT
+    if dataset_id == ROOM2_DATASET_ID:
+        return ROOM2, ROOM2_ARCHIVE_ROOT
+    raise ValueError("unsupported pinned recording identity")
+
+
+def download_dataset(output_archive: Path, *, dataset_id: str = DATASET_ID) -> dict:
+    """Download an explicitly supported recording; the default remains room1."""
+    pin, _ = _dataset_profile(dataset_id)
+    return _download_dataset(Path(output_archive), pin)
 
 
 def _download_dataset(output_archive: Path, pin: dict) -> dict:
@@ -254,31 +269,40 @@ def _streams(root: Path, file_names: set[str]) -> dict:
             "imu0": _stream_summary(imu), "reference": _stream_summary(reference)}
 
 
-def prepare_dataset(archive: Path, output: Path, config_source: Path) -> dict:
-    """Prepare room1 with sensor-only input, separate truth, and exact config copies."""
-    return _prepare_dataset(Path(archive), Path(output), Path(config_source), ROOM1)
+def prepare_dataset(archive: Path, output: Path, config_source: Path, *,
+                    dataset_id: str = DATASET_ID) -> dict:
+    """Prepare a pinned recording with sensor-only inputs and separate reference."""
+    pin, archive_root = _dataset_profile(dataset_id)
+    return _prepare_dataset(Path(archive), Path(output), Path(config_source), pin,
+                            dataset_id=dataset_id, archive_root=archive_root)
 
 
-def _prepare_dataset(archive: Path, output: Path, config_source: Path, pin: dict) -> dict:
+def _prepare_dataset(archive: Path, output: Path, config_source: Path, pin: dict, *,
+                     dataset_id: str = DATASET_ID, archive_root: str = ARCHIVE_ROOT) -> dict:
     if output.exists() or output.is_symlink():
         raise FileExistsError(output)
     _check_archive_identity(_archive_identity(archive), pin)
     configs = _inventory(config_source)
     if not configs or any(not _CONFIG_PATH.fullmatch(f"config/{name}") for name in configs):
         raise ValueError("configuration must contain only top-level YAML and PNG files")
+    reference = {**REFERENCE, "source_path": f"{archive_root}/mav0/mocap0/data.csv"}
+    ignored_dso_links = {
+        f"{archive_root}/dso/{camera}/images": f"../../mav0/{camera}/data"
+        for camera in ("cam0", "cam1")
+    }
     with tarfile.open(archive, "r:") as source:
         members = {}
         for member in source:
             name = member.name.rstrip("/") if member.isdir() else member.name
             path = _relative_name(name)
-            if path.parts[0] != ARCHIVE_ROOT:
+            if path.parts[0] != archive_root:
                 raise ValueError("unexpected archive root")
             if name in members:
                 raise ValueError("duplicate archive member")
             # The official export also contains two unused DSO image aliases.
             # Recognize only those exact metadata entries, never extract them.
-            ignored_alias = (member.issym() and name in _IGNORED_DSO_LINKS
-                             and member.linkname == _IGNORED_DSO_LINKS[name])
+            ignored_alias = (member.issym() and name in ignored_dso_links
+                             and member.linkname == ignored_dso_links[name])
             if not member.isfile() and not member.isdir() and not ignored_alias:
                 raise ValueError("archive links and special files are not supported")
             members[name] = member
@@ -287,11 +311,11 @@ def _prepare_dataset(archive: Path, output: Path, config_source: Path, pin: dict
         for name, member in members.items():
             if not member.isfile():
                 continue
-            relative = name.removeprefix(ARCHIVE_ROOT + "/")
+            relative = name.removeprefix(archive_root + "/")
             target = "sensors/" + relative
             if target in _SENSOR_CSV or _PNG_PATH.fullmatch(target):
                 selected[target] = member
-            elif name == REFERENCE["source_path"]:
+            elif name == reference["source_path"]:
                 mocap = member
         if not _SENSOR_CSV.issubset(selected) or mocap is None:
             raise ValueError("archive is missing a required sensor or reference stream")
@@ -315,35 +339,44 @@ def _prepare_dataset(archive: Path, output: Path, config_source: Path, pin: dict
             files = _inventory(output)
             streams = _streams(output, set(files))
             manifest = {
-                "schema_version": 1, "dataset_id": DATASET_ID, "source": dict(pin),
+                "schema_version": 1, "dataset_id": dataset_id, "source": dict(pin),
                 "license": dict(LICENSE), "sensor_root": "sensors/mav0",
-                "reference": dict(REFERENCE), "streams": streams,
+                "reference": reference, "streams": streams,
                 "files": {name: _file_identity(path) for name, path in files.items()},
             }
             (output / "manifest.json").write_text(
                 json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-            return _verify_prepared(output, pin)
+            return _verify_prepared(output, pin, dataset_id=dataset_id, archive_root=archive_root)
         except BaseException:
             shutil.rmtree(output)
             raise
 
 
 def verify_prepared(path: Path) -> dict:
-    """Verify the pinned source, exact file inventory, hashes, and stream semantics."""
-    return _verify_prepared(Path(path), ROOM1)
+    """Verify an allowlisted recording's source, inventory, hashes and semantics."""
+    path = Path(path)
+    _plain_file(path / "manifest.json")
+    manifest = json.loads((path / "manifest.json").read_text(encoding="utf-8"))
+    if not isinstance(manifest, dict):
+        raise ValueError("unsupported prepared dataset manifest")
+    dataset_id = manifest.get("dataset_id")
+    pin, archive_root = _dataset_profile(dataset_id)
+    return _verify_prepared(path, pin, dataset_id=dataset_id, archive_root=archive_root)
 
 
-def _verify_prepared(path: Path, pin: dict) -> dict:
+def _verify_prepared(path: Path, pin: dict, *,
+                     dataset_id: str = DATASET_ID, archive_root: str = ARCHIVE_ROOT) -> dict:
     files = _inventory(path)
     if "manifest.json" not in files:
         raise ValueError("prepared dataset has no manifest")
     manifest = json.loads(files.pop("manifest.json").read_text(encoding="utf-8"))
+    reference = {**REFERENCE, "source_path": f"{archive_root}/mav0/mocap0/data.csv"}
     if (not isinstance(manifest, dict) or set(manifest) != _MANIFEST_KEYS
             or type(manifest.get("schema_version")) is not int
-            or manifest["schema_version"] != 1 or manifest.get("dataset_id") != DATASET_ID
+            or manifest["schema_version"] != 1 or manifest.get("dataset_id") != dataset_id
             or manifest.get("source") != pin or manifest.get("license") != LICENSE
             or manifest.get("sensor_root") != "sensors/mav0"
-            or manifest.get("reference") != REFERENCE):
+            or manifest.get("reference") != reference):
         raise ValueError("unsupported or inconsistent prepared dataset manifest")
     recorded = manifest.get("files")
     if not isinstance(recorded, dict) or set(recorded) != set(files):

@@ -1,0 +1,9 @@
+{
+  "dataset_id": "tum-vi-room1-512-16",
+  "expected_manifest_sha256": "e55f0480533611fc1e198d16b181814a8d34752cb748becbfeec7bcb4908ba6d",
+  "files_verified": 5651,
+  "manifest_sha256": "e55f0480533611fc1e198d16b181814a8d34752cb748becbfeec7bcb4908ba6d",
+  "manifest_unchanged": true,
+  "schema_version": 1,
+  "verification_seconds": 7.543804292001369
+}

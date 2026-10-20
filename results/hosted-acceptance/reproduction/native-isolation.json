@@ -1,0 +1,46 @@
+{
+  "all_mounts_outside_checkout": true,
+  "capabilities_dropped": [
+    "ALL"
+  ],
+  "docker_socket_mount_present": false,
+  "limitations": [
+    "One live configuration observation during independent replay; not continuous instrumentation.",
+    "Independent evaluation is trusted host Python after native execution, separate from hosted evaluation-container qualification."
+  ],
+  "memory_limit_bytes": 4294967296,
+  "memory_swap_limit_bytes": 4294967296,
+  "mounts": [
+    {
+      "destination": "/sensors",
+      "read_only": true,
+      "type": "bind"
+    },
+    {
+      "destination": "/config",
+      "read_only": true,
+      "type": "bind"
+    },
+    {
+      "destination": "/output",
+      "read_only": false,
+      "type": "bind"
+    }
+  ],
+  "nano_cpus": 2000000000,
+  "native_reference_mount_present": false,
+  "network_mode": "none",
+  "non_root_user": true,
+  "observed_at_utc": "2026-10-20T10:16:21.542609+00:00",
+  "pids_limit": 128,
+  "read_only_rootfs": true,
+  "runtime_image_id": "sha256:213dad232a508955fcaf80452dbf10f696981eb1562e5ac5eb9f8faae75bb82d",
+  "schema_version": 1,
+  "security_options": [
+    "no-new-privileges"
+  ],
+  "state": "running",
+  "tmpfs": {
+    "/tmp": "rw,noexec,nosuid,size=128m"
+  }
+}

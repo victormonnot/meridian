@@ -1,0 +1,670 @@
+{
+  "schema_version": 1,
+  "scope": "One actual complete UI workflow with two temporary accounts; three successful native executions and one queued cancellation.",
+  "passed": true,
+  "started_at": "2026-10-20T09:32:09.484Z",
+  "checked_at": "2026-10-20T09:35:54.569Z",
+  "harness": {
+    "path": "web/scripts/check-workspace-acceptance-browser.mjs",
+    "sha256": "909996bea466bebfba88e7825b9f80472ad1fcb26ca0da7b0b7ea05becf6d333",
+    "predeclared_checks": 50,
+    "completed_checks": 50
+  },
+  "source_evidence": {
+    "raw_report_sha256": "7e2dca9738400254c93ec74fb16df5cac3bac3266c28d8847246bca8320a08c3",
+    "raw_report_bytes": 71901,
+    "predeclared_checklist_sha256": "e4ce3655679b88db46cfa418a89c496b837fa3678e853c9b97e1bb793064993d",
+    "publication": "An explicit field allowlist was used; account names, sessions, credentials and machine-local paths are omitted."
+  },
+  "environment": {
+    "description": "Linux x86_64 development workstation; browser and local Docker workspace share this physical machine; HTTP 127.0.0.1:8090; actual qualified native execution, no response fixtures.",
+    "platform": "linux",
+    "release": "6.18.33.2-microsoft-standard-WSL2",
+    "architecture": "x64",
+    "node": "v22.22.1",
+    "browser": "155.0.8059.84",
+    "headless": true,
+    "transport": "http",
+    "certificate_validation": "Default browser validation; no ignoreHTTPSErrors override."
+  },
+  "request_counts": {
+    "temporary_accounts": 2,
+    "private_projects": 2,
+    "experiments": 2,
+    "admitted_jobs": 4,
+    "successful_jobs": 3,
+    "cancelled_queued_jobs": 1,
+    "refused_active_quota_submissions": 1,
+    "saved_comparisons": 1
+  },
+  "runs_in_execution_order": [
+    {
+      "account_role": "owner",
+      "job_id": "b2880329-b704-4b0e-861e-3bac6821ed1c",
+      "revision_version": 1,
+      "parameters": {
+        "num_pts": 200
+      },
+      "specification_sha256": "521227054edeac5226ec9ab25e6a9190475affc62c64ce96057b5402bbf73677",
+      "state": "succeeded",
+      "attempt_count": 1,
+      "created_at": "2026-10-20T09:32:12.674368+00:00",
+      "started_at": "2026-10-20T09:32:12.725011+00:00",
+      "finished_at": "2026-10-20T09:33:30.677205+00:00",
+      "queue_wait_seconds": 0.050643,
+      "execution_interval_seconds": 77.952194,
+      "execution": {
+        "native_cpu_seconds": 51.210709,
+        "native_peak_rss_kib": 81052,
+        "native_wall_seconds": 51.348603636,
+        "container_wall_seconds": 52.10088794500007
+      },
+      "evaluation": {
+        "counts": {
+          "estimate_samples": 2689,
+          "reference_samples": 16541,
+          "expected_camera_samples": 2821,
+          "evaluated_camera_samples": 2624,
+          "missing_initial_camera_samples": 132,
+          "missing_interior_camera_samples": 0,
+          "missing_trailing_camera_samples": 0,
+          "reference_supported_camera_samples": 2756
+        },
+        "status": "ok",
+        "metrics": {
+          "ate_rmse_m": 0.0612163695742259,
+          "orientation_rmse_deg": 1.3255413925517476,
+          "orientation_rmse_rad": 0.023135061671498636,
+          "position_error_max_m": 0.109949022489596,
+          "position_error_mean_m": 0.05697479331128086,
+          "orientation_error_max_deg": 4.307316076259924,
+          "orientation_error_mean_deg": 1.2005629690623147
+        },
+        "protocol": {
+          "name": "meridian-vio-se3",
+          "version": 1,
+          "alignment": "global_se3_least_squares_over_all_evaluated_positions",
+          "weighting": "equal_weight_per_evaluated_camera_sample",
+          "scale_fitted": false,
+          "removed_gauge": "constant_world_rotation_including_roll_pitch_yaw_and_translation",
+          "time_offset_fitted": false,
+          "max_reference_gap_ns": 20000000,
+          "quaternion_convention": "Hamilton_xyzw_body_to_world",
+          "reference_association": "linear_position_shortest_arc_slerp_without_extrapolation",
+          "estimate_interpolation": false,
+          "initialization_exclusion": "none",
+          "initialization_delay_definition": "first_estimated_camera_timestamp_minus_first_expected_timestamp",
+          "max_estimate_timestamp_error_ns": 1000
+        },
+        "coverage_fraction": 0.9532080822403403,
+        "evaluated_fraction": 0.9301666075859625,
+        "initialization_delay_s": 6.600339685000001,
+        "reference_coverage_fraction": 0.9769585253456221
+      },
+      "qualification": {
+        "checks": {
+          "evaluation_ok": true,
+          "position_error": true,
+          "estimate_coverage": true,
+          "evaluated_samples": true,
+          "orientation_error": true,
+          "evaluated_coverage": true,
+          "reference_coverage": true,
+          "initialization_delay": true
+        },
+        "passed": true
+      },
+      "artifacts": {
+        "file_count": 18,
+        "total_bytes": 11182519,
+        "manifest_sha256": "6c0f301ef690e3700eea9c01926a56c2487bc4b43d35320afa61ca99545822c0"
+      },
+      "investigation_available": true,
+      "export_available": true
+    },
+    {
+      "account_role": "peer",
+      "job_id": "5b0b28cc-9475-472e-8af0-8e16d4e217f0",
+      "revision_version": 1,
+      "parameters": {
+        "num_pts": 200
+      },
+      "specification_sha256": "521227054edeac5226ec9ab25e6a9190475affc62c64ce96057b5402bbf73677",
+      "state": "succeeded",
+      "attempt_count": 1,
+      "created_at": "2026-10-20T09:32:14.871898+00:00",
+      "started_at": "2026-10-20T09:33:30.729463+00:00",
+      "finished_at": "2026-10-20T09:34:47.983475+00:00",
+      "queue_wait_seconds": 75.857565,
+      "execution_interval_seconds": 77.254012,
+      "execution": {
+        "native_cpu_seconds": 49.115988,
+        "native_peak_rss_kib": 81840,
+        "native_wall_seconds": 49.074659596,
+        "container_wall_seconds": 49.712462712999695
+      },
+      "evaluation": {
+        "counts": {
+          "estimate_samples": 2689,
+          "reference_samples": 16541,
+          "expected_camera_samples": 2821,
+          "evaluated_camera_samples": 2624,
+          "missing_initial_camera_samples": 132,
+          "missing_interior_camera_samples": 0,
+          "missing_trailing_camera_samples": 0,
+          "reference_supported_camera_samples": 2756
+        },
+        "status": "ok",
+        "metrics": {
+          "ate_rmse_m": 0.0612163695742259,
+          "orientation_rmse_deg": 1.3255413925517476,
+          "orientation_rmse_rad": 0.023135061671498636,
+          "position_error_max_m": 0.109949022489596,
+          "position_error_mean_m": 0.05697479331128086,
+          "orientation_error_max_deg": 4.307316076259924,
+          "orientation_error_mean_deg": 1.2005629690623147
+        },
+        "protocol": {
+          "name": "meridian-vio-se3",
+          "version": 1,
+          "alignment": "global_se3_least_squares_over_all_evaluated_positions",
+          "weighting": "equal_weight_per_evaluated_camera_sample",
+          "scale_fitted": false,
+          "removed_gauge": "constant_world_rotation_including_roll_pitch_yaw_and_translation",
+          "time_offset_fitted": false,
+          "max_reference_gap_ns": 20000000,
+          "quaternion_convention": "Hamilton_xyzw_body_to_world",
+          "reference_association": "linear_position_shortest_arc_slerp_without_extrapolation",
+          "estimate_interpolation": false,
+          "initialization_exclusion": "none",
+          "initialization_delay_definition": "first_estimated_camera_timestamp_minus_first_expected_timestamp",
+          "max_estimate_timestamp_error_ns": 1000
+        },
+        "coverage_fraction": 0.9532080822403403,
+        "evaluated_fraction": 0.9301666075859625,
+        "initialization_delay_s": 6.600339685000001,
+        "reference_coverage_fraction": 0.9769585253456221
+      },
+      "qualification": {
+        "checks": {
+          "evaluation_ok": true,
+          "position_error": true,
+          "estimate_coverage": true,
+          "evaluated_samples": true,
+          "orientation_error": true,
+          "evaluated_coverage": true,
+          "reference_coverage": true,
+          "initialization_delay": true
+        },
+        "passed": true
+      },
+      "artifacts": {
+        "file_count": 18,
+        "total_bytes": 11182526,
+        "manifest_sha256": "ebd5c06e825a303a91bf2beaad34f4e38f5e8e9c5d4d8d2513c7ddd978039e55"
+      },
+      "investigation_available": true,
+      "export_available": true
+    },
+    {
+      "account_role": "owner",
+      "job_id": "98d1ebc3-d2f1-4a45-a886-2e360fda6c05",
+      "revision_version": 2,
+      "parameters": {
+        "num_pts": 100
+      },
+      "specification_sha256": "98e780babbc5fd1b8214a3afbe65e5b5dbe39196017a83361b93f7f7cd3e5f73",
+      "state": "succeeded",
+      "attempt_count": 1,
+      "created_at": "2026-10-20T09:33:35.444771+00:00",
+      "started_at": "2026-10-20T09:34:48.009631+00:00",
+      "finished_at": "2026-10-20T09:35:49.087076+00:00",
+      "queue_wait_seconds": 72.56486,
+      "execution_interval_seconds": 61.077445,
+      "execution": {
+        "native_cpu_seconds": 32.920655,
+        "native_peak_rss_kib": 81028,
+        "native_wall_seconds": 32.90238374,
+        "container_wall_seconds": 33.41135733199917
+      },
+      "evaluation": {
+        "counts": {
+          "estimate_samples": 2689,
+          "reference_samples": 16541,
+          "expected_camera_samples": 2821,
+          "evaluated_camera_samples": 2624,
+          "missing_initial_camera_samples": 132,
+          "missing_interior_camera_samples": 0,
+          "missing_trailing_camera_samples": 0,
+          "reference_supported_camera_samples": 2756
+        },
+        "status": "ok",
+        "metrics": {
+          "ate_rmse_m": 0.051132041394887494,
+          "orientation_rmse_deg": 1.532136616154553,
+          "orientation_rmse_rad": 0.026740828542261494,
+          "position_error_max_m": 0.11970868362413112,
+          "position_error_mean_m": 0.047872003451645086,
+          "orientation_error_max_deg": 4.428362220743539,
+          "orientation_error_mean_deg": 1.3471094574226026
+        },
+        "protocol": {
+          "name": "meridian-vio-se3",
+          "version": 1,
+          "alignment": "global_se3_least_squares_over_all_evaluated_positions",
+          "weighting": "equal_weight_per_evaluated_camera_sample",
+          "scale_fitted": false,
+          "removed_gauge": "constant_world_rotation_including_roll_pitch_yaw_and_translation",
+          "time_offset_fitted": false,
+          "max_reference_gap_ns": 20000000,
+          "quaternion_convention": "Hamilton_xyzw_body_to_world",
+          "reference_association": "linear_position_shortest_arc_slerp_without_extrapolation",
+          "estimate_interpolation": false,
+          "initialization_exclusion": "none",
+          "initialization_delay_definition": "first_estimated_camera_timestamp_minus_first_expected_timestamp",
+          "max_estimate_timestamp_error_ns": 1000
+        },
+        "coverage_fraction": 0.9532080822403403,
+        "evaluated_fraction": 0.9301666075859625,
+        "initialization_delay_s": 6.600339685000001,
+        "reference_coverage_fraction": 0.9769585253456221
+      },
+      "qualification": {
+        "checks": {
+          "evaluation_ok": true,
+          "position_error": true,
+          "estimate_coverage": true,
+          "evaluated_samples": true,
+          "orientation_error": true,
+          "evaluated_coverage": true,
+          "reference_coverage": true,
+          "initialization_delay": true
+        },
+        "passed": true
+      },
+      "artifacts": {
+        "file_count": 18,
+        "total_bytes": 11183376,
+        "manifest_sha256": "44be74bc008e297c1a0297fd10e72dbe7dbfb1e6ae66a2679a31a67d1e94b2f3"
+      },
+      "investigation_available": true,
+      "export_available": true
+    }
+  ],
+  "execution_intervals_do_not_overlap": true,
+  "cancelled_requests": [
+    {
+      "job_id": "343cc03c-8270-4f7a-90d8-a5aedf0da32f",
+      "state": "cancelled",
+      "attempt_count": 0,
+      "started_at": null,
+      "finished_at": "2026-10-20T09:32:15.427144+00:00",
+      "result_is_null": true
+    }
+  ],
+  "active_quota_response": {
+    "status": 409,
+    "error": {
+      "code": "queue_full",
+      "message": "The active job limit has been reached. Wait for completion or cancel queued work."
+    }
+  },
+  "comparison": {
+    "id": "febaad5f-9654-41a1-87f6-05eb00afb507",
+    "analysis_sha256": "c5dd06cca2705d2bc0f0d74d594bd26ee9bc42439350f4dcc6bc5810e6272374",
+    "baseline_job_id": "b2880329-b704-4b0e-861e-3bac6821ed1c",
+    "candidate_job_id": "98d1ebc3-d2f1-4a45-a886-2e360fda6c05",
+    "kind": "configuration_variant",
+    "configuration_changes": [
+      {
+        "parameter": "num_pts",
+        "label": "Feature target",
+        "baseline": 200,
+        "candidate": 100,
+        "unit": "features (total across two cameras after initialization)"
+      }
+    ],
+    "interval": {
+      "start_timestamp_ns": "1520530308199447626",
+      "end_timestamp_ns": "1520530449203911100",
+      "start_time_s": 0,
+      "end_time_s": 141.004463474,
+      "first_camera_index": 0,
+      "last_camera_index": 2820,
+      "boundary": "closed"
+    },
+    "common_support": {
+      "status": "ok",
+      "reason": null,
+      "expected_camera_samples": 2821,
+      "evaluated_camera_samples": 2624,
+      "fraction_of_expected": 0.9301666075859625,
+      "baseline_metrics": {
+        "ate_rmse_m": 0.0612163695742259,
+        "position_error_mean_m": 0.05697479331128086,
+        "position_error_max_m": 0.109949022489596,
+        "orientation_rmse_rad": 0.023135061671498636,
+        "orientation_rmse_deg": 1.3255413925517476,
+        "orientation_error_mean_deg": 1.2005629690623145,
+        "orientation_error_max_deg": 4.307316076259924
+      },
+      "candidate_metrics": {
+        "ate_rmse_m": 0.051132041394887494,
+        "position_error_mean_m": 0.04787200345164509,
+        "position_error_max_m": 0.11970868362413112,
+        "orientation_rmse_rad": 0.026740828542261494,
+        "orientation_rmse_deg": 1.532136616154553,
+        "orientation_error_mean_deg": 1.3471094574226024,
+        "orientation_error_max_deg": 4.428362220743539
+      },
+      "delta_candidate_minus_baseline": {
+        "ate_rmse_m": -0.010084328179338409,
+        "position_error_mean_m": -0.009102789859635765,
+        "position_error_max_m": 0.009759661134535122,
+        "orientation_rmse_rad": 0.0036057668707628575,
+        "orientation_rmse_deg": 0.20659522360280547,
+        "orientation_error_mean_deg": 0.14654648836028783,
+        "orientation_error_max_deg": 0.12104614448361506
+      }
+    },
+    "protocol": {
+      "version": 1,
+      "evaluation": {
+        "name": "meridian-vio-se3",
+        "version": 1,
+        "reference_association": "linear_position_shortest_arc_slerp_without_extrapolation",
+        "max_reference_gap_ns": 20000000,
+        "max_estimate_timestamp_error_ns": 1000,
+        "estimate_interpolation": false,
+        "alignment": "global_se3_least_squares_over_all_evaluated_positions",
+        "removed_gauge": "constant_world_rotation_including_roll_pitch_yaw_and_translation",
+        "scale_fitted": false,
+        "time_offset_fitted": false,
+        "weighting": "equal_weight_per_evaluated_camera_sample",
+        "initialization_exclusion": "none",
+        "initialization_delay_definition": "first_estimated_camera_timestamp_minus_first_expected_timestamp",
+        "quaternion_convention": "Hamilton_xyzw_body_to_world"
+      },
+      "alignment_scope": "original_per_run_full_recording_global_se3_unchanged",
+      "common_support": "intersection_of_evaluated_camera_samples",
+      "delta_convention": "candidate_minus_baseline",
+      "ranking": false,
+      "repeated_execution_aggregation": "none"
+    },
+    "warnings": [
+      {
+        "code": "global_alignment_retained",
+        "message": "Each run keeps its own full-recording SE3 alignment; interval and common-support scores do not refit it."
+      },
+      {
+        "code": "no_automatic_ranking",
+        "message": "Error deltas are observations, not a ranking. Read them together with failures, qualification and support loss."
+      },
+      {
+        "code": "host_cost_not_controlled",
+        "message": "Execution costs are observed host measurements; load and hardware are not controlled by this comparison."
+      }
+    ]
+  },
+  "downloads": [
+    {
+      "file": "experiment.zip",
+      "job_id": "98d1ebc3-d2f1-4a45-a886-2e360fda6c05",
+      "bytes": 681969,
+      "sha256": "9466b1e3d37947d2b0994a89ee2b9ac1af69132d9ac6ea35b03b23d78e31b7f0",
+      "cdp_body_bytes": 0,
+      "independent_http_body_bytes": 681969,
+      "independent_http_sha256": "9466b1e3d37947d2b0994a89ee2b9ac1af69132d9ac6ea35b03b23d78e31b7f0",
+      "elapsed_ms": 465.0985219999857,
+      "timing_scope": "Node monotonic time from browser request event to download event and CDP body read attempt, including network, browser SHA verification and automation; excludes the separate HTTP verification request.",
+      "headers": {
+        "content-type": "application/zip",
+        "content-disposition": "attachment; filename=\"meridian-run-98d1ebc3-d2f1-4a45-a886-2e360fda6c05-v1.zip\"",
+        "content-length": "681969",
+        "x-content-sha256": "9466b1e3d37947d2b0994a89ee2b9ac1af69132d9ac6ea35b03b23d78e31b7f0",
+        "cache-control": "no-store"
+      }
+    },
+    {
+      "file": "experiment-repeat.zip",
+      "job_id": "98d1ebc3-d2f1-4a45-a886-2e360fda6c05",
+      "bytes": 681969,
+      "sha256": "9466b1e3d37947d2b0994a89ee2b9ac1af69132d9ac6ea35b03b23d78e31b7f0",
+      "cdp_body_bytes": 0,
+      "independent_http_body_bytes": 681969,
+      "independent_http_sha256": "9466b1e3d37947d2b0994a89ee2b9ac1af69132d9ac6ea35b03b23d78e31b7f0",
+      "elapsed_ms": 177.37629300000845,
+      "timing_scope": "Node monotonic time from browser request event to download event and CDP body read attempt, including network, browser SHA verification and automation; excludes the separate HTTP verification request.",
+      "headers": {
+        "content-type": "application/zip",
+        "content-disposition": "attachment; filename=\"meridian-run-98d1ebc3-d2f1-4a45-a886-2e360fda6c05-v1.zip\"",
+        "content-length": "681969",
+        "x-content-sha256": "9466b1e3d37947d2b0994a89ee2b9ac1af69132d9ac6ea35b03b23d78e31b7f0",
+        "cache-control": "no-store"
+      }
+    }
+  ],
+  "timings": [
+    {
+      "action": "save comparison",
+      "elapsed_ms": 433.03510700000334,
+      "scope": "Node monotonic time before UI click to complete HTTP response body, including automation and network."
+    }
+  ],
+  "checks": [
+    {
+      "key": "signup",
+      "description": "Two separate browser contexts register fresh accounts through the UI."
+    },
+    {
+      "key": "signout",
+      "description": "Actual server logout invalidates authenticated access."
+    },
+    {
+      "key": "signin",
+      "description": "The owner can sign in again through the UI."
+    },
+    {
+      "key": "execution",
+      "description": "The selected deployment explicitly enables actual VIO execution."
+    },
+    {
+      "key": "provenance",
+      "description": "The data view exposes calibration, coordinates, time and source provenance."
+    },
+    {
+      "key": "projects",
+      "description": "Both accounts create their own private room1 project through the UI."
+    },
+    {
+      "key": "baseline",
+      "description": "The owner saves the default 200-point configuration through the UI."
+    },
+    {
+      "key": "baseline_identity",
+      "description": "The baseline submission retains its exact saved version and specification."
+    },
+    {
+      "key": "running",
+      "description": "The actual baseline reaches a running state."
+    },
+    {
+      "key": "peer_queue",
+      "description": "A second account can submit its own run while the global worker is occupied."
+    },
+    {
+      "key": "owner_queue",
+      "description": "The owner can retain a second active request in the queue."
+    },
+    {
+      "key": "queue_quota",
+      "description": "A third active owner request is refused with 409 queue_full."
+    },
+    {
+      "key": "quota_feedback",
+      "description": "The UI explains the refused active request and leaves the saved version accessible."
+    },
+    {
+      "key": "limits",
+      "description": "The run view displays the two-active-per-account and one-running-global limits."
+    },
+    {
+      "key": "cancellation",
+      "description": "The spare queued request cancels through confirmation without an attempt or result."
+    },
+    {
+      "key": "refresh",
+      "description": "The exact submitted baseline remains accessible after navigation and reload."
+    },
+    {
+      "key": "baseline_result",
+      "description": "The real 200-point baseline succeeds with independently evaluated results."
+    },
+    {
+      "key": "coverage",
+      "description": "The result view distinguishes estimate, evaluated and reference coverage."
+    },
+    {
+      "key": "investigation",
+      "description": "Full-recording investigation metrics agree with the retained job result."
+    },
+    {
+      "key": "missing",
+      "description": "The initial unsupported pose is explicitly unavailable."
+    },
+    {
+      "key": "stereo",
+      "description": "Both original 512-pixel stereo images decode with nonblank intensity."
+    },
+    {
+      "key": "cursor",
+      "description": "Keyboard cursor movement selects the exact next camera timestamp."
+    },
+    {
+      "key": "interval",
+      "description": "A selected interval uses full-resolution support and the unchanged global alignment."
+    },
+    {
+      "key": "imu",
+      "description": "The cursor identifies a nearest raw IMU sample and its signed time difference."
+    },
+    {
+      "key": "plots",
+      "description": "Trajectory projections and synchronized signals contain actual plot paths."
+    },
+    {
+      "key": "diagnostics",
+      "description": "Unavailable internal estimator diagnostics are explicitly identified."
+    },
+    {
+      "key": "interval_error",
+      "description": "Reversed interval bounds show validation without replacing the selected evidence."
+    },
+    {
+      "key": "investigation_layout",
+      "description": "Investigation has no page overflow at 1440 and 390 pixels."
+    },
+    {
+      "key": "revision",
+      "description": "Changing the feature budget through the UI creates immutable version 2 and preserves version 1."
+    },
+    {
+      "key": "variant_result",
+      "description": "The real 100-point variant succeeds using exactly saved version 2."
+    },
+    {
+      "key": "peer_result",
+      "description": "The second account completes its own real baseline with independent ownership."
+    },
+    {
+      "key": "serialization",
+      "description": "The three successful job execution intervals do not overlap."
+    },
+    {
+      "key": "comparison_validation",
+      "description": "Self-comparison is rejected without discarding the comparison draft."
+    },
+    {
+      "key": "comparison_identity",
+      "description": "The saved comparison retains exact baseline/candidate runs and the 200-to-100 change."
+    },
+    {
+      "key": "common_support",
+      "description": "The UI displays service-computed scores on shared full-resolution support."
+    },
+    {
+      "key": "interpretation",
+      "description": "Coverage, initialization and host costs remain visible without an automatic winner claim."
+    },
+    {
+      "key": "comparison_reload",
+      "description": "The immutable saved comparison and its analysis hash survive reload."
+    },
+    {
+      "key": "comparison_layout",
+      "description": "Comparison and expanded support evidence fit 1440 and 390 pixel viewports."
+    },
+    {
+      "key": "table_keyboard",
+      "description": "The wide support table can receive keyboard focus."
+    },
+    {
+      "key": "export_retry",
+      "description": "An interrupted real download shows an error and permits retry."
+    },
+    {
+      "key": "export",
+      "description": "Keyboard activation saves a real ZIP whose length and SHA-256 match HTTP evidence."
+    },
+    {
+      "key": "export_repeat",
+      "description": "Repeated downloads of the unchanged successful run are byte-identical."
+    },
+    {
+      "key": "export_layout",
+      "description": "The export detail fits desktop and mobile layouts in the tested themes."
+    },
+    {
+      "key": "ownership",
+      "description": "The peer cannot access the owner project, configuration, jobs, comparison, investigation, images or export."
+    },
+    {
+      "key": "owner_isolation",
+      "description": "The owner cannot read the peer project or its successful run."
+    },
+    {
+      "key": "private_route",
+      "description": "A substituted private run deep link displays an unavailable state to the peer."
+    },
+    {
+      "key": "logout_private",
+      "description": "Server logout removes private content and denies subsequent export requests."
+    },
+    {
+      "key": "persisted_journey",
+      "description": "Signing in again reopens the saved comparison and the two original run identities."
+    },
+    {
+      "key": "storage",
+      "description": "Private project, comparison and run evidence is absent from browser storage."
+    },
+    {
+      "key": "browser_errors",
+      "description": "No uncaught JavaScript error or CSP violation occurs."
+    }
+  ],
+  "uncaught_javascript_errors": [],
+  "csp_errors": [],
+  "limitations": [
+    "One scripted engineering journey and two temporary accounts do not establish ease of use for independent engineers or general multiuser load capacity.",
+    "The source dataset is the qualified room1 profile. Reserved room2 evaluation is separate and does not silently enter this hosted catalog.",
+    "Execution serialization is checked from the three retained job intervals; independent operator observations establish container behavior and infrastructure isolation.",
+    "One real queued request is cancelled and one active-quota submission is refused. Daily submission-budget exhaustion and infrastructure failures are separate checks.",
+    "A connection interruption is injected for download retry; no scientific payload or successful business response is fabricated.",
+    "CDP may expose an empty attachment body; saved bytes are verified against real HTTP headers and a separate authenticated HTTP response.",
+    "Observed timings include the stated network and automation scope and are not a latency or throughput guarantee.",
+    "Keyboard checks cover selected controls, and viewport checks cover page overflow; this is not a formal accessibility audit.",
+    "Actual server logout is tested; no elapsed server-session expiry is claimed.",
+    "The downloaded archive and all source records are retained for separate independent reproduction, backup/restore qualification and exact operator cleanup."
+  ]
+}

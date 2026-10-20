@@ -1,0 +1,19 @@
+{
+  "camera_pairs": 2882,
+  "interpretation": "The fixed reference-support gate fails before considering estimator accuracy; reference coverage is not itself an estimator tracking-loss measurement. No bracket limit or gate was changed.",
+  "matches_evaluator_support_counts": true,
+  "maximum_raw_reference_gap_ns": 2491667000,
+  "maximum_reference_bracket_ns": 20000000,
+  "median_raw_reference_gap_ns": 8333000.0,
+  "method": "Independent integer timestamp bracketing with Python bisect, no estimator or evaluator import",
+  "qualification_passed": false,
+  "qualification_threshold_fraction": 0.95,
+  "raw_reference_gap_count": 15476,
+  "raw_reference_gaps_wider_than_limit": 49,
+  "reference_coverage_fraction": 0.8927827897293547,
+  "reference_samples": 15477,
+  "schema_version": 1,
+  "supported_camera_samples": 2573,
+  "unsupported_due_to_wide_reference_brackets": 308,
+  "unsupported_outside_reference_range": 1
+}

@@ -1,0 +1,68 @@
+{
+  "acceptance_report_sha256": "00f3a26d9ce9d7eff411dddd8f6628f3c5f8c81737013bddd488c9352934f3c0",
+  "comparisons": [
+    {
+      "maximum_direct_orientation_difference_deg": 0.0,
+      "maximum_direct_position_difference_m": 0.0,
+      "run_index": 2,
+      "timestamps_identical": true,
+      "trajectory_bytes_identical": true
+    },
+    {
+      "maximum_direct_orientation_difference_deg": 0.0,
+      "maximum_direct_position_difference_m": 0.0,
+      "run_index": 3,
+      "timestamps_identical": true,
+      "trajectory_bytes_identical": true
+    }
+  ],
+  "limitations": [
+    "Independent audit recomputes RMSE from retained per-sample errors and direct pose differences, not a second full SE3 evaluator.",
+    "One host and one reserved handheld indoor recording; no flight or general robustness claim."
+  ],
+  "meaning": "evidence_consistency_audit_not_scientific_qualification",
+  "prepared_manifest_sha256": "edef18aca9b0672e7580ca10e2f6fd9d4a4f2ad8d0bcdb223d24d229fcfa39ba",
+  "runs": [
+    {
+      "independently_recomputed_rmse": {
+        "ate_rmse_m": 0.09261722106983014,
+        "orientation_rmse_deg": 2.3407484490655324
+      },
+      "qualification_passed": false,
+      "result_sha256": "447f5a60337f2e18665b4659ef07e17c6e56232dab5de26fa6296e4f6f8fc881",
+      "run_index": 1,
+      "run_spec_sha256": "b6892c7b035e4cabe4adbd4fc1608ebff94c7a13716b609c1d343fd654a9fa0f",
+      "trajectory_sha256": "8d48fe0892e4b116e1a418ea3b55faa7bab3c6dabeea9d5086f09346addf4093",
+      "verified_artifacts": 7
+    },
+    {
+      "independently_recomputed_rmse": {
+        "ate_rmse_m": 0.09261722106983014,
+        "orientation_rmse_deg": 2.3407484490655324
+      },
+      "qualification_passed": false,
+      "result_sha256": "96a0101122fe91cc5ccd311717d24b039e7ddc4f7af2bb62e6442ca7fa5fb2a1",
+      "run_index": 2,
+      "run_spec_sha256": "b6892c7b035e4cabe4adbd4fc1608ebff94c7a13716b609c1d343fd654a9fa0f",
+      "trajectory_sha256": "8d48fe0892e4b116e1a418ea3b55faa7bab3c6dabeea9d5086f09346addf4093",
+      "verified_artifacts": 7
+    },
+    {
+      "independently_recomputed_rmse": {
+        "ate_rmse_m": 0.09261722106983014,
+        "orientation_rmse_deg": 2.3407484490655324
+      },
+      "qualification_passed": false,
+      "result_sha256": "49b9fd37c39e9fab1a89201809b9ae7d6d9f9baaf193860fb60fee10b65eb581",
+      "run_index": 3,
+      "run_spec_sha256": "b6892c7b035e4cabe4adbd4fc1608ebff94c7a13716b609c1d343fd654a9fa0f",
+      "trajectory_sha256": "8d48fe0892e4b116e1a418ea3b55faa7bab3c6dabeea9d5086f09346addf4093",
+      "verified_artifacts": 7
+    }
+  ],
+  "schema_version": 1,
+  "scientific_qualification_passed": false,
+  "status": "passed",
+  "verified_prepared_bytes": 1749020182,
+  "verified_prepared_files": 5773
+}

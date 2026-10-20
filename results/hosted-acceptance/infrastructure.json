@@ -1,0 +1,807 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-20",
+  "passed": true,
+  "scope": "Actual local and hosted metadata/artifact recovery, private access, immutable export preservation, deployment and child-container isolation.",
+  "release": {
+    "release": "20261020-6a7122a290ca",
+    "domain": "meridian.151.80.144.150.sslip.io",
+    "bundle_sha256": "6a7122a290ca19bc90300f96758022aa7fe821bf1defc10188bbc927b8ec3294",
+    "api_image": "meridian-workspace-api:20261020-6a7122a290ca",
+    "web_image": "meridian-workspace-web:20261020-6a7122a290ca",
+    "worker_image": "meridian-workspace-worker:20261020-6a7122a290ca",
+    "api_image_id": "sha256:476e582284cd9f54bf53d39852d175800b05870e815b9470bdefc2b51f3f90d8",
+    "web_image_id": "sha256:1423c3ec104979a4a16f65a9fd8a0784f699e1a54bb82f29fd04d589ee295181",
+    "worker_image_id": "sha256:78c446525791b0631d2f15d56c9e212d58a1cc253e12305defc762ee37988ef5",
+    "native_image_id": "sha256:54863f14d9f92d2805f5fddcfb78d146c6aac2ad77dc348e304059e2252a400a",
+    "prepared_manifest_sha256": "e55f0480533611fc1e198d16b181814a8d34752cb748becbfeec7bcb4908ba6d",
+    "scratch_capacity_bytes": 134217728
+  },
+  "source_verification": {
+    "release_files": 103,
+    "source_bundle_sha256": "6a7122a290ca19bc90300f96758022aa7fe821bf1defc10188bbc927b8ec3294",
+    "actual_image_source_files_matching_repository": {
+      "api": 34,
+      "worker": 40
+    },
+    "actual_image_export_payload_files": {
+      "api": 24,
+      "worker": 24
+    },
+    "backup_helper_sha256": "9723decb7c0bd5c3eb934721566292fdb69adf626f463a26a92041c2ee2fe461"
+  },
+  "local_recovery": {
+    "capture_started_at_utc": "2026-10-20T09:39:01.768140+00:00",
+    "capture_completed_at_utc": "2026-10-20T09:39:06.809742+00:00",
+    "captured_files_excluding_manifest": 58,
+    "captured_bytes_excluding_manifest": 33626513,
+    "retained_successful_jobs": 3,
+    "write_pause_seconds": 5.357304479000959,
+    "pause_definition": "Stop, capture and restart commands; excludes subsequent application health readiness. Not an RTO.",
+    "manifest_sha256": "b8532ab7891b1b8060ef1bea76728f123b1edddc200574c58b0ed2fca0eef774",
+    "source_application_image_ids": {
+      "api": "sha256:034f591d4a4f198857ba396bdd82aabb07a810070fb174b98f82858d935bf068",
+      "worker": "sha256:cbf6286a9b6045dfbb6ce10c49d06d2f46d1b961b69892ffa580216112226478"
+    },
+    "source_database_image_id": "sha256:589f742565e4f6d22149176b032974f55f8201a8a37b71ed587ec5c6902e689f",
+    "restored_database_image_id": "sha256:589f742565e4f6d22149176b032974f55f8201a8a37b71ed587ec5c6902e689f",
+    "database_runtime": {
+      "architecture": "amd64",
+      "distribution_digest": "sha256:3645570cccdfa447589da9f57dd740faa29b30938e861289a5574b6ca6b03826",
+      "image_id": "sha256:589f742565e4f6d22149176b032974f55f8201a8a37b71ed587ec5c6902e689f",
+      "os": "linux",
+      "reference": "postgres:17.11-bookworm@sha256:3645570cccdfa447589da9f57dd740faa29b30938e861289a5574b6ca6b03826"
+    },
+    "same_pinned_distribution_and_platform": true,
+    "source_table_counts": {
+      "auth_user": 15,
+      "django_session": 16,
+      "workspace_authwindow": 30,
+      "workspace_computequeue": 1,
+      "workspace_experiment": 5,
+      "workspace_experimentrevision": 9,
+      "workspace_job": 4,
+      "workspace_jobattempt": 3,
+      "workspace_project": 6,
+      "workspace_runcomparison": 1
+    },
+    "restored_table_counts_after_session_clear": {
+      "auth_user": 15,
+      "django_session": 0,
+      "workspace_authwindow": 30,
+      "workspace_computequeue": 1,
+      "workspace_experiment": 5,
+      "workspace_experimentrevision": 9,
+      "workspace_job": 4,
+      "workspace_jobattempt": 3,
+      "workspace_project": 6,
+      "workspace_runcomparison": 1
+    },
+    "table_content_hashes_and_migration_set_verified_before_session_clear": true,
+    "verified_table_count": 10,
+    "copied_sessions_cleared": 16,
+    "restored_artifact_hashes_verified": true,
+    "actual_application_role_flags": {
+      "create_database": false,
+      "create_role": false,
+      "replication": false,
+      "superuser": false
+    },
+    "fresh_database_container": {
+      "image_id": "sha256:589f742565e4f6d22149176b032974f55f8201a8a37b71ed587ec5c6902e689f",
+      "network_mode": "none",
+      "readonly_rootfs": true,
+      "cap_drop": [
+        "ALL"
+      ],
+      "memory_limit_bytes": 536870912,
+      "memory_swap_bytes": 536870912,
+      "nano_cpus": 500000000,
+      "tmpfs": {
+        "/tmp": "rw,mode=1777,size=16m",
+        "/var/lib/postgresql/data": "rw,uid=999,gid=999,mode=0700,size=256m",
+        "/var/run/postgresql": "rw,uid=999,gid=999,mode=0770,size=8m"
+      },
+      "published_ports": {},
+      "mounts": [],
+      "oom_killed": false,
+      "restart_count": 0,
+      "memory": {
+        "memory.current": "76275712",
+        "memory.peak": "81113088",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0"
+      }
+    },
+    "access": {
+      "checks": [
+        "anonymous export rejected",
+        "only exact restored QA account passwords reset; real CSRF login succeeds",
+        "foreign account cannot read project job investigation comparison or export",
+        "owner reads restored successful result investigation and saved comparison",
+        "restored export exactly matches original browser download bytes and hash",
+        "restored archive passes standalone integrity verifier",
+        "application database role remains restricted"
+      ],
+      "passed": true,
+      "method": "Django in-process test client with CSRF enforcement in matching API image; separate restored PostgreSQL namespace; no browser/TLS replay claimed.",
+      "archive_bytes": 681969,
+      "archive_sha256": "9466b1e3d37947d2b0994a89ee2b9ac1af69132d9ac6ea35b03b23d78e31b7f0",
+      "copied_sessions_present_before_login": 0,
+      "source_accounts_modified": false,
+      "api_image_id": "sha256:034f591d4a4f198857ba396bdd82aabb07a810070fb174b98f82858d935bf068",
+      "api_container_user": "1000:1000",
+      "api_filesystem_identity_note": "Disposable API uses the operator UID to read private restored files; production uses UID10001. Database privileges and application ownership checks remain enforced.",
+      "production_database_connection_or_environment_secrets_reused_for_access_check": false
+    },
+    "observed_status_codes": {
+      "owner_job_investigation_comparison_and_export": 200,
+      "foreign_job_project_investigation_comparison_and_export": 404,
+      "anonymous_export": 401
+    }
+  },
+  "hosted_offserver_recovery": {
+    "capture_started_at_utc": "2026-10-20T10:11:15.637614+00:00",
+    "capture_completed_at_utc": "2026-10-20T10:11:32.238016+00:00",
+    "captured_files_excluding_manifest": 58,
+    "captured_bytes_excluding_manifest": 33620677,
+    "retained_successful_jobs": 3,
+    "write_pause_seconds": 17.169243165059015,
+    "pause_definition": "Stop, capture and restart commands; excludes subsequent application health readiness. Not an RTO.",
+    "manifest_sha256": "0c8cf1bd85466771f43603ad91ea8368f77539a394d29e79e1e48da33c3fda5b",
+    "source_application_image_ids": {
+      "api": "sha256:476e582284cd9f54bf53d39852d175800b05870e815b9470bdefc2b51f3f90d8",
+      "worker": "sha256:78c446525791b0631d2f15d56c9e212d58a1cc253e12305defc762ee37988ef5"
+    },
+    "source_database_image_id": "sha256:3645570cccdfa447589da9f57dd740faa29b30938e861289a5574b6ca6b03826",
+    "restored_database_image_id": "sha256:589f742565e4f6d22149176b032974f55f8201a8a37b71ed587ec5c6902e689f",
+    "database_runtime": {
+      "architecture": "amd64",
+      "distribution_digest": "sha256:3645570cccdfa447589da9f57dd740faa29b30938e861289a5574b6ca6b03826",
+      "image_id": "sha256:589f742565e4f6d22149176b032974f55f8201a8a37b71ed587ec5c6902e689f",
+      "os": "linux",
+      "reference": "postgres:17.11-bookworm@sha256:3645570cccdfa447589da9f57dd740faa29b30938e861289a5574b6ca6b03826"
+    },
+    "same_pinned_distribution_and_platform": true,
+    "source_table_counts": {
+      "auth_user": 2,
+      "django_session": 2,
+      "workspace_authwindow": 15,
+      "workspace_computequeue": 1,
+      "workspace_experiment": 2,
+      "workspace_experimentrevision": 3,
+      "workspace_job": 4,
+      "workspace_jobattempt": 3,
+      "workspace_project": 2,
+      "workspace_runcomparison": 1
+    },
+    "restored_table_counts_after_session_clear": {
+      "auth_user": 2,
+      "django_session": 0,
+      "workspace_authwindow": 15,
+      "workspace_computequeue": 1,
+      "workspace_experiment": 2,
+      "workspace_experimentrevision": 3,
+      "workspace_job": 4,
+      "workspace_jobattempt": 3,
+      "workspace_project": 2,
+      "workspace_runcomparison": 1
+    },
+    "table_content_hashes_and_migration_set_verified_before_session_clear": true,
+    "verified_table_count": 10,
+    "copied_sessions_cleared": 2,
+    "restored_artifact_hashes_verified": true,
+    "actual_application_role_flags": {
+      "create_database": false,
+      "create_role": false,
+      "replication": false,
+      "superuser": false
+    },
+    "fresh_database_container": {
+      "image_id": "sha256:589f742565e4f6d22149176b032974f55f8201a8a37b71ed587ec5c6902e689f",
+      "network_mode": "none",
+      "readonly_rootfs": true,
+      "cap_drop": [
+        "ALL"
+      ],
+      "memory_limit_bytes": 536870912,
+      "memory_swap_bytes": 536870912,
+      "nano_cpus": 500000000,
+      "tmpfs": {
+        "/tmp": "rw,mode=1777,size=16m",
+        "/var/lib/postgresql/data": "rw,uid=999,gid=999,mode=0700,size=256m",
+        "/var/run/postgresql": "rw,uid=999,gid=999,mode=0770,size=8m"
+      },
+      "published_ports": {},
+      "mounts": [],
+      "oom_killed": false,
+      "restart_count": 0,
+      "memory": {
+        "memory.current": "72929280",
+        "memory.peak": "82874368",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0"
+      }
+    },
+    "access": {
+      "checks": [
+        "anonymous export rejected",
+        "only exact restored QA account passwords reset; real CSRF login succeeds",
+        "foreign account cannot read project job investigation comparison or export",
+        "owner reads restored successful result investigation and saved comparison",
+        "restored export exactly matches original browser download bytes and hash",
+        "restored archive passes standalone integrity verifier",
+        "application database role remains restricted"
+      ],
+      "passed": true,
+      "method": "Django in-process test client with CSRF enforcement in matching API image; separate restored PostgreSQL namespace; no browser/TLS replay claimed.",
+      "archive_bytes": 681997,
+      "archive_sha256": "d7243ecdc428c1e50f80eafee3179817a2530ba38fb2556619ef89f6ebf53af0",
+      "copied_sessions_present_before_login": 0,
+      "source_accounts_modified": false,
+      "api_image_id": "sha256:41735f8f0e53881c2ff2d985907c9903138055d511912118376b617146be14bf",
+      "api_container_user": "1000:1000",
+      "api_filesystem_identity_note": "Disposable API uses the operator UID to read private restored files; production uses UID10001. Database privileges and application ownership checks remain enforced.",
+      "production_database_connection_or_environment_secrets_reused_for_access_check": false
+    },
+    "observed_status_codes": {
+      "owner_job_investigation_comparison_and_export": 200,
+      "foreign_job_project_investigation_comparison_and_export": 404,
+      "anonymous_export": 401
+    }
+  },
+  "hosted_backup_transfer": {
+    "authenticated_ssh_transport": true,
+    "same_manifest_sha256_before_and_after_transfer": true,
+    "manifest_sha256": "0c8cf1bd85466771f43603ad91ea8368f77539a394d29e79e1e48da33c3fda5b",
+    "archive_bytes": 33761280,
+    "archive_sha256": "89a5f866f7e2281cd8236163d573242af8322eea8d2fa81d077be28d0edce41d",
+    "all_transferred_files_verified": true
+  },
+  "hosted_restore_api_runtime": {
+    "schema_version": 1,
+    "source_image_id": "sha256:476e582284cd9f54bf53d39852d175800b05870e815b9470bdefc2b51f3f90d8",
+    "destination_image_id": "sha256:41735f8f0e53881c2ff2d985907c9903138055d511912118376b617146be14bf",
+    "architecture": "amd64",
+    "os": "linux",
+    "config_and_rootfs_layer_ids_equal": true,
+    "archive_sha256": "dddfeb18cdeb6d3708f0716e7de3094ce8a9b859047334dc8340bed9d1681777",
+    "archive_bytes": 63026688,
+    "transport": "Authenticated SSH with existing known hosts and Mac relay.",
+    "identity_note": "The activation rebuild changed OCI provenance/index identity. The active image configuration and rootfs diffIDs match the transferred prebuilt image exactly; the active build export records the same configuration digest as the local Docker ID.",
+    "prebuilt_source_image_id": "sha256:213b59a22b4e78587720f4a9e683695f988b822831e92d87bdf5bfb77a710bcc",
+    "active_runtime_config_and_rootfs_layer_ids_equal": true,
+    "active_descriptor": {
+      "mediaType": "application/vnd.oci.image.index.v1+json",
+      "digest": "sha256:476e582284cd9f54bf53d39852d175800b05870e815b9470bdefc2b51f3f90d8",
+      "size": 856
+    },
+    "active_manifests": null
+  },
+  "local_child_isolation": {
+    "three_distinct_native_and_evaluation_pairs": true,
+    "phases": {
+      "native": {
+        "observed_containers": 3,
+        "image_ids": [
+          "sha256:73e1213d073ce52a9a509decb15628a7c043e0690609171c4b9382ed0c2730da"
+        ],
+        "user": "10001:10001",
+        "readonly": true,
+        "memory_bytes": 4294967296,
+        "memory_swap_bytes": 4294967296,
+        "nano_cpus": 2000000000,
+        "pids_limit": 128,
+        "network_mode": "none",
+        "cap_drop": [
+          "ALL"
+        ],
+        "security_opt": [
+          "no-new-privileges"
+        ],
+        "log_driver": "none",
+        "tmpfs": {
+          "/tmp": "rw,noexec,nosuid,size=128m"
+        },
+        "ulimits": [
+          {
+            "Name": "fsize",
+            "Hard": 33554432,
+            "Soft": 33554432
+          }
+        ],
+        "environment_keys": [
+          "DEBIAN_FRONTEND",
+          "OMP_NUM_THREADS",
+          "OPENBLAS_NUM_THREADS",
+          "PATH"
+        ],
+        "mount_targets_and_modes": [
+          {
+            "target": "/sensors",
+            "writable": false
+          },
+          {
+            "target": "/config",
+            "writable": false
+          },
+          {
+            "target": "/output",
+            "writable": true
+          }
+        ]
+      },
+      "evaluation": {
+        "observed_containers": 3,
+        "image_ids": [
+          "sha256:cbf6286a9b6045dfbb6ce10c49d06d2f46d1b961b69892ffa580216112226478"
+        ],
+        "user": "10001:10001",
+        "readonly": true,
+        "memory_bytes": 536870912,
+        "memory_swap_bytes": 536870912,
+        "nano_cpus": 500000000,
+        "pids_limit": 64,
+        "network_mode": "none",
+        "cap_drop": [
+          "ALL"
+        ],
+        "security_opt": [
+          "no-new-privileges"
+        ],
+        "log_driver": "none",
+        "tmpfs": {
+          "/tmp": "rw,noexec,nosuid,size=32m"
+        },
+        "ulimits": [
+          {
+            "Name": "fsize",
+            "Hard": 33554432,
+            "Soft": 33554432
+          }
+        ],
+        "environment_keys": [
+          "GPG_KEY",
+          "LANG",
+          "MERIDIAN_EXPORT_SOURCE_ROOT",
+          "OMP_NUM_THREADS",
+          "OPENBLAS_NUM_THREADS",
+          "PATH",
+          "PIP_DISABLE_PIP_VERSION_CHECK",
+          "PYTHONDONTWRITEBYTECODE",
+          "PYTHONPATH",
+          "PYTHONUNBUFFERED",
+          "PYTHON_SHA256",
+          "PYTHON_VERSION"
+        ],
+        "mount_targets_and_modes": [
+          {
+            "target": "/inputs/estimate.csv",
+            "writable": false
+          },
+          {
+            "target": "/inputs/reference.csv",
+            "writable": false
+          },
+          {
+            "target": "/inputs/request.json",
+            "writable": false
+          },
+          {
+            "target": "/inputs/imu.csv",
+            "writable": false
+          },
+          {
+            "target": "/inputs/native-status.json",
+            "writable": false
+          },
+          {
+            "target": "/inputs/investigation-request.json",
+            "writable": false
+          },
+          {
+            "target": "/evaluation",
+            "writable": true
+          }
+        ]
+      }
+    }
+  },
+  "hosted_child_isolation": {
+    "three_distinct_native_and_evaluation_pairs": true,
+    "phases": {
+      "native": {
+        "observed_containers": 3,
+        "image_ids": [
+          "sha256:54863f14d9f92d2805f5fddcfb78d146c6aac2ad77dc348e304059e2252a400a"
+        ],
+        "user": "10001:10001",
+        "readonly": true,
+        "memory_bytes": 4294967296,
+        "memory_swap_bytes": 4294967296,
+        "nano_cpus": 2000000000,
+        "pids_limit": 128,
+        "network_mode": "none",
+        "cap_drop": [
+          "ALL"
+        ],
+        "security_opt": [
+          "no-new-privileges"
+        ],
+        "log_driver": "none",
+        "tmpfs": {
+          "/tmp": "rw,noexec,nosuid,size=128m"
+        },
+        "ulimits": [
+          {
+            "Name": "fsize",
+            "Hard": 33554432,
+            "Soft": 33554432
+          }
+        ],
+        "environment_keys": [
+          "DEBIAN_FRONTEND",
+          "OMP_NUM_THREADS",
+          "OPENBLAS_NUM_THREADS",
+          "PATH"
+        ],
+        "mount_targets_and_modes": [
+          {
+            "target": "/config",
+            "writable": false
+          },
+          {
+            "target": "/output",
+            "writable": true
+          },
+          {
+            "target": "/sensors",
+            "writable": false
+          }
+        ]
+      },
+      "evaluation": {
+        "observed_containers": 3,
+        "image_ids": [
+          "sha256:78c446525791b0631d2f15d56c9e212d58a1cc253e12305defc762ee37988ef5"
+        ],
+        "user": "10001:10001",
+        "readonly": true,
+        "memory_bytes": 536870912,
+        "memory_swap_bytes": 536870912,
+        "nano_cpus": 500000000,
+        "pids_limit": 64,
+        "network_mode": "none",
+        "cap_drop": [
+          "ALL"
+        ],
+        "security_opt": [
+          "no-new-privileges"
+        ],
+        "log_driver": "none",
+        "tmpfs": {
+          "/tmp": "rw,noexec,nosuid,size=32m"
+        },
+        "ulimits": [
+          {
+            "Name": "fsize",
+            "Hard": 33554432,
+            "Soft": 33554432
+          }
+        ],
+        "environment_keys": [
+          "GPG_KEY",
+          "LANG",
+          "MERIDIAN_EXPORT_SOURCE_ROOT",
+          "OMP_NUM_THREADS",
+          "OPENBLAS_NUM_THREADS",
+          "PATH",
+          "PIP_DISABLE_PIP_VERSION_CHECK",
+          "PYTHONDONTWRITEBYTECODE",
+          "PYTHONPATH",
+          "PYTHONUNBUFFERED",
+          "PYTHON_SHA256",
+          "PYTHON_VERSION"
+        ],
+        "mount_targets_and_modes": [
+          {
+            "target": "/evaluation",
+            "writable": true
+          },
+          {
+            "target": "/inputs/estimate.csv",
+            "writable": false
+          },
+          {
+            "target": "/inputs/imu.csv",
+            "writable": false
+          },
+          {
+            "target": "/inputs/investigation-request.json",
+            "writable": false
+          },
+          {
+            "target": "/inputs/native-status.json",
+            "writable": false
+          },
+          {
+            "target": "/inputs/reference.csv",
+            "writable": false
+          },
+          {
+            "target": "/inputs/request.json",
+            "writable": false
+          }
+        ]
+      }
+    }
+  },
+  "api_memory": {
+    "local": {
+      "checked_at_utc": "2026-10-20T09:59:12.248373+00:00",
+      "api_image_id": "sha256:034f591d4a4f198857ba396bdd82aabb07a810070fb174b98f82858d935bf068",
+      "api_restart_count": 0,
+      "api_oom_killed": false,
+      "memory": {
+        "memory.current": "125140992",
+        "memory.peak": "155361280",
+        "memory.max": "536870912",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0"
+      },
+      "numerical_and_daemon_isolation": {
+        "numpy_available": false,
+        "numpy_imported": false,
+        "docker_cli_available": false,
+        "docker_socket_present": false
+      },
+      "observation_scope": "Current cgroup counters after the backup stop/start, including subsequent requests and operator checks. They do not measure the earlier full browser journey or isolated request costs."
+    },
+    "hosted": {
+      "checked_at_utc": "2026-10-20T10:25:12.274916+00:00",
+      "api_image_id": "sha256:476e582284cd9f54bf53d39852d175800b05870e815b9470bdefc2b51f3f90d8",
+      "api_restart_count": 0,
+      "api_oom_killed": false,
+      "memory": {
+        "memory.current": "134406144",
+        "memory.peak": "177188864",
+        "memory.max": "536870912",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0"
+      },
+      "numerical_and_daemon_isolation": {
+        "numpy_available": false,
+        "numpy_imported": false,
+        "docker_cli_available": false,
+        "docker_socket_present": false
+      },
+      "observation_scope": "Current cgroup counters after the backup stop/start, including subsequent requests and operator checks. They do not measure the earlier full browser journey or isolated request costs."
+    }
+  },
+  "production_preservation": {
+    "database_container_image_start_time_and_mounts_unchanged": true,
+    "initial_and_final_counts": {
+      "users": 0,
+      "projects": 0,
+      "sessions": 0,
+      "experiments": 0,
+      "revisions": 0,
+      "jobs": 0,
+      "attempts": 0,
+      "comparisons": 0
+    },
+    "no_compute_children_after_cleanup": true,
+    "final_services": {
+      "api": "healthy",
+      "web": "healthy",
+      "db": "healthy",
+      "worker": "healthy"
+    },
+    "https_before_deployment": {
+      "meridian.151.80.144.150.sslip.io": 200,
+      "argos.victormonnot.com": 200,
+      "iris.victormonnot.com": 200,
+      "argoslab.victormonnot.com": 200
+    },
+    "https_after_deployment": {
+      "meridian.151.80.144.150.sslip.io": 200,
+      "argos.victormonnot.com": 200,
+      "iris.victormonnot.com": 200,
+      "argoslab.victormonnot.com": 200
+    },
+    "https_after_acceptance": {
+      "meridian.151.80.144.150.sslip.io": 200,
+      "argos.victormonnot.com": 200,
+      "iris.victormonnot.com": 200,
+      "argoslab.victormonnot.com": 200
+    },
+    "final_storage_and_health": {
+      "artifact_root_entries": 0,
+      "scratch_root_entries": 0,
+      "services": {
+        "api": {
+          "health": "healthy",
+          "restart_count": 0,
+          "oom_killed": false,
+          "healthcheck_observations": [
+            {
+              "duration_seconds": 0.559033,
+              "exit_code": 0
+            },
+            {
+              "duration_seconds": 1.577946,
+              "exit_code": 0
+            },
+            {
+              "duration_seconds": 0.646888,
+              "exit_code": 0
+            },
+            {
+              "duration_seconds": 0.653895,
+              "exit_code": 0
+            },
+            {
+              "duration_seconds": 0.594581,
+              "exit_code": 0
+            }
+          ]
+        },
+        "web": {
+          "health": "healthy",
+          "restart_count": 0,
+          "oom_killed": false,
+          "healthcheck_observations": [
+            {
+              "duration_seconds": 0.201724,
+              "exit_code": 0
+            },
+            {
+              "duration_seconds": 0.104641,
+              "exit_code": 0
+            },
+            {
+              "duration_seconds": 0.18707,
+              "exit_code": 0
+            },
+            {
+              "duration_seconds": 0.19746,
+              "exit_code": 0
+            },
+            {
+              "duration_seconds": 0.105668,
+              "exit_code": 0
+            }
+          ]
+        },
+        "worker": {
+          "health": "healthy",
+          "restart_count": 0,
+          "oom_killed": false,
+          "healthcheck_observations": [
+            {
+              "duration_seconds": 23.204461,
+              "exit_code": 0
+            },
+            {
+              "duration_seconds": 11.596869,
+              "exit_code": 0
+            },
+            {
+              "duration_seconds": 22.492288,
+              "exit_code": 0
+            },
+            {
+              "duration_seconds": 14.393319,
+              "exit_code": 0
+            },
+            {
+              "duration_seconds": 22.909496,
+              "exit_code": 0
+            }
+          ]
+        },
+        "db": {
+          "health": "healthy",
+          "restart_count": 0,
+          "oom_killed": false,
+          "healthcheck_observations": [
+            {
+              "duration_seconds": 0.139331,
+              "exit_code": 0
+            },
+            {
+              "duration_seconds": 0.19275,
+              "exit_code": 0
+            },
+            {
+              "duration_seconds": 0.164695,
+              "exit_code": 0
+            },
+            {
+              "duration_seconds": 0.126395,
+              "exit_code": 0
+            },
+            {
+              "duration_seconds": 0.112398,
+              "exit_code": 0
+            }
+          ]
+        }
+      },
+      "native_retention_never_started": true
+    }
+  },
+  "privacy_and_cleanup": {
+    "temporary_hosted_snapshot_removed": true,
+    "temporary_hosted_operations_outputs_removed_after_verified_transfer": true,
+    "raw_local_and_offserver_qa_database_dumps_removed": true,
+    "copied_backup_and_restored_artifact_trees_removed": true,
+    "temporary_restore_database_containers_removed": true,
+    "temporary_transferred_api_image_and_archive_removed": true,
+    "private_manifests_hashes_and_access_reports_retained": true,
+    "restored_experiment_zip_retained_for_replay_evidence": true,
+    "production_volumes_prepared_recordings_scratch_keeper_and_native_retention_anchor_preserved": true,
+    "source_qa_cleanup_owned_by_browser_and_operations_qualification": true,
+    "public_evidence_contains_no_dumps_credentials_private_account_ids_or_private_paths": true,
+    "raw_snapshot_retention": "Manual acceptance copies removed after recovery verification; no recurring backup retention service established."
+  },
+  "resolved_operator_preflight_failures": [
+    "The local wrapper initially mounted the helper as operator.py, shadowing Python's standard library. It failed before any service change; a non-conflicting mount name fixed it.",
+    "A distribution/index digest was initially compared directly with a Docker configuration ID. Strict pinned distribution plus Linux/amd64 identity and resolved per-store IDs now bind both representations.",
+    "Unix-socket readiness observed the temporary PostgreSQL initialization server. TCP readiness plus database/user verification now waits for the final server.",
+    "PostgreSQL 17 does not allow demoting the bootstrap superuser. Restore now creates a distinct bootstrap administrator and restricted application role before import."
+  ],
+  "limits": [
+    "This is a manually executed recovery rehearsal, not scheduled backups, an offsite retention service, or a recovery-time/recovery-point guarantee.",
+    "Dumps contain credential hashes, copied sessions and private project data; all snapshot directories and files are owner-only. Public evidence excludes dumps, raw manifests, credentials, account identifiers and private paths.",
+    "Restored access used real CSRF/login/application handlers through Django's in-process client in the matching image. It is not a second browser/TLS deployment.",
+    "The disposable restore API uses the operator UID for private restored files; the production API uses UID10001. Application authorization and restricted database privileges are verified separately.",
+    "Images, prepared sensor recordings and application secrets require a separate compatible private recovery handoff; they are not embedded in the metadata/artifact snapshot.",
+    "The accepted custom hostname remains pending DNS configuration. Acceptance used the existing HTTPS preview hostname.",
+    "Shared-host resource observations do not establish performance under unrelated load, embedded operation or flight validation."
+  ],
+  "shared_host_capacity_observations": {
+    "method": "Existing read-only host /proc/meminfo, filesystem free-space and bounded scratch probes.",
+    "observations": {
+      "before_deployment": {
+        "checked_at_utc": "2026-10-20T09:17:25.793506+00:00",
+        "memory_bytes": {
+          "MemTotal": 8122310656,
+          "MemAvailable": 5673639936,
+          "SwapTotal": 0
+        },
+        "scratch": {
+          "filesystem": "tmpfs",
+          "capacity_bytes": 134217728,
+          "used_bytes": 0
+        },
+        "free_workspace_filesystem_bytes": 53558337536
+      },
+      "after_deployment": {
+        "checked_at_utc": "2026-10-20T09:54:39.400978+00:00",
+        "memory_bytes": {
+          "MemTotal": 8122310656,
+          "MemAvailable": 5648470016,
+          "SwapTotal": 0
+        },
+        "scratch": {
+          "filesystem": "tmpfs",
+          "capacity_bytes": 134217728,
+          "used_bytes": 0
+        },
+        "free_workspace_filesystem_bytes": 53540069376
+      },
+      "after_acceptance_and_cleanup": {
+        "checked_at_utc": "2026-10-20T10:26:40.477914+00:00",
+        "memory_bytes": {
+          "MemTotal": 8122310656,
+          "MemAvailable": 5703143424,
+          "SwapTotal": 0
+        },
+        "scratch": {
+          "filesystem": "tmpfs",
+          "capacity_bytes": 134217728,
+          "used_bytes": 0
+        },
+        "free_workspace_filesystem_bytes": 53538209792
+      }
+    },
+    "limitation": "Instantaneous shared-host observations, not a reservation, peak-load measurement or performance guarantee. Other applications can change available memory and storage after a probe."
+  }
+}

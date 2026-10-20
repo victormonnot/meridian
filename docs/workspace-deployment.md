@@ -13,10 +13,15 @@ artifacts and the two prepared camera-image directories.
 The [workspace contract](hosted-workspace.md) describes authentication, ownership
 and retention. The original static explorer is also served at `/index.html`.
 
-The 2026-10-20 export release is qualified locally and on the hosted stack.
-The [export evidence](../results/exports/README.md) records the exact release,
-actual downloads, independent source-built replays after source deletion,
-service isolation and API resources. The earlier
+The 2026-10-20 acceptance release is qualified locally and over public HTTPS
+for the prepared room1 workflow. The
+[complete acceptance evidence](../results/hosted-acceptance/README.md) records
+the browser workflow, quotas, fault recovery, retention, an off-server
+database/artifact restore and independent replay of the restored export.
+It also records the separate room2 assessment and its scientific limits.
+The earlier [export evidence](../results/exports/README.md) preserves that
+release's downloads, source-built replays after source deletion, service isolation
+and API resources. The earlier
 [comparison evidence](../results/comparisons/README.md) records its separate
 three-run qualification.
 
@@ -335,10 +340,12 @@ cleanup: the execution slot stays occupied when a child cannot be confirmed
 stopped. Do not delete active attempt directories manually or remove the shared
 database volume to clear a queue.
 
-Service and worker recovery checks qualify persistence and bounded retry, not disaster recovery.
-Scheduled backups, off-server copies and a verified restoration procedure are
-not established by the Compose file. Until those are configured, treat the
-hosted application as a preview, not the only copy of engineering work.
+Service and worker recovery checks qualify persistence and bounded retry.
+The separate [backup and recovery runbook](workspace-backup.md) provides an
+operator-triggered idle database/artifact snapshot and isolated restoration
+rehearsal. It never replaces production storage. Scheduled backups, recurring
+off-server retention and a recovery-time guarantee are not established by the
+Compose file; treat this hosted preview as an additional copy of engineering work.
 No user recording upload exists in this increment; only the maintained room1
 profile executes. Independent exports preserve a downloaded experiment outside
 the service; later hosted deletion cannot revoke a copy already downloaded.

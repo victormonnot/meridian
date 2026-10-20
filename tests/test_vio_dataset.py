@@ -130,6 +130,65 @@ def test_prepare_is_deterministic_and_refuses_existing_output(tmp_path, source):
     assert (first / "manifest.json").read_bytes() == before
 
 
+def test_room1_manifest_bytes_keep_the_original_pre_room2_identity(tmp_path, source):
+    root, _, _ = _prepare(tmp_path, source)
+    # Recorded using the pre-room2 preparation implementation and this fixture.
+    assert hashlib.sha256((root / "manifest.json").read_bytes()).hexdigest() == (
+        "93a099b8e3948c69e817a4ec3164cfc7abf79726f87a529ef8495ecfe59694a1")
+
+
+def test_room2_is_explicit_and_retains_sensor_reference_separation(tmp_path, source, monkeypatch):
+    files, config = source
+    files = {name.replace(dataset.ARCHIVE_ROOT, dataset.ROOM2_ARCHIVE_ROOT, 1): value
+             for name, value in files.items()}
+    extras = []
+    for camera in ("cam0", "cam1"):
+        alias = tarfile.TarInfo(f"{dataset.ROOM2_ARCHIVE_ROOT}/dso/{camera}/images")
+        alias.type = tarfile.SYMTYPE
+        alias.linkname = f"../../mav0/{camera}/data"
+        extras.append((alias, None))
+    archive, identity = _archive(tmp_path, files, extras)
+    pin = {**dataset.ROOM2, **{key: identity[key] for key in ("sha256", "md5", "size_bytes")}}
+    monkeypatch.setattr(dataset, "ROOM2", pin)
+    root = tmp_path / "prepared"
+    manifest = dataset.prepare_dataset(archive, root, config, dataset_id=dataset.ROOM2_DATASET_ID)
+    assert dataset.verify_prepared(root) == manifest
+    assert manifest["dataset_id"] == dataset.ROOM2_DATASET_ID
+    assert manifest["reference"]["source_path"] == f"{dataset.ROOM2_ARCHIVE_ROOT}/mav0/mocap0/data.csv"
+    assert manifest["source"] == pin
+    assert not (root / "dso").exists()
+    assert all(name.startswith(("mav0/cam0/", "mav0/cam1/", "mav0/imu0/"))
+               for name in dataset._inventory(root / "sensors"))
+    with pytest.raises(ValueError, match="room1"):
+        dataset.prepare_dataset(archive, tmp_path / "room1", config)
+    manifest["dataset_id"] = dataset.DATASET_ID
+    _save_manifest(root, manifest)
+    with pytest.raises(ValueError, match="manifest"):
+        dataset.verify_prepared(root)
+
+
+def test_room2_rejects_a_room1_archive_even_with_fixture_checksum(tmp_path, source, monkeypatch):
+    archive, identity = _archive(tmp_path, source[0])
+    monkeypatch.setattr(dataset, "ROOM2", {
+        **dataset.ROOM2, **{key: identity[key] for key in ("sha256", "md5", "size_bytes")}
+    })
+    with pytest.raises(ValueError, match="archive root"):
+        dataset.prepare_dataset(archive, tmp_path / "prepared", source[1],
+                                dataset_id=dataset.ROOM2_DATASET_ID)
+    assert not (tmp_path / "prepared").exists()
+
+
+@pytest.mark.parametrize("identity", [None, True, "tum-vi-room3-512-16", "room2", {}])
+def test_recording_allowlist_rejects_unknown_identity_before_io(tmp_path, source, identity):
+    with pytest.raises(ValueError, match="unsupported"):
+        dataset.download_dataset(tmp_path / "archive", dataset_id=identity)
+    with pytest.raises(ValueError, match="unsupported"):
+        dataset.prepare_dataset(tmp_path / "absent", tmp_path / "prepared", source[1],
+                                dataset_id=identity)
+    assert not (tmp_path / "archive").exists()
+    assert not (tmp_path / "prepared").exists()
+
+
 def test_known_dso_aliases_are_recognized_but_never_extracted(tmp_path, source):
     extras = []
     for camera in ("cam0", "cam1"):

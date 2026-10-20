@@ -20,7 +20,14 @@ camera/IMU/pose evidence and interval scores under the same global alignment.
 configuration differences and explicit own/common-support metrics.
 [Independent exports](vio-exports.md) retain exact successful-run evidence and
 standalone source/recipes, with explicit runtime identities and numerical
-reproduction tolerances. General
+reproduction tolerances. The
+[complete acceptance report](../results/hosted-acceptance/README.md) binds the
+actual browser workflow to operational checks, metadata/artifact restoration and
+independent export replay. Its reserved room2 evaluation fails the unchanged
+reference/evaluated coverage gates, despite repeatable native completion.
+The [backup helper](workspace-backup.md) supports an isolated recovery rehearsal;
+scheduled backups and a persistent disaster-recovery deployment remain separate.
+General
 3D estimator development, broader visual-inertial development and engineering
 automation remain planned work.
 

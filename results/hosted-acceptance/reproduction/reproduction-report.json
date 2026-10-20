@@ -1,0 +1,95 @@
+{
+  "actual_runtime_image_id": "sha256:213dad232a508955fcaf80452dbf10f696981eb1562e5ac5eb9f8faae75bb82d",
+  "actual_runtime_provenance_sha256": {
+    "binary-sha256.txt": "7b66a083c7d5c69c6e85721e3357def42fbc1a125a5b13735f3e55ee3ad28070",
+    "dependency-versions.txt": "92d76ee986a1ff4508a96fb3f2c26439d99cb446a546f8e0d795f56d69e7023e"
+  },
+  "comparison": {
+    "checks": {
+      "direct_orientation_within_tolerance": true,
+      "direct_position_within_tolerance": true,
+      "identical_evaluation_protocol": true,
+      "identical_evaluation_support": true,
+      "identical_output_timestamps": true,
+      "identical_support_counts_and_missing_intervals": true,
+      "orientation_rmse_within_tolerance": true,
+      "position_rmse_within_tolerance": true,
+      "successful_evaluation": true,
+      "unit_scale_alignment": true
+    },
+    "limitations": [
+      "No new alignment is fitted for the direct-pose comparison.",
+      "Each evaluated trajectory uses the unchanged full-recording SE3 protocol.",
+      "One reproduction does not establish cross-platform bit identity or statistical confidence.",
+      "Host resource times and memory are observations, not acceptance tolerances."
+    ],
+    "maximum_direct_orientation_difference_deg": 0.0,
+    "maximum_direct_position_difference_m": 0.0,
+    "metrics": {
+      "ate_rmse_m": {
+        "absolute_tolerance": 0.001,
+        "difference": 0.0,
+        "original": 0.051132041394887494,
+        "passed": true,
+        "reproduced": 0.051132041394887494
+      },
+      "orientation_rmse_deg": {
+        "absolute_tolerance": 0.001,
+        "difference": 0.0,
+        "original": 1.532136616154553,
+        "passed": true,
+        "reproduced": 1.532136616154553
+      }
+    },
+    "passed": true,
+    "schema_version": 1,
+    "tolerances": {
+      "direct_pose_alignment": "none",
+      "evaluation_support_timestamps": "identical",
+      "maximum_ate_rmse_difference_m": 0.001,
+      "maximum_direct_orientation_difference_deg": 0.001,
+      "maximum_direct_position_difference_m": 0.001,
+      "maximum_orientation_rmse_difference_deg": 0.001,
+      "output_timestamps": "identical",
+      "support_counts_and_missing_intervals": "identical"
+    },
+    "trajectory_bytes_identical": true
+  },
+  "export_manifest_sha256": "25725d76ccc1becc43fc4f74219962a843b506bf754b0b8d43289ea77ef8c506",
+  "original_runtime_image_id": "sha256:73e1213d073ce52a9a509decb15628a7c043e0690609171c4b9382ed0c2730da",
+  "original_runtime_provenance_sha256": {
+    "binary-sha256.txt": "7b66a083c7d5c69c6e85721e3357def42fbc1a125a5b13735f3e55ee3ad28070",
+    "dependency-versions.txt": "92d76ee986a1ff4508a96fb3f2c26439d99cb446a546f8e0d795f56d69e7023e"
+  },
+  "original_specification_sha256": "98e780babbc5fd1b8214a3afbe65e5b5dbe39196017a83361b93f7f7cd3e5f73",
+  "passed": true,
+  "prepared_manifest_sha256": "e55f0480533611fc1e198d16b181814a8d34752cb748becbfeec7bcb4908ba6d",
+  "qualification": {
+    "checks": {
+      "estimate_coverage": true,
+      "evaluated_coverage": true,
+      "evaluated_samples": true,
+      "evaluation_ok": true,
+      "initialization_delay": true,
+      "orientation_error": true,
+      "position_error": true,
+      "reference_coverage": true
+    },
+    "criteria": {
+      "maximum_ate_rmse_m": 0.5,
+      "maximum_initialization_delay_s": 10.0,
+      "maximum_orientation_rmse_deg": 15.0,
+      "minimum_coverage_fraction": 0.9,
+      "minimum_evaluated_fraction": 0.9,
+      "minimum_evaluated_samples": 100,
+      "minimum_reference_coverage_fraction": 0.95
+    },
+    "passed": true
+  },
+  "result_sha256": "60f818030b104bb30a0155c30abc268b68295174b0dfa82aab6aa3301c09d35a",
+  "runtime_bytes_identity_claimed": false,
+  "runtime_identity_claim": "new_source_rebuilt_runtime_not_original_image",
+  "runtime_mode": "rebuilt",
+  "schema_version": 1,
+  "state": "complete"
+}

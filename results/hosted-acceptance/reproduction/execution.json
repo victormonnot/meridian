@@ -1,0 +1,37 @@
+{
+  "all_meridian_imports_from_this_export": true,
+  "archive_bytes": 681997,
+  "archive_sha256": "d7243ecdc428c1e50f80eafee3179817a2530ba38fb2556619ef89f6ebf53af0",
+  "environment_keys": [
+    "LANG",
+    "PATH",
+    "PYTHONDONTWRITEBYTECODE",
+    "PYTHONNOUSERSITE"
+  ],
+  "exit_code": 0,
+  "finished_at_utc": "2026-10-20T10:16:31.790028+00:00",
+  "limitations": [
+    "This reuses the previously independent Python environment, prepared room1 inputs and source-built native image; it is not a new cold build or a second physical machine.",
+    "Only vio_dataset.py differs among the 24 exported source files compared with the retained increment 1.7 bundle. Native adapter, build recipe and evaluator sources are unchanged.",
+    "Standalone replay occurs after deletion of its original source job; downloaded and restored archive bytes remain available."
+  ],
+  "new_extraction_and_output_outside_checkout": true,
+  "no_account_or_backend_requests_required": true,
+  "original_source_job": "533a3c6e-f2d8-4e15-8e61-60fed82ee694",
+  "prepared_data_origin": "Public archive acquired and prepared independently for increment 1.7 outside checkout/backend; reverified before and after this replay.",
+  "reused_clean_venv_and_rebuilt_image": true,
+  "reused_image_id": "sha256:213dad232a508955fcaf80452dbf10f696981eb1562e5ac5eb9f8faae75bb82d",
+  "reused_independent_prepared_data": true,
+  "runtime_mode": "rebuilt",
+  "schema_version": 1,
+  "source_deleted_checked_at": "2026-10-20T10:13:24.429238+00:00",
+  "source_deletion_evidence_sha256": "2ce5bd56bffb0adbf6abaf2020a39af0dac717385276d1bdf2bb2ea554ac83e9",
+  "source_files_changed_since_increment_1_7": [
+    "src/meridian/vio_dataset.py"
+  ],
+  "source_files_matching_current_checkout": 24,
+  "source_job_deleted_before_replay": true,
+  "started_at_utc": "2026-10-20T10:15:35.073691+00:00",
+  "verified_payload_files": 38,
+  "wall_seconds": 56.71633995200136
+}

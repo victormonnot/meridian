@@ -1,0 +1,39 @@
+{
+  "actual_runtime_image_id": "sha256:213dad232a508955fcaf80452dbf10f696981eb1562e5ac5eb9f8faae75bb82d",
+  "archive_sha256": "d7243ecdc428c1e50f80eafee3179817a2530ba38fb2556619ef89f6ebf53af0",
+  "archive_size_bytes": 681997,
+  "evaluation_support_and_regions_identical": true,
+  "image_identity_claimed_equal": false,
+  "independently_recomputed_rmse": {
+    "ate_rmse_m": {
+      "difference": 0.0,
+      "original": 0.051132041394887494,
+      "reproduced": 0.051132041394887494
+    },
+    "orientation_rmse_deg": {
+      "difference": 0.0,
+      "original": 1.532136616154553,
+      "reproduced": 1.532136616154553
+    }
+  },
+  "limitations": [
+    "One actual reproduction of a handheld room1 execution; not flight or general cross-platform validation.",
+    "Artifact hashes detect changes relative to retained evidence, not malicious replacement of evidence and hashes together.",
+    "Independent audit recomputes errors summaries from retained per-sample evaluator errors and direct pose differences; it does not implement another full SE3 evaluator."
+  ],
+  "original_runtime_image_id": "sha256:73e1213d073ce52a9a509decb15628a7c043e0690609171c4b9382ed0c2730da",
+  "original_specification_sha256": "98e780babbc5fd1b8214a3afbe65e5b5dbe39196017a83361b93f7f7cd3e5f73",
+  "output_timestamps_identical": true,
+  "prepared_manifest_sha256": "e55f0480533611fc1e198d16b181814a8d34752cb748becbfeec7bcb4908ba6d",
+  "raw_pose_max_orientation_difference_deg": 0,
+  "raw_pose_max_position_difference_m": 0.0,
+  "reproduced_result_sha256": "60f818030b104bb30a0155c30abc268b68295174b0dfa82aab6aa3301c09d35a",
+  "reproduction_report_sha256": "b0a911652869771ffaab758572fb0812d3a04320d1d540c5f8c4e23e25cce20b",
+  "runtime_mode": "source_rebuilt",
+  "schema_version": 1,
+  "status": "passed",
+  "trajectory_bytes_identical": true,
+  "verified_payload_files": 38,
+  "verified_prepared_bytes": 1696791755,
+  "verified_prepared_files": 5651
+}

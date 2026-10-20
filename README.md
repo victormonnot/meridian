@@ -40,12 +40,13 @@ execution, investigation, comparison and export workflow. Broader estimator
 development remains planned.
 
 The hosted preview uses a temporary HTTPS address. Password recovery and
-recording uploads remain unavailable. Saved run comparisons and experiment
-downloads are validated locally and over HTTPS. The
-[export report](results/exports/README.md) records successful independent replay
-after source deletion. The [initial workspace report](results/workspace/README.md)
-records the authentication foundation; [job validation](results/jobs/README.md)
-records execution, recovery and the maintained room1 profile.
+recording uploads remain unavailable. The
+[complete acceptance report](results/hosted-acceptance/README.md) records the
+browser workflow, fault and quota checks, off-server backup restoration and
+independent export replay after source deletion. The reserved room2 evaluation
+fails its unchanged coverage gates; it remains an explicit negative result.
+The [earlier export report](results/exports/README.md) and
+[job validation](results/jobs/README.md) retain the preceding implementation evidence.
 
 ## What exists so far
 
@@ -63,6 +64,8 @@ records execution, recovery and the maintained room1 profile.
   common-support errors, missing-data regions, initialization and host costs.
 - Downloadable experiment archives with verified file inventories, pinned inputs,
   source/build instructions and a standalone reproduction checker.
+- An operator backup/restore rehearsal for metadata and retained artifacts,
+  plus repeatable browser and operational acceptance procedures.
 - A pinned, ROS-free OpenVINS reference running real TUM-VI stereo/IMU inputs
   in an isolated container, with independent evaluation, provenance and
   [three repeatable qualification runs](results/vio-reference/README.md).
@@ -115,6 +118,7 @@ The simulations include known motion for comparison; the historical log does not
 
 | Study | What it looks at |
 | --- | --- |
+| [Complete hosted acceptance](results/hosted-acceptance/README.md) | Full local/HTTPS workflow, bounded faults and quotas, off-server restoration, independent replay and the reserved room2 coverage failure. |
 | [Independent VIO exports](results/exports/README.md) | Verified experiment downloads and source-built reproduction outside the service after source deletion. |
 | [Saved VIO comparisons](results/comparisons/README.md) | Actual baseline, variant and repeat executions; own/common support, configuration tradeoffs and immutable private snapshots. |
 | [Synchronized VIO investigation](results/investigation/README.md) | Original stereo images, input IMU, aligned poses, missing support and full-resolution interval metrics for retained executions. |

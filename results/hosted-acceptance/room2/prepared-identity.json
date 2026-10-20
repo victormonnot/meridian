@@ -1,0 +1,38 @@
+{
+  "dataset_id": "tum-vi-room2-512-16",
+  "manifest_sha256": "edef18aca9b0672e7580ca10e2f6fd9d4a4f2ad8d0bcdb223d24d229fcfa39ba",
+  "prepared_bytes": 1749020182,
+  "prepared_files": 5773,
+  "recorded_before_native_execution_at": "2026-10-20T09:29:07.469403+00:00",
+  "reference_sha256": "a1bd2bb90947100e3606031859e0bcf4f3c20611438ad2e0145e6b5b56a8b117",
+  "schema_version": 1,
+  "source": {
+    "archive_name": "dataset-room2_512_16.tar",
+    "md5": "412ec1596f2973a5cefac6a351a43486",
+    "sha256": "70343c5bbd9d674d0a2790bf934ee7d9cc08c1dea7cd77747a5557e4c94973f6",
+    "size_bytes": 1759395840,
+    "url": "https://vision.in.tum.de/tumvi/exported/euroc/512_16/dataset-room2_512_16.tar"
+  },
+  "streams": {
+    "cam0": {
+      "first_timestamp_ns": 1520530731400018325,
+      "last_timestamp_ns": 1520530875454345641,
+      "samples": 2882
+    },
+    "cam1": {
+      "first_timestamp_ns": 1520530731400018325,
+      "last_timestamp_ns": 1520530875454345641,
+      "samples": 2882
+    },
+    "imu0": {
+      "first_timestamp_ns": 1520530731372454010,
+      "last_timestamp_ns": 1520530875479830010,
+      "samples": 28732
+    },
+    "reference": {
+      "first_timestamp_ns": 1520530731382632018,
+      "last_timestamp_ns": 1520530875449299018,
+      "samples": 15477
+    }
+  }
+}

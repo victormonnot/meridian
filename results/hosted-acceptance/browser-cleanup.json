@@ -1,0 +1,175 @@
+{
+  "schema_version": 1,
+  "passed": true,
+  "scope": "Authenticated source deletion after successful backup/restored-access verification, followed by cleanup of only the two disposable browser accounts in each deployment.",
+  "publication": "Explicitly allowlisted values from private operator reports; credentials, account names, session identifiers and private paths are omitted.",
+  "checks_are_separate_from_browser_journeys": true,
+  "runs": {
+    "local": {
+      "passed": true,
+      "started_at": "2026-10-20T09:46:37.802411+00:00",
+      "finished_at": "2026-10-20T09:48:46.213037+00:00",
+      "transport": "http",
+      "source_report_sha256": "c8341e149c68b990eaf963725d875a589ecae3d79ea977c0d6e21372269d9339",
+      "browser_report_sha256": "7e2dca9738400254c93ec74fb16df5cac3bac3266c28d8847246bca8320a08c3",
+      "source_job_id": "98d1ebc3-d2f1-4a45-a886-2e360fda6c05",
+      "archive": {
+        "size_bytes": 681969,
+        "sha256": "9466b1e3d37947d2b0994a89ee2b9ac1af69132d9ac6ea35b03b23d78e31b7f0",
+        "browser_download_and_restored_copy_identical": true,
+        "preserved_after_source_deletion": true
+      },
+      "restored_access_verified_before_source_deletion": {
+        "passed": true,
+        "source_report_sha256": "6006244f5b7fa6ba20dc03afe6137bbea03af1763033c67b4ed2c1c2a6982a2d",
+        "method": "Django in-process HTTP client with CSRF enforcement in an isolated restored database and matching API runtime."
+      },
+      "owned_resource_binding": {
+        "verified_accounts": 2,
+        "verified_projects": 2,
+        "initial_verified_terminal_jobs": 4,
+        "original_attempt_count": 3,
+        "only_original_owner_password_reset": true,
+        "other_account_password_unchanged": true
+      },
+      "authenticated_source_deletion": {
+        "checked_at": "2026-10-20T09:47:53.657334+00:00",
+        "login_status": 200,
+        "delete_response_retained": false,
+        "delete_status": null,
+        "subsequent_job_status": 404,
+        "subsequent_export_status": 404,
+        "no_source_job_recreated": true,
+        "source_already_absent_at_resume": true
+      },
+      "scoped_cleanup": {
+        "deleted_model_counts": {
+          "auth.User": 2,
+          "workspace.Project": 2,
+          "workspace.Experiment": 2,
+          "workspace.ExperimentRevision": 3,
+          "workspace.Job": 3,
+          "workspace.JobAttempt": 2,
+          "workspace.RunComparison": 1
+        },
+        "count_scope": "These cascading counts exclude the source job and its attempt already removed through authenticated HTTP DELETE.",
+        "deleted_sessions": 4,
+        "deleted_exact_account_budget_windows": 4,
+        "aggregate_budgets_preserved": true,
+        "unrelated_rows_preserved": true,
+        "unrelated_verification": "All non-QA rows in the seven listed models were hashed and compared before/after the same cleanup transaction.",
+        "remaining_unrelated_counts": {
+          "users": 13,
+          "projects": 4,
+          "experiments": 3,
+          "revisions": 6,
+          "jobs": 0,
+          "attempts": 0,
+          "comparisons": 0
+        }
+      },
+      "physical_cleanup": {
+        "checked_job_artifact_directories": 4,
+        "checked_attempt_scratch_directories": 3,
+        "remaining_artifact_job_count": 0,
+        "remaining_scratch_attempt_count": 0,
+        "no_compute_children": true,
+        "normal_worker_janitor_observed": true
+      },
+      "operator_interruptions": [
+        {
+          "source_report_sha256": "91cc0f776d535155222fed005b69509d3e17a41bef88e00239707f1c89daa007",
+          "cause": "The private operator helper expected only a deleted flag, while the actual API also returns schema_version. It stopped after the source DELETE and did not retain that response.",
+          "correction": "The continuation checked exact remaining resource bindings, signed in again, and verified job and export HTTP 404 without recreating the job."
+        },
+        {
+          "source_report_sha256": "315f741bb50748ea5029c132c532d5bb4feba6548b5f1b21a2f026dd92b4f148",
+          "cause": "After exact metadata cleanup, the final read-only filesystem probe used the wrong worker Python working directory.",
+          "correction": "The read-only probe was repeated in the configured application directory. No account or job mutation was repeated."
+        }
+      ]
+    },
+    "hosted": {
+      "passed": true,
+      "started_at": "2026-10-20T10:13:17.174836+00:00",
+      "finished_at": "2026-10-20T10:14:12.462987+00:00",
+      "transport": "https",
+      "source_report_sha256": "2ce5bd56bffb0adbf6abaf2020a39af0dac717385276d1bdf2bb2ea554ac83e9",
+      "browser_report_sha256": "ed43db31a9af602be2e63f63920639379a7065b011b04ecfdbbcb9ebbd6f2ac6",
+      "source_job_id": "533a3c6e-f2d8-4e15-8e61-60fed82ee694",
+      "archive": {
+        "size_bytes": 681997,
+        "sha256": "d7243ecdc428c1e50f80eafee3179817a2530ba38fb2556619ef89f6ebf53af0",
+        "browser_download_and_restored_copy_identical": true,
+        "preserved_after_source_deletion": true
+      },
+      "restored_access_verified_before_source_deletion": {
+        "passed": true,
+        "source_report_sha256": "73e4832b05eca26318d39e873b4d82fb06a4f03f58a9fc259d6a9a7aabcb3af0",
+        "method": "Django in-process HTTP client with CSRF enforcement in an isolated restored database and matching API runtime."
+      },
+      "owned_resource_binding": {
+        "verified_accounts": 2,
+        "verified_projects": 2,
+        "initial_verified_terminal_jobs": 4,
+        "original_attempt_count": 3,
+        "only_original_owner_password_reset": true,
+        "other_account_password_unchanged": true
+      },
+      "authenticated_source_deletion": {
+        "checked_at": "2026-10-20T10:13:24.429238+00:00",
+        "login_status": 200,
+        "delete_response_retained": true,
+        "delete_status": 200,
+        "subsequent_job_status": 404,
+        "subsequent_export_status": 404,
+        "no_source_job_recreated": true,
+        "delete_payload": {
+          "schema_version": 1,
+          "deleted": true
+        }
+      },
+      "scoped_cleanup": {
+        "deleted_model_counts": {
+          "auth.User": 2,
+          "workspace.Project": 2,
+          "workspace.Experiment": 2,
+          "workspace.ExperimentRevision": 3,
+          "workspace.Job": 3,
+          "workspace.JobAttempt": 2,
+          "workspace.RunComparison": 1
+        },
+        "count_scope": "These cascading counts exclude the source job and its attempt already removed through authenticated HTTP DELETE.",
+        "deleted_sessions": 3,
+        "deleted_exact_account_budget_windows": 4,
+        "aggregate_budgets_preserved": true,
+        "unrelated_rows_preserved": true,
+        "unrelated_verification": "All non-QA rows in the seven listed models were hashed and compared before/after the same cleanup transaction.",
+        "remaining_unrelated_counts": {
+          "users": 0,
+          "projects": 0,
+          "experiments": 0,
+          "revisions": 0,
+          "jobs": 0,
+          "attempts": 0,
+          "comparisons": 0
+        }
+      },
+      "physical_cleanup": {
+        "checked_job_artifact_directories": 4,
+        "checked_attempt_scratch_directories": 3,
+        "remaining_artifact_job_count": 0,
+        "remaining_scratch_attempt_count": 0,
+        "no_compute_children": true,
+        "normal_worker_janitor_observed": true
+      },
+      "operator_interruptions": []
+    }
+  },
+  "limitations": [
+    "The initial local DELETE response was not retained. Its status is not claimed; later authenticated job/export requests establish source absence.",
+    "The local operator helper needed two corrections after the browser workflow had passed. The original interrupted reports remain preserved, and no source job was recreated.",
+    "QA password resets and final account cleanup are operator actions, not self-service password recovery or an end-user account-deletion feature.",
+    "This evidence covers exact disposable accounts and retained files, not arbitrary-user deletion or scheduled data retention."
+  ]
+}

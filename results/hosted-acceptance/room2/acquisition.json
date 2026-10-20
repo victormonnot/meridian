@@ -1,0 +1,27 @@
+{
+  "expected_size_bytes": 1759395840,
+  "final_url": "https://cdn2.vision.in.tum.de/tumvi/exported/euroc/512_16/dataset-room2_512_16.tar",
+  "finished_at": "2026-10-20T09:27:32.648362+00:00",
+  "md5": "412ec1596f2973a5cefac6a351a43486",
+  "protocol_commit": "f3c7ff6",
+  "publisher_checksum": "412ec1596f2973a5cefac6a351a43486  dataset-room2_512_16.tar",
+  "publisher_checksum_final_url": "https://cdn2.vision.in.tum.de/tumvi/exported/euroc/512_16/dataset-room2_512_16.tar.md5",
+  "publisher_checksum_url": "https://vision.in.tum.de/tumvi/exported/euroc/512_16/dataset-room2_512_16.tar.md5",
+  "response_headers": {
+    "Accept-Ranges": "bytes",
+    "Access-Control-Allow-Origin": "https://vision.in.tum.de",
+    "Connection": "close",
+    "Content-Length": "1759395840",
+    "Content-Type": "application/x-tar",
+    "Date": "Tue, 20 Oct 2026 09:21:28 GMT",
+    "ETag": "\"68de4000-56a1334206f8d\"",
+    "Last-Modified": "Tue, 17 Apr 2018 22:53:15 GMT",
+    "Server": "Apache/2.4.58 (Ubuntu)"
+  },
+  "schema_version": 1,
+  "sha256": "70343c5bbd9d674d0a2790bf934ee7d9cc08c1dea7cd77747a5557e4c94973f6",
+  "size_bytes": 1759395840,
+  "started_at": "2026-10-20T09:21:27.623253+00:00",
+  "state": "verified_before_preparation_or_execution",
+  "url": "https://vision.in.tum.de/tumvi/exported/euroc/512_16/dataset-room2_512_16.tar"
+}

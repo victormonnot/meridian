@@ -1,6 +1,6 @@
 # Part 1: hosted workspace and reference VIO workflow
 
-**Status: increments 1.1–1.7 completed by 2026-10-20; increment 1.8 remains planned.**
+**Status: increments 1.1–1.8 completed by 2026-10-20.**
 This plan details part 1 of the [development roadmap](professional-estimation-roadmap.md).
 The current [implementation](../README.md) includes the qualified
 [local VIO reference](../results/vio-reference/README.md), the original single-axis
@@ -13,10 +13,14 @@ traceable interval metrics. [Saved comparisons](vio-comparisons.md) preserve
 configuration differences and outcomes on each run's own and common support.
 [Independent exports](vio-exports.md) package exact successful execution evidence
 and source for verified reproduction outside the service.
+The [complete acceptance report](../results/hosted-acceptance/README.md) records
+the full HTTPS workflow, operational limits, off-server restoration and replay
+after source deletion. The reserved room2 evaluation fails its unchanged
+coverage gates and remains an explicit limitation.
 
 ## Outcome and scope
 
-At completion of part 1, an engineer can open the hosted site, create a private
+The completed part 1 allows an engineer to open the hosted site, create a private
 project, select a prepared camera/IMU recording, run a reference VIO implementation, change a supported
 parameter, inspect and compare actual results, and export a reproducible
 experiment. Using the hosted application requires no local Meridian installation.
@@ -74,8 +78,10 @@ implied by selecting a candidate.
 
 The [qualification report](../results/vio-reference/README.md) records the measured
 accuracy, coverage, repeatability and host resources. Future reference revisions
-must meet the same declared gate or record a protocol change. Deployment cost
-and sustained multi-user throughput have not been measured yet.
+must meet the same declared gate or record a protocol change. The
+[complete acceptance report](../results/hosted-acceptance/README.md) adds hosted
+runtime/storage observations and the reserved room2 coverage failure.
+Sustained multi-user throughput has not been established.
 
 ## Minimal architecture and contracts
 
@@ -138,7 +144,8 @@ under the documented retention policy.
 
 Every increment includes its relevant UI states, failure handling, checks, and
 documentation. Later integration testing does not defer those responsibilities.
-Increments 1.1–1.7 are complete; increment 1.8 remains pending.
+Increments 1.1–1.8 are complete. The requirements below remain the acceptance
+contracts for future revisions of this bounded workflow.
 
 ### 1.1 — Executable reference and evaluation protocol
 
@@ -345,6 +352,15 @@ according to the documented policy. Preserve schema versions and reject unsuppor
 export formats explicitly.
 
 ### 1.8 — Complete hosted acceptance
+
+**Completed:** [full acceptance evidence](../results/hosted-acceptance/README.md),
+[operator exercises](workspace-acceptance.md) and
+[backup/recovery procedure](workspace-backup.md). The room1 hosted workflow and
+independent export replay pass. All three reserved room2 runs fail the frozen
+reference/evaluated coverage gates; no parameters, intervals or thresholds were
+changed to produce a pass. Evaluation used an automated engineering harness,
+not an external expert usability study. The temporary HTTPS hostname works;
+custom-domain activation and scheduled backups remain unavailable.
 
 **Dependency:** 1.7.
 
