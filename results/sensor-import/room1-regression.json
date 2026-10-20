@@ -1,0 +1,44 @@
+{
+  "acquisition_sha256": "f4187ed3a4c55166f6b22d11bba41f85895aada06e26afcaff1d7281dbb25d67",
+  "estimator_executed": false,
+  "execution_readiness": "not_assessed",
+  "frozen_comparisons": {
+    "cam0": {
+      "all_png_bytes_identical": true,
+      "samples": 2821,
+      "timestamps_identical": true
+    },
+    "cam1": {
+      "all_png_bytes_identical": true,
+      "samples": 2821,
+      "timestamps_identical": true
+    },
+    "imu": {
+      "all_decimal_values_identical": true,
+      "samples": 28122
+    },
+    "reference": {
+      "all_decimal_values_identical": true,
+      "samples": 16541
+    }
+  },
+  "imports_byte_identical": true,
+  "legacy_manifest": {
+    "sha256": "e55f0480533611fc1e198d16b181814a8d34752cb748becbfeec7bcb4908ba6d",
+    "size_bytes": 984764
+  },
+  "preparations_byte_identical": true,
+  "prepared_input_sha256": "92c09d4d16d79beaffc93fcf5a1657529b5e92cdc5c8d1f8336a78d5a1c2611c",
+  "repeat_import_files": 5649,
+  "repeat_import_inventory_sha256": "827ae98316f104766d0b92a0692ae905612cfc4b0f8a02fdbfe7b35497f7e871",
+  "repeat_preparation_files": 5649,
+  "repeat_preparation_inventory_sha256": "ccd52c76a20f9551a377102dc5a3db3d69f3381a53856fb45dd54119d4ccc3ec",
+  "schema_version": 1,
+  "scope": "import_and_preparation_only",
+  "source": {
+    "sha256": "20354392eab5cc82c9770ed29cf0130c5acce0db54a257571499008fb34c398f",
+    "size_bytes": 1707110400
+  },
+  "source_and_legacy_unchanged": true,
+  "status": "passed"
+}

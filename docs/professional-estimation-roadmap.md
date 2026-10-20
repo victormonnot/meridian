@@ -3,10 +3,12 @@
 **Status: development roadmap, 2026-10-20.** The product direction prioritizes
 professional state-estimation engineering with visual-inertial odometry (VIO)
 and operation without reliable GNSS. Part 1's bounded hosted workflow is
-complete; part 2 has started with sensor contracts, and parts 3–8 remain planned.
+complete; part 2 has started with sensor contracts and local import, and parts
+3–8 remain planned.
 Part 1 has a [detailed implementation record](part-1-hosted-vio-workspace.md).
 Part 2 has a [detailed increment plan](part-2-sensor-data-calibration-timing.md)
-and initial [sensor contracts](sensor-contract.md);
+and initial [sensor contracts](sensor-contract.md) and
+[local import/preparation](sensor-import.md);
 parts 3–8 remain at outcome level. The [README](../README.md) and
 [design notes](design.md) describe the implementation available today. The first
 [local VIO reference](vio-reference.md) is implemented and qualified, and a
@@ -321,9 +323,10 @@ after deleting the source job. The separately evaluated room2 recording fails
 the unchanged coverage gates. The
 [part 2 plan](part-2-sensor-data-calibration-timing.md) retains that result
 and details acquisition, calibration, timing and input/reference validation.
-Increment 2.1 implements local acquisition/calibration/clock contracts and
-synthetic convention checks; import, hosted uploads and calibration fitting
-remain planned. Parts 3–8 are not detailed here.
+Increments 2.1–2.2 implement local acquisition/calibration/clock contracts,
+convention checks, payload import and deterministic preparation.
+Hosted uploads and calibration fitting remain planned. Parts 3–8 are not
+detailed here.
 
 ## Existing tools and research
 

@@ -39,9 +39,10 @@ implementations, and automated engineering workflows. The
 execution, investigation, comparison and export workflow. Broader estimator
 development remains planned. The
 [part 2 plan](docs/part-2-sensor-data-calibration-timing.md) details sensor
-imports, calibration and timing. Its first increment adds
-[local sensor-contract validation](docs/sensor-contract.md); recording import
-and calibration execution remain planned.
+imports, calibration and timing. Its initial increments add
+[sensor contracts](docs/sensor-contract.md) and
+[local import and deterministic preparation](docs/sensor-import.md).
+Hosted uploads and calibration execution remain planned.
 
 The hosted preview is available at
 [meridian.victormonnot.com](https://meridian.victormonnot.com/); the previous
@@ -87,6 +88,9 @@ The [earlier export report](results/exports/README.md) and
 - Versioned sensor-data descriptors with exact integer clocks, explicit
   calibration provenance, linked preparation metadata and synthetic convention
   checks. These validate declarations; they do not enable recording uploads.
+- Local sensor-package, calibrated TUM-VI and DataFlash-snapshot import with
+  original preservation, full payload validation and deterministic preparation.
+  See the [import regression evidence](results/sensor-import/README.md).
 
 The original roll study still needs a new bench recording with known angles
 to check the estimates against a physical reference. The historical

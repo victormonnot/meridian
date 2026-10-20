@@ -11,6 +11,7 @@ requires-python = ">=3.10"
 dependencies = [
     "numpy>=2.0,<3",
     "matplotlib>=3.9,<4",
+    "Pillow>=12.3,<13",
 ]
 
 [project.optional-dependencies]
@@ -27,6 +28,7 @@ meridian-cpp-parity = "meridian.cpp_parity:main"
 meridian-dataflash-audit = "meridian.dataflash_audit:main"
 meridian-imu-replay = "meridian.imu_replay:main"
 meridian-imu-cpp-parity = "meridian.imu_cpp_parity:main"
+meridian-sensor-import = "meridian.sensor_import:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

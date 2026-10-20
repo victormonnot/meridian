@@ -30,9 +30,11 @@ scheduled backups and a persistent disaster-recovery deployment remain separate.
 The [part 2 plan](part-2-sensor-data-calibration-timing.md) describes the data,
 calibration and timing increments. Its first increment implements
 [sensor contracts](sensor-contract.md), exact clock/unit/geometry checks and
-synthetic linked examples. Descriptor validity does not establish payload quality
-or estimator readiness; import, hosted uploads and calibration execution remain
-unimplemented. [Recording reservations](sensor-data-sources.md) separate future
+synthetic linked examples. The [local importer](sensor-import.md) verifies actual
+payloads, retains originals and prepares SI/ns observations deterministically.
+Accepted imports do not establish physical quality or estimator readiness;
+hosted uploads and calibration execution remain unimplemented.
+[Recording reservations](sensor-data-sources.md) separate future
 fitting and evaluation before any new payload inspection.
 General 3D estimator development, broader visual-inertial development and
 engineering automation remain planned work.

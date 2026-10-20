@@ -1,6 +1,6 @@
 # Part 2 — Sensor data, calibration, and timing
 
-**Status: increment 2.1 implemented, 2026-10-20. Increments 2.2–2.13 remain planned.**
+**Status: increments 2.1–2.2 implemented, 2026-10-20. Increments 2.3–2.13 remain planned.**
 
 The intended outcome is a private, versioned acquisition with traceable sensor
 semantics, calibration and timing, usable by a supported estimator and
@@ -27,8 +27,9 @@ workflow and the negative room2 coverage result.
 | [Exports](vio-exports.md) and [backup](workspace-backup.md) | Exports reacquire public inputs; backups cover metadata and published job artifacts. | Private original inputs need portable delivery and coherent recovery coverage. |
 | [DataFlash](dataflash-audit.md) and [bench](bench-acquisition.md) | Snapshot audit and roll replay exist; new physical acquisition and reference-window evaluation do not. | Preserve snapshot semantics and add actual bench evidence without implying a camera rig already exists. |
 
-Increment 2.1 adds local metadata contracts and synthetic convention checks.
-No new real recording, calibration fit, VIO execution or deployment is claimed.
+Increments 2.1–2.2 add local metadata contracts, convention checks and actual
+file import/preparation. Existing room1 inputs provide regression evidence.
+No new acquisition, calibration fit, VIO execution or deployment is claimed.
 
 ## Proposed boundaries
 
@@ -79,7 +80,7 @@ not become a validated artifact merely because a process exited successfully.
 checks four record kinds and linked identities; independent tests exercise units,
 rigid transforms, exact clocks, reference separation and invalid declarations.
 The existing hosted v1 execution path remains unchanged. Payload import and
-verification belong to 2.2.
+verification are implemented separately in 2.2.
 
 **Dependency:** completed part 1.
 
@@ -103,6 +104,12 @@ known units, rotations and clock offsets. Existing v1 specifications and input
 identities remain valid and unchanged.
 
 ### 2.2 — Deterministic import and preparation
+
+**Implemented:** [local import and preparation](sensor-import.md), bounded
+payload validation, calibrated TUM-VI and DataFlash snapshot adapters. The
+[regression record](../results/sensor-import/README.md) distinguishes successful
+room1 compatibility from the historical DataFlash log's strict rejection.
+Prepared candidates are not yet accepted by the hosted runner.
 
 **Dependency:** 2.1.
 

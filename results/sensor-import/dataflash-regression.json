@@ -1,0 +1,27 @@
+{
+  "attempts": [
+    {
+      "error": "DataFlash import requires zero parser diagnostics and zero unparsed tail bytes.",
+      "output_exists": false,
+      "status": "rejected"
+    },
+    {
+      "error": "DataFlash import requires zero parser diagnostics and zero unparsed tail bytes.",
+      "output_exists": false,
+      "status": "rejected"
+    }
+  ],
+  "decoded_imu_records": 9788,
+  "decoded_instances": [
+    0
+  ],
+  "estimator_executed": false,
+  "expected_source_sha256": "47b6476bc77cc1ccd9c1248a31eeaeec8866c77062c176127411192d84987191",
+  "identical_rejections": true,
+  "package_byte_comparison": "unavailable: source rejected before package creation",
+  "parser_diagnostic_count": 0,
+  "source_sha256": "47b6476bc77cc1ccd9c1248a31eeaeec8866c77062c176127411192d84987191",
+  "source_size_bytes": 8127996,
+  "source_unchanged": true,
+  "unparsed_tail_bytes": 37
+}

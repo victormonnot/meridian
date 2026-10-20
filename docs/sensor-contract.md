@@ -108,7 +108,7 @@ processing must not be applied again.
 
 ## Transfer package layout
 
-The proposed importer consumes one acquisition descriptor named
+The [local importer](sensor-import.md) consumes one acquisition descriptor named
 `acquisition.json` plus exactly inventoried payload files. Optional linked
 calibration, clock and preparation descriptors remain separate JSON records;
 original acquisition identity does not change when a calibration is added.
@@ -139,8 +139,8 @@ Image filenames are safe relative paths from their index directory and must
 resolve to inventoried sensor files. The initial encodings are grayscale PNG,
 8 or 16 bits; image bytes/dimensions and camera-pair timestamps need independent
 inspection. Reference rows are never part of the estimator sensor mount.
-These CSV and file rules define 2.2's input contract; 2.1 does not implement their
-decoder or claim that a supplied file obeys them.
+The separate importer introduced in 2.2 verifies these CSV and payload rules.
+The metadata-only validator described here still does not open those files.
 
 ## Calibration
 
@@ -266,8 +266,9 @@ records. Their representations are deliberately limited:
 | `clock_mapping` | A selected mapping | `{}`; the mapping supplies all parameters. |
 
 This record describes a preparation, not an executable shell/YAML/URL recipe.
-There is no preparation executor in 2.1. Image conversion records the existing
-OpenCV convention; its actual bytes require the identified implementation,
+Increment 2.2 executes a bounded subset: SI/ns conversion and optional image
+conversion. Calibration, frame and clock corrections remain future work.
+Image conversion records the existing OpenCV convention; its actual bytes require the identified implementation,
 including rounding/saturation behavior. Exact duplicate declarations and
 repeated conversion of the same measurement quantity are rejected. The bounded
 per-stream measurement order is unit conversion, then any IMU calibration,
@@ -313,4 +314,4 @@ dataset and export tests remain regression evidence.
 No new real recording, sensor accuracy, fitted calibration or hosted upload
 capability follows from these tests. The [source selection](sensor-data-sources.md)
 reserves real calibration/validation recordings without inspecting their
-payloads. Import/preparation is increment 2.2.
+payloads. [Import/preparation](sensor-import.md) is implemented separately in 2.2.
