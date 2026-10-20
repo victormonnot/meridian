@@ -29,6 +29,11 @@ retained, but this recipe does not promise byte-identical rebuilds from future
 package repositories. A package disappearing causes a build failure; versions
 must not be silently substituted.
 
+The `git-man` package is explicitly pinned alongside `git`: a later package-index
+refresh otherwise selected newer manual pages while leaving the estimator
+binaries unchanged. This pin preserves the qualified dependency inventory for the
+observed rebuild; it does not freeze every transitive package indefinitely.
+
 The image retains `/opt/meridian/build-info.json`, `dependency-versions.txt`,
 `binary-sha256.txt`, all adapter sources and the upstream estimator source
 directories used by this build. `--version`

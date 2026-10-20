@@ -13,6 +13,7 @@ from .api import endpoint, error, not_found, response
 from .experiments import owned_project, payload
 from .job_queue import ACTIVE, TERMINAL, cancel_locked, enabled, limits, queue_lock, service_status
 from .investigation import available as investigation_available
+from .exports import unavailable_reason as export_unavailable_reason
 from .models import AuthWindow, Experiment, Job
 
 
@@ -21,6 +22,7 @@ def _date(value):
 
 
 def job_payload(job):
+    export_reason = export_unavailable_reason(job)
     return {"id": str(job.pk), "project_id": str(job.project_id),
             "experiment_id": str(job.experiment_id), "experiment_name": job.experiment_name,
             "revision_version": job.revision_version, "specification_sha256": job.specification_sha256,
@@ -32,6 +34,8 @@ def job_payload(job):
             "result": job.result if job.state == "succeeded" else None,
             "artifacts_available": job.artifacts_available,
             "investigation_available": investigation_available(job),
+            "export_available": export_reason is None,
+            "export_unavailable_reason": export_reason,
             "artifacts_expire_at": _date(job.artifacts_expire_at),
             "attempts": [{"number": item.number, "state": item.state,
                           "started_at": _date(item.started_at), "finished_at": _date(item.finished_at),

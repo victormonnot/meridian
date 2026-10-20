@@ -4,6 +4,7 @@ import { revisionDraft, draftChanged, experimentPayload, experimentPath, createE
 import { activeJob, jobPath, renderJobRows, renderRevisionJobs, renderJobList, renderJobDetail, renderService, jobActionDialog, createJobPoller } from './workspace-jobs.js';
 import { investigationShell, mountInvestigation } from './workspace-investigation.js';
 import { comparisonPath, comparisonPayload, terminalRuns, createComparisonDialog, selectionSummary, renderComparisonList, renderRunComparison } from './workspace-comparisons.js';
+import { mountRunExport } from './workspace-exports.js';
 
 initializeTheme();
 const api = createApiClient();
@@ -27,6 +28,7 @@ let jobView = null;
 let jobPoller;
 let investigationView;
 let runComparisonView;
+let exportView;
 const submissions = new Map();
 const comparisonSubmissions = new Map();
 
@@ -47,6 +49,7 @@ function announce(message = '', isError = false) {
 function setSession(value) {
   jobPoller?.stop();
   investigationView?.destroy();
+  exportView?.destroy();
   submissions.clear();
   comparisonSubmissions.clear();
   sessionEpoch += 1;
@@ -70,6 +73,7 @@ function removePrivateState() {
   controller?.abort();
   jobPoller?.stop();
   investigationView?.destroy();
+  exportView?.destroy();
   submissions.clear();
   comparisonSubmissions.clear();
   datasets = [];
@@ -234,6 +238,7 @@ function renderProject(project, section) {
   const pending = experimentView?.experiment && submissions.get(submissionIdentity());
   if (pending?.inFlight) app.querySelector('[data-action="launch-job"]')?.setAttribute('disabled', '');
   if (jobView?.investigation) investigationView = mountInvestigation(app.querySelector('#investigation-content'), { api, job: jobView.job, onSessionExpired: expireSession });
+  if (jobView?.job && !jobView.investigation) exportView = mountRunExport(app.querySelector('#jobs-content'), { api, job: jobView.job, onSessionExpired: expireSession });
 }
 
 function routeError(error) {
@@ -258,6 +263,8 @@ async function renderRoute() {
   controller?.abort();
   jobPoller?.stop();
   investigationView?.destroy();
+  exportView?.destroy();
+  exportView = null;
   investigationView = null;
   controller = new AbortController();
   currentProject = null;
@@ -497,6 +504,10 @@ function startJobPolling(route, routeId) {
         const focusHref = target.contains(document.activeElement) ? document.activeElement.getAttribute('href') : null;
         const openDetails = [...target.querySelectorAll('details')].map(item => item.open);
         target.innerHTML = detail ? renderJobDetail(value.job) : renderJobList(value);
+        if (detail) {
+          exportView?.destroy();
+          exportView = mountRunExport(target, { api, job: value.job, onSessionExpired: expireSession });
+        }
         target.querySelectorAll('details').forEach((item, index) => { item.open = openDetails[index] || false; });
         if (focusAction) target.querySelector(`[data-action="${focusAction}"]`)?.focus({ preventScroll: true });
         else if (focusHref) [...target.querySelectorAll('a[href]')].find(link => link.getAttribute('href') === focusHref)?.focus({ preventScroll: true });

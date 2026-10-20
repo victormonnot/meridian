@@ -87,6 +87,7 @@ MERIDIAN_EXECUTION_ENABLED = os.environ.get("MERIDIAN_EXECUTION_ENABLED", "0") =
 MERIDIAN_VIO_PREPARED = Path(os.environ.get("MERIDIAN_VIO_PREPARED", "/srv/meridian-workspace/data/room1"))
 MERIDIAN_JOB_ARTIFACT_ROOT = Path(os.environ.get("MERIDIAN_JOB_ARTIFACT_ROOT", "/srv/meridian-workspace/jobs"))
 MERIDIAN_CAMERA_ROOT = Path(os.environ.get("MERIDIAN_CAMERA_ROOT", "/reference-cameras"))
+MERIDIAN_EXPORT_SOURCE_ROOT = Path(os.environ.get("MERIDIAN_EXPORT_SOURCE_ROOT", str(BASE_DIR.parent)))
 MERIDIAN_JOB_SCRATCH_ROOT = Path(os.environ.get("MERIDIAN_JOB_SCRATCH_ROOT", "/srv/meridian-workspace/scratch"))
 MERIDIAN_EVALUATION_IMAGE = os.environ.get("MERIDIAN_EVALUATION_IMAGE", "")
 MERIDIAN_MIN_AVAILABLE_MEMORY_MB = int(os.environ.get("MERIDIAN_MIN_AVAILABLE_MEMORY_MB", "5120"))

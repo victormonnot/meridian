@@ -1,6 +1,7 @@
 FROM python:3.12.15-slim-bookworm@sha256:34386ef0cb081344d7ec1c103ba398e6e9f64e9ab3a1509accc92a4e24a07258
 
-ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PIP_DISABLE_PIP_VERSION_CHECK=1
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    MERIDIAN_EXPORT_SOURCE_ROOT=/app/export-source
 WORKDIR /app/server
 COPY server/requirements.lock ./requirements.lock
 RUN pip install --no-cache-dir -r requirements.lock \
@@ -11,7 +12,24 @@ COPY server/config ./config
 COPY server/workspace ./workspace
 COPY server/catalog/room1.json ./catalog/room1.json
 COPY src/meridian/__init__.py src/meridian/vio_specification.py \
-    src/meridian/vio_investigation_metrics.py src/meridian/vio_comparison.py /app/src/meridian/
+    src/meridian/vio_investigation_metrics.py src/meridian/vio_comparison.py \
+    src/meridian/vio_export.py src/meridian/vio_runtime_identity.py /app/src/meridian/
+# Export only the standalone reproduction sources, never the hosted application.
+COPY src/meridian/__init__.py src/meridian/vio_dataset.py \
+    src/meridian/vio_evaluation.py src/meridian/vio_reference.py \
+    src/meridian/vio_specification.py src/meridian/vio_runtime_identity.py \
+    src/meridian/vio_export.py src/meridian/vio_reproduction.py /app/export-source/src/meridian/
+COPY integrations/openvins/Dockerfile integrations/openvins/CMakeLists.txt \
+    integrations/openvins/runner.cpp integrations/openvins/LICENSE \
+    integrations/openvins/NOTICE.md integrations/openvins/README.md \
+    integrations/openvins/smoke_test.py /app/export-source/integrations/openvins/
+COPY integrations/openvins/config/estimator_config.yaml \
+    integrations/openvins/config/kalibr_imu_chain.yaml \
+    integrations/openvins/config/kalibr_imucam_chain.yaml \
+    integrations/openvins/config/mask_tumvi0.png \
+    integrations/openvins/config/mask_tumvi1.png /app/export-source/integrations/openvins/config/
+COPY integrations/reproduction/README.md integrations/reproduction/requirements.lock /app/export-source/integrations/reproduction/
+COPY docs/vio-reference.md docs/vio-exports.md /app/export-source/docs/
 USER 10001:10001
 EXPOSE 8000
 CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "2", "--timeout", "30", "--worker-tmp-dir", "/tmp", "--access-logfile", "-", "--error-logfile", "-"]

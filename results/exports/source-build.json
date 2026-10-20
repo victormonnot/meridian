@@ -1,0 +1,177 @@
+{
+  "schema_version": 1,
+  "checked_at_utc": "2026-10-20T07:19:08.553089+00:00",
+  "public_dataset_download": {
+    "archive_name": "dataset-room1_512_16.tar",
+    "md5": "51d2b8d93ee4ada47ec0b2d10115dcf8",
+    "sha256": "20354392eab5cc82c9770ed29cf0130c5acce0db54a257571499008fb34c398f",
+    "size_bytes": 1707110400,
+    "url": "https://vision.in.tum.de/tumvi/exported/euroc/512_16/dataset-room1_512_16.tar"
+  },
+  "build": {
+    "checked_at_utc": "2026-10-20T07:19:08.553089+00:00",
+    "archive_sha256": "c6d67f1b722c327c0bc215a89829927a1aca380421b61f09b3c7f9076db330a0",
+    "image_id": "sha256:213dad232a508955fcaf80452dbf10f696981eb1562e5ac5eb9f8faae75bb82d",
+    "build_command_cwd": "extracted export source tree outside checkout",
+    "build_cache": "Final exported-source invocation reused layers from the preceding fresh --no-cache build; all 12 packaged adapter files verified inside resulting image.",
+    "native_source_files": {
+      "CMakeLists.txt": "44dc66f5238a9df4836fd8a18830a2f35e574bbaf63dff1c81e97b0527f548d5",
+      "Dockerfile": "cbf9a24db941ac4349b530a6982457b38dc233e0e834de6ea7d40c89bda72dc7",
+      "LICENSE": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+      "NOTICE.md": "5f61bf5e4529ed8b86b6c834cc23e981d3550d522f872f3645c15ea0ebedf60b",
+      "README.md": "bd8def2aa7341427bc17da592918c8e8655512bb74d2a2fe498effa2b468b77c",
+      "config/estimator_config.yaml": "10c37c00c52a07ba5a86ce3d6d2846c2430397d6fa6a9e190dfdc47aa10c2045",
+      "config/kalibr_imu_chain.yaml": "cb598952ee3766492a332eaae8567fe2b63a9bf6d63b9c0a7b9d988471600a3d",
+      "config/kalibr_imucam_chain.yaml": "072d26e3dd20844ae7402f508c51cf7e899a401634ba6b0db0e08cd2880b7dab",
+      "config/mask_tumvi0.png": "62dfc1053f336d1adb4ae01519579532370d1b211894566a7a4ec167dd8c3f4f",
+      "config/mask_tumvi1.png": "67ff644599f862f2437026d9c43ef0a0887907470179a53e34447fb95cbd35ba",
+      "runner.cpp": "a577f358c893ac9171cad6a71bc2a65a49b9d90ab3dc426865d89b6ad2c8b782",
+      "smoke_test.py": "c2a7d3303965de96c6cbe8b12d3383455f536bb38065e78a509272662072bca9"
+    },
+    "native_source_files_match": true,
+    "venv_packages": [
+      {
+        "name": "numpy",
+        "version": "2.5.3"
+      },
+      {
+        "name": "pip",
+        "version": "24.0"
+      }
+    ],
+    "environment_keys": [
+      "LANG",
+      "PATH",
+      "PYTHONDONTWRITEBYTECODE",
+      "PYTHONNOUSERSITE"
+    ],
+    "no_backend_account_or_environment_variables_used": true,
+    "all_imported_meridian_modules_from_export": true,
+    "checkout_absent_from_python_import_path": true
+  },
+  "preliminary_uncached_build": {
+    "image_id": "sha256:35cb536ab22ed381caadb6cf6864349e25b70b34333784906474762eed400603",
+    "binary_manifest_matches_original": true,
+    "installed_package_difference": {
+      "git-man": {
+        "qualified": "1:2.43.0-1ubuntu7.3",
+        "rebuilt": "1:2.43.0-1ubuntu7.4"
+      }
+    },
+    "accepted_for_reproduction": false
+  },
+  "pinned_uncached_build": {
+    "checked_at_utc": "2026-10-20T07:15:33.895384+00:00",
+    "image_id": "sha256:80a35e82f26e7eed1c12c6e4a119119365579c1c3f961b9e305ab1e643eab336",
+    "mode": "preliminary fresh no-cache build with explicit git-man pin; exported-byte acceptance remains separate",
+    "files": {
+      "dependency-versions.txt": {
+        "sha256": "92d76ee986a1ff4508a96fb3f2c26439d99cb446a546f8e0d795f56d69e7023e",
+        "size_bytes": 17909
+      },
+      "binary-sha256.txt": {
+        "sha256": "7b66a083c7d5c69c6e85721e3357def42fbc1a125a5b13735f3e55ee3ad28070",
+        "size_bytes": 204
+      },
+      "build-info.json": {
+        "sha256": "d294276d88328cdf2293ba1015e88a218ec662f0d22c057a8ddecfeb21583b14",
+        "size_bytes": 244
+      }
+    }
+  },
+  "original_runtime_image_id": "sha256:73e1213d073ce52a9a509decb15628a7c043e0690609171c4b9382ed0c2730da",
+  "reproduced_runtime_image_id": "sha256:213dad232a508955fcaf80452dbf10f696981eb1562e5ac5eb9f8faae75bb82d",
+  "original_runtime_identity_claimed": false,
+  "binary_and_dependency_provenance_match_original": true,
+  "independent_native_isolation": {
+    "checked_at_utc": "2026-10-20T07:21:46.170552+00:00",
+    "image_id": "sha256:213dad232a508955fcaf80452dbf10f696981eb1562e5ac5eb9f8faae75bb82d",
+    "running_observed": true,
+    "user": "1000:1000",
+    "network": "none",
+    "readonly": true,
+    "cap_drop": [
+      "ALL"
+    ],
+    "security_opt": [
+      "no-new-privileges"
+    ],
+    "memory_bytes": 4294967296,
+    "memory_swap_bytes": 4294967296,
+    "nano_cpus": 2000000000,
+    "pids_limit": 128,
+    "environment_keys": [
+      "DEBIAN_FRONTEND",
+      "OMP_NUM_THREADS",
+      "OPENBLAS_NUM_THREADS",
+      "PATH"
+    ],
+    "mounts": [
+      {
+        "target": "/config",
+        "role": "rendered exported experiment configuration",
+        "writable": false
+      },
+      {
+        "target": "/output",
+        "role": "new independent execution outputs",
+        "writable": true
+      },
+      {
+        "target": "/sensors",
+        "role": "independently prepared camera/IMU sensor inputs",
+        "writable": false
+      }
+    ]
+  },
+  "limitations": [
+    "Final build from the downloaded archive reused layers from a preceding fresh uncached build of the same public adapter recipe.",
+    "Package repository and pinned upstream availability remain external dependencies.",
+    "A new runtime image was used; matching binary and dependency manifests do not make it the original image.",
+    "The clean Python environment and source directory were outside the checkout, but Docker used the same local engine."
+  ],
+  "independent_replays": {
+    "local": {
+      "started_at_utc": "2026-10-20T07:21:25.760047+00:00",
+      "finished_at_utc": "2026-10-20T07:22:44.140675+00:00",
+      "exit_code": 0,
+      "source_job_deleted_before_replay": true,
+      "runtime_mode": "rebuilt",
+      "environment_keys": [
+        "LANG",
+        "PATH",
+        "PYTHONDONTWRITEBYTECODE",
+        "PYTHONNOUSERSITE"
+      ],
+      "no_account_or_backend_requests_required": true,
+      "elapsed_seconds": 78.380628,
+      "elapsed_scope": "Complete independent CLI command, including source/data verification, execution and evaluation; not native runtime alone.",
+      "report_file": "local-reproduction-report.json",
+      "report_sha256": "cb1076053b80630ef07a463ff33793c9bdf84bdc21252586969c89635ea0e33d"
+    },
+    "hosted": {
+      "started_at_utc": "2026-10-20T07:31:26.300268+00:00",
+      "finished_at_utc": "2026-10-20T07:32:06.323077+00:00",
+      "exit_code": 0,
+      "archive_sha256": "c1703667b5aa26644065e05f55d7fa7b7f4501a1ae0598188d1c549bcafafffc",
+      "archive_bytes": 681618,
+      "source_job_deleted_before_replay": true,
+      "runtime_mode": "rebuilt",
+      "environment_keys": [
+        "LANG",
+        "PATH",
+        "PYTHONDONTWRITEBYTECODE",
+        "PYTHONNOUSERSITE"
+      ],
+      "all_24_sources_identical_to_independent_local_bundle": true,
+      "reused_independent_prepared_data": true,
+      "prepared_data_origin": "Fresh public download and preparation during the first independent replay, outside the checkout and hosted services. Every file and manifest are reverified.",
+      "reused_clean_venv_and_rebuilt_image": true,
+      "no_account_or_backend_requests_required": true,
+      "elapsed_seconds": 40.022809,
+      "elapsed_scope": "Complete independent CLI command, including source/data verification, execution and evaluation; not native runtime alone.",
+      "report_file": "hosted-reproduction-report.json",
+      "report_sha256": "bdabbd36f85c3207248d5ae28ea6f19aea99addee6650b72aefffba1693d2023"
+    }
+  }
+}

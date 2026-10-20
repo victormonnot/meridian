@@ -1,5 +1,26 @@
 # Interface screenshots
 
+## Independent experiment exports
+
+[`exports.png`](exports.png) captures the deployed HTTPS application on
+2026-10-20 in Chromium at a 1440 × 1200 viewport, light theme, scrolled to
+Independent reproduction. Release `20261020-16ef0733a9c8` ran the actual
+100-point room1 configuration through the queue, isolated OpenVINS runtime and
+separate evaluator. The view shows its metrics and the verified 681,618-byte
+download. No pixels, values or execution states were edited. The account,
+project and execution are disposable QA resources.
+
+To reproduce, run a saved 100-point configuration, open its completed Results
+entry, scroll to **Independent reproduction** and select **Download experiment**.
+See the [export contract](../vio-exports.md) and
+[validation report](../../results/exports/README.md).
+
+The numerical results derive from the **TUM VI Benchmark**, David Schubert,
+Thore Goll, Nikolaus Demmel, Vladyslav Usenko, Joerg Stueckler and Daniel Cremers
+(2018), under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), using
+the [documented preparation and evaluation](../vio-reference.md). This view
+contains derived metrics, not camera imagery or drone-flight validation.
+
 ## Saved VIO comparisons
 
 [`comparisons.png`](comparisons.png) captures the deployed HTTPS application on

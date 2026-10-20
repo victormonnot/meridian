@@ -1,6 +1,6 @@
 # Part 1: hosted workspace and reference VIO workflow
 
-**Status: increments 1.1–1.6 completed by 2026-10-19; increments 1.7–1.8 remain planned.**
+**Status: increments 1.1–1.7 completed by 2026-10-20; increment 1.8 remains planned.**
 This plan details part 1 of the [development roadmap](professional-estimation-roadmap.md).
 The current [implementation](../README.md) includes the qualified
 [local VIO reference](../results/vio-reference/README.md), the original single-axis
@@ -11,6 +11,8 @@ evaluation of saved specifications. [Synchronized investigation](vio-investigati
 connects retained executions to stereo images, input IMU, poses, support and
 traceable interval metrics. [Saved comparisons](vio-comparisons.md) preserve
 configuration differences and outcomes on each run's own and common support.
+[Independent exports](vio-exports.md) package exact successful execution evidence
+and source for verified reproduction outside the service.
 
 ## Outcome and scope
 
@@ -95,8 +97,8 @@ summaries and evaluated metrics. Increment 1.5 adds authenticated reads of
 manifest-verified investigation artifacts and original camera images, with a
 shared timeline and full-resolution interval scoring. Increment 1.6 adds compact,
 immutable comparison snapshots with exact run identities and support regions.
-Independent reproduction
-downloads remain planned for increment 1.7.
+Increment 1.7 adds private versioned downloads with exact retained evidence,
+curated source and standalone reproduction with explicit runtime provenance.
 
 Heavy computation must not run inside an HTTP request or rely on in-process
 background tasks for durability; the
@@ -136,7 +138,7 @@ under the documented retention policy.
 
 Every increment includes its relevant UI states, failure handling, checks, and
 documentation. Later integration testing does not defer those responsibilities.
-Increments 1.1–1.6 are complete; later increments remain pending.
+Increments 1.1–1.7 are complete; increment 1.8 remains pending.
 
 ### 1.1 — Executable reference and evaluation protocol
 
@@ -318,6 +320,11 @@ comparison supports a decision even when the variant is worse; no improvement
 is required or invented. This increment is not an automatic optimizer.
 
 ### 1.7 — Independent reproduction and exports
+
+**Completed:** [export contract](vio-exports.md) and
+[validation evidence](../results/exports/README.md), including local and HTTPS
+downloads and independent replay after source deletion. The requirements below
+remain the acceptance contract.
 
 **Dependency:** 1.6; the export contract has been maintained since 1.1.
 

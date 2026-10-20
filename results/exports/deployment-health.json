@@ -1,0 +1,310 @@
+{
+  "schema_version": 1,
+  "status": "local_and_hosted_qualification_complete",
+  "local": {
+    "checked_at_utc": "2026-10-20T07:32:17.358262+00:00",
+    "services": {
+      "api": {
+        "image_id": "sha256:9f301f523039c4cd227f3fb39a519b91f9b64e4c2ef77510f9a39b0ca967d871",
+        "health": "healthy",
+        "restart_count": 0,
+        "oom_killed": false,
+        "memory_limit_bytes": 536870912,
+        "nano_cpus": 750000000
+      },
+      "web": {
+        "image_id": "sha256:2910ed0f7ffc2ab9e0ed90fb635f9e0dab601ebac84aced101e8c7f02994a4a9",
+        "health": "healthy",
+        "restart_count": 0,
+        "oom_killed": false,
+        "memory_limit_bytes": 134217728,
+        "nano_cpus": 250000000
+      },
+      "worker": {
+        "image_id": "sha256:c1562159b937f6cba16eeedfa097a7276a37aa7cddbae26f3cb248ce027dee68",
+        "health": "healthy",
+        "restart_count": 0,
+        "oom_killed": false,
+        "memory_limit_bytes": 536870912,
+        "nano_cpus": 250000000
+      },
+      "db": {
+        "image_id": "sha256:589f742565e4f6d22149176b032974f55f8201a8a37b71ed587ec5c6902e689f",
+        "health": "healthy",
+        "restart_count": 0,
+        "oom_killed": false,
+        "memory_limit_bytes": 536870912,
+        "nano_cpus": 500000000
+      }
+    },
+    "database_identity_image_start_time_mounts_preserved": true,
+    "database_counts_before": {
+      "users": 13,
+      "projects": 4,
+      "experiments": 3,
+      "jobs": 0,
+      "comparisons": 0
+    },
+    "database_counts_after": {
+      "users": 13,
+      "projects": 4,
+      "experiments": 3,
+      "jobs": 0,
+      "comparisons": 0
+    },
+    "workspace_migrations": [
+      "0001_initial",
+      "0002_versioned_experiments",
+      "0003_durable_vio_jobs",
+      "0004_run_comparisons"
+    ],
+    "no_migration_added": true,
+    "cleanup": {
+      "exact_qa_account_deletion": true,
+      "deleted_counts": {
+        "comparisons": 0,
+        "users": 4,
+        "projects": 1,
+        "experiments": 1,
+        "revisions": 1,
+        "jobs": 1,
+        "attempts": 0,
+        "sessions": 6,
+        "account_budget_windows": 5
+      },
+      "remaining_exact_accounts": 0,
+      "remaining_exact_artifact_jobs": 0,
+      "remaining_exact_scratch_attempts": 0,
+      "aggregate_budgets_preserved": true
+    },
+    "scratch_keeper_running": true,
+    "native_retention_never_started": true,
+    "compute_children": 0,
+    "artifact_root_entries": 0,
+    "scratch_root_entries": 0,
+    "dedicated_test_database_cleanup": {
+      "checked_at_utc": "2026-10-20T07:27:55.443478+00:00",
+      "dedicated_test_container_removed": true,
+      "other_client_connections_before_removal": 0,
+      "only_own_anonymous_test_volume_removed": true,
+      "application_database_untouched": true
+    },
+    "storage_precondition_repair": "Existing stopped scratch keeper was started; worker was restarted to acquire the bounded tmpfs. Other application containers and database were preserved."
+  },
+  "hosted": {
+    "checked_at_utc": "2026-10-20T07:33:00.709598+00:00",
+    "release": {
+      "release": "20261020-16ef0733a9c8",
+      "domain": "meridian.151.80.144.150.sslip.io",
+      "bundle_sha256": "16ef0733a9c8e6a71b5c7b46dab04094949e3f0d8d9be5bdcd113fa25d0b437b",
+      "api_image": "meridian-workspace-api:20261020-16ef0733a9c8",
+      "web_image": "meridian-workspace-web:20261020-16ef0733a9c8",
+      "worker_image": "meridian-workspace-worker:20261020-16ef0733a9c8",
+      "api_image_id": "sha256:fb7f65e157cb9d326917c786dacda3387079edb2f017ca3897674dda9cd058d1",
+      "web_image_id": "sha256:b74c89ce74ce78f027d3703f4d610d35dff0795715306377c066827fedf178b5",
+      "worker_image_id": "sha256:e88978381dc179f3ed46e196ee010c3f0ea069d710e7862cff3920ef37519a84",
+      "native_image_id": "sha256:54863f14d9f92d2805f5fddcfb78d146c6aac2ad77dc348e304059e2252a400a",
+      "prepared_manifest_sha256": "e55f0480533611fc1e198d16b181814a8d34752cb748becbfeec7bcb4908ba6d",
+      "scratch_capacity_bytes": 134217728
+    },
+    "services": {
+      "api": {
+        "image_id": "sha256:fb7f65e157cb9d326917c786dacda3387079edb2f017ca3897674dda9cd058d1",
+        "health": "healthy",
+        "memory_limit_bytes": 536870912,
+        "nano_cpus": 750000000,
+        "restart_count": 0,
+        "oom_killed": false,
+        "healthcheck_observations": [
+          {
+            "duration_seconds": 0.594136,
+            "exit_code": 0
+          },
+          {
+            "duration_seconds": 0.596818,
+            "exit_code": 0
+          },
+          {
+            "duration_seconds": 1.565099,
+            "exit_code": 0
+          },
+          {
+            "duration_seconds": 0.564256,
+            "exit_code": 0
+          },
+          {
+            "duration_seconds": 0.667333,
+            "exit_code": 0
+          }
+        ]
+      },
+      "web": {
+        "image_id": "sha256:b74c89ce74ce78f027d3703f4d610d35dff0795715306377c066827fedf178b5",
+        "health": "healthy",
+        "memory_limit_bytes": 134217728,
+        "nano_cpus": 250000000,
+        "restart_count": 0,
+        "oom_killed": false,
+        "healthcheck_observations": [
+          {
+            "duration_seconds": 0.09963,
+            "exit_code": 0
+          },
+          {
+            "duration_seconds": 0.086685,
+            "exit_code": 0
+          },
+          {
+            "duration_seconds": 0.196146,
+            "exit_code": 0
+          },
+          {
+            "duration_seconds": 0.114386,
+            "exit_code": 0
+          },
+          {
+            "duration_seconds": 0.197312,
+            "exit_code": 0
+          }
+        ]
+      },
+      "db": {
+        "image_id": "sha256:3645570cccdfa447589da9f57dd740faa29b30938e861289a5574b6ca6b03826",
+        "health": "healthy",
+        "memory_limit_bytes": 536870912,
+        "nano_cpus": 500000000,
+        "restart_count": 0,
+        "oom_killed": false,
+        "healthcheck_observations": [
+          {
+            "duration_seconds": 0.137885,
+            "exit_code": 0
+          },
+          {
+            "duration_seconds": 0.160644,
+            "exit_code": 0
+          },
+          {
+            "duration_seconds": 0.136786,
+            "exit_code": 0
+          },
+          {
+            "duration_seconds": 0.091061,
+            "exit_code": 0
+          },
+          {
+            "duration_seconds": 0.177601,
+            "exit_code": 0
+          }
+        ]
+      },
+      "worker": {
+        "image_id": "sha256:e88978381dc179f3ed46e196ee010c3f0ea069d710e7862cff3920ef37519a84",
+        "health": "healthy",
+        "memory_limit_bytes": 536870912,
+        "nano_cpus": 250000000,
+        "restart_count": 0,
+        "oom_killed": false,
+        "healthcheck_observations": [
+          {
+            "duration_seconds": 22.195491,
+            "exit_code": 0
+          },
+          {
+            "duration_seconds": 9.794294,
+            "exit_code": 0
+          },
+          {
+            "duration_seconds": 9.402271,
+            "exit_code": 0
+          },
+          {
+            "duration_seconds": 9.796029,
+            "exit_code": 0
+          },
+          {
+            "duration_seconds": 9.59587,
+            "exit_code": 0
+          }
+        ]
+      }
+    },
+    "database_identity_image_start_time_mounts_preserved": true,
+    "database_counts_before": {
+      "users": 0,
+      "projects": 0,
+      "sessions": 0,
+      "experiments": 0,
+      "revisions": 0,
+      "jobs": 0,
+      "attempts": 0,
+      "comparisons": 0
+    },
+    "database_counts_after": {
+      "users": 0,
+      "projects": 0,
+      "sessions": 0,
+      "experiments": 0,
+      "revisions": 0,
+      "jobs": 0,
+      "attempts": 0,
+      "comparisons": 0
+    },
+    "workspace_migrations": [
+      "0001_initial",
+      "0002_versioned_experiments",
+      "0003_durable_vio_jobs",
+      "0004_run_comparisons"
+    ],
+    "no_migration_added": true,
+    "network": {
+      "staging_ipv4_unchanged": true,
+      "https_sites_checked": 4,
+      "all_https_sites_200": true
+    },
+    "api": {
+      "readonly_bind_count": 3,
+      "readonly_input_roles": [
+        "published attempt artifacts",
+        "prepared cam0 image files",
+        "prepared cam1 image files"
+      ],
+      "numpy_available": false,
+      "docker_cli_available": false,
+      "docker_socket_present": false,
+      "export_module_sha256": "65d311fd410b8d92874a61d6c1bca0605bf162775e7b8d59c8189911ed9af021",
+      "source_payload_files": 24
+    },
+    "source_files_verified": 101,
+    "api_runtime_source_files_verified": 34,
+    "worker_runtime_source_files_verified": 40,
+    "scratch": {
+      "filesystem": "tmpfs",
+      "capacity_bytes": 134217728,
+      "used_bytes": 0
+    },
+    "cleanup": {
+      "exact_qa_account_deletion": true,
+      "deleted_counts": {
+        "comparisons": 0,
+        "users": 4,
+        "projects": 1,
+        "experiments": 1,
+        "revisions": 1,
+        "jobs": 1,
+        "attempts": 0,
+        "sessions": 4,
+        "account_budget_windows": 5
+      },
+      "remaining_exact_accounts": 0,
+      "remaining_exact_artifact_jobs": 0,
+      "remaining_exact_scratch_attempts": 0,
+      "aggregate_budgets_preserved": true
+    },
+    "compute_children": 0,
+    "artifact_root_entries": 0,
+    "scratch_root_entries": 0,
+    "native_retention_never_started": true,
+    "native_runtime_recovery_evidence": "native-runtime-retention.json"
+  }
+}

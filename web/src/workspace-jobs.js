@@ -1,5 +1,6 @@
 import { escapeHtml as e } from './workspace-api.js';
 import { experimentPath } from './workspace-experiments.js';
+import { renderRunExport } from './workspace-exports.js';
 
 export const activeJob = job => ['queued', 'running', 'evaluating'].includes(job.state);
 export const jobPath = (projectId, jobId) => `#project/${projectId}/results/${jobId}`;
@@ -74,6 +75,7 @@ export function renderJobDetail(job) {
     ${job.failure ? `<div class="job-failure error" role="alert"><h3>${e(job.failure.code)}</h3><p>${e(job.failure.message)}</p></div>` : ''}
     <dl class="details-list job-identity"><div><dt>Saved configuration</dt><dd><a href="${e(experimentPath(job.project_id, job.experiment_id, job.revision_version))}">Version ${e(job.revision_version)} · ${e(job.experiment_name)}</a><p class="muted">Feature budget: ${e(job.parameters.num_pts)}</p></dd></div><div><dt>Specification SHA-256</dt><dd class="mono">${e(job.specification_sha256)}</dd></div><div><dt>Submitted</dt><dd>${e(time(job.created_at))}</dd></div><div><dt>Started</dt><dd>${e(time(job.started_at))}</dd></div><div><dt>Finished</dt><dd>${e(time(job.finished_at))}</dd></div></dl>
     ${job.state === 'succeeded' && job.result ? resultSummary(job.result, job) : ''}
+    ${renderRunExport(job)}
     ${job.attempts?.length ? `<details class="job-attempts"><summary>Execution attempts (${job.attempts.length})</summary><ol>${job.attempts.map(attempt => `<li><div><strong>Attempt ${e(attempt.number)}</strong> · ${e(attempt.state)}</div><p class="muted">${e(time(attempt.started_at))} → ${e(time(attempt.finished_at))}</p>${attempt.failure ? `<p class="muted">${e(attempt.failure.code)}: ${e(attempt.failure.message)}</p>` : ''}</li>`).join('')}</ol></details>` : ''}</section>`;
 }
 

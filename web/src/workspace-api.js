@@ -53,6 +53,39 @@ export function createApiClient(fetchImpl = globalThis.fetch) {
       if (response.headers.get('Content-Type')?.split(';')[0] !== 'image/png') throw new ApiError(502, null);
       return response.blob();
     },
+    async download(path, { signal } = {}) {
+      checkPath(path);
+      const response = await fetchImpl(`/api/v1${path}?schema_version=1`, {
+        credentials: 'same-origin', cache: 'no-store',
+        headers: { Accept: 'application/zip' }, signal,
+      });
+      if (!response.ok) {
+        let payload;
+        try { payload = await response.json(); } catch { /* Proxy errors need not be JSON. */ }
+        throw new ApiError(response.status, payload);
+      }
+      const disposition = /^attachment; filename="(meridian-run-[a-f\d]{8}(?:-[a-f\d]{4}){3}-[a-f\d]{12}-v1\.zip)"$/.exec(response.headers.get('Content-Disposition') || '');
+      const sha256 = response.headers.get('X-Content-SHA256');
+      const length = response.headers.get('Content-Length');
+      if (response.headers.get('Content-Type')?.split(';')[0] !== 'application/zip'
+        || !disposition || !/^[a-f\d]{64}$/.test(sha256 || '')
+        || !/^[1-9]\d*$/.test(length || '') || !Number.isSafeInteger(Number(length))
+        || Number(length) > 16 * 1024 * 1024) {
+        throw new ApiError(502, { error: { message: 'The export response could not be verified. Try again.' } });
+      }
+      const blob = await response.blob();
+      if (signal?.aborted) throw new DOMException('Request aborted', 'AbortError');
+      if (blob.size > 16 * 1024 * 1024 || blob.size !== Number(length)) {
+        throw new ApiError(502, { error: { message: 'The export download failed its integrity check. Try again.' } });
+      }
+      const digest = await globalThis.crypto.subtle.digest('SHA-256', await blob.arrayBuffer());
+      const actual = Array.from(new Uint8Array(digest), value => value.toString(16).padStart(2, '0')).join('');
+      if (signal?.aborted) throw new DOMException('Request aborted', 'AbortError');
+      if (actual !== sha256) {
+        throw new ApiError(502, { error: { message: 'The export download failed its integrity check. Try again.' } });
+      }
+      return { blob, filename: disposition[1], sha256, bytes: blob.size };
+    },
   };
 }
 

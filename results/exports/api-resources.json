@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "local": {
+    "checked_at_utc": "2026-10-20T07:34:59.878749+00:00",
+    "api_image_id": "sha256:9f301f523039c4cd227f3fb39a519b91f9b64e4c2ef77510f9a39b0ca967d871",
+    "memory_current_bytes": 145932288,
+    "memory_peak_bytes": 175357952,
+    "memory_limit_bytes": 536870912,
+    "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    },
+    "restart_count": 0,
+    "oom_killed": false,
+    "measurement": "API container cgroup since this release container was created, including startup, prior requests and operator cleanup processes; not an isolated per-request measurement.",
+    "download_observations": [
+      {
+        "ordinal": 1,
+        "archive_bytes": 681589,
+        "archive_sha256": "c6d67f1b722c327c0bc215a89829927a1aca380421b61f09b3c7f9076db330a0",
+        "elapsed_ms": 640.3147779999999,
+        "timing_scope": "Node monotonic time from browser request event to the browser download event and CDP body read attempt; includes network, browser SHA-256 verification and automation overhead, and excludes the separate HTTP verification request.",
+        "cdp_body_available": false,
+        "independent_http_body_bytes": 681589,
+        "independent_http_sha256": "c6d67f1b722c327c0bc215a89829927a1aca380421b61f09b3c7f9076db330a0"
+      },
+      {
+        "ordinal": 2,
+        "archive_bytes": 681589,
+        "archive_sha256": "c6d67f1b722c327c0bc215a89829927a1aca380421b61f09b3c7f9076db330a0",
+        "elapsed_ms": 322.8494489999998,
+        "timing_scope": "Node monotonic time from browser request event to the browser download event and CDP body read attempt; includes network, browser SHA-256 verification and automation overhead, and excludes the separate HTTP verification request.",
+        "cdp_body_available": false,
+        "independent_http_body_bytes": 681589,
+        "independent_http_sha256": "c6d67f1b722c327c0bc215a89829927a1aca380421b61f09b3c7f9076db330a0"
+      }
+    ]
+  },
+  "hosted": {
+    "checked_at_utc": "2026-10-20T07:32:57.233757+00:00",
+    "api_image_id": "sha256:fb7f65e157cb9d326917c786dacda3387079edb2f017ca3897674dda9cd058d1",
+    "memory_current_bytes": 134443008,
+    "memory_peak_bytes": 164319232,
+    "memory_limit_bytes": 536870912,
+    "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0,
+      "sock_throttled": 0
+    },
+    "restart_count": 0,
+    "oom_killed": false,
+    "measurement": "API container cgroup since this release container was created, including startup, prior requests and operator cleanup processes; not an isolated per-request measurement.",
+    "download_observations": [
+      {
+        "ordinal": 1,
+        "archive_bytes": 681618,
+        "archive_sha256": "c1703667b5aa26644065e05f55d7fa7b7f4501a1ae0598188d1c549bcafafffc",
+        "elapsed_ms": 733.5487769999891,
+        "timing_scope": "Node monotonic time from browser request event to the browser download event and CDP body read attempt; includes network, browser SHA-256 verification and automation overhead, and excludes the separate HTTP verification request.",
+        "cdp_body_available": false,
+        "independent_http_body_bytes": 681618,
+        "independent_http_sha256": "c1703667b5aa26644065e05f55d7fa7b7f4501a1ae0598188d1c549bcafafffc"
+      },
+      {
+        "ordinal": 2,
+        "archive_bytes": 681618,
+        "archive_sha256": "c1703667b5aa26644065e05f55d7fa7b7f4501a1ae0598188d1c549bcafafffc",
+        "elapsed_ms": 389.9804230000009,
+        "timing_scope": "Node monotonic time from browser request event to the browser download event and CDP body read attempt; includes network, browser SHA-256 verification and automation overhead, and excludes the separate HTTP verification request.",
+        "cdp_body_available": false,
+        "independent_http_body_bytes": 681618,
+        "independent_http_sha256": "c1703667b5aa26644065e05f55d7fa7b7f4501a1ae0598188d1c549bcafafffc"
+      }
+    ]
+  },
+  "limitations": [
+    "Cgroup peaks include startup and all requests during each container lifetime; they do not isolate archive assembly memory.",
+    "Browser observations include transport, client hashing and automation; they are not isolated server timings or sustained throughput benchmarks.",
+    "Where CDP returned no attachment body, a separate authenticated HTTP response was compared byte-for-byte with the actual browser download."
+  ]
+}

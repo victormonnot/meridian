@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "checked_at_utc": "2026-10-20T07:07:37.917007+00:00",
+  "observed_absence": {
+    "native_manifest_id": "sha256:54863f14d9f92d2805f5fddcfb78d146c6aac2ad77dc348e304059e2252a400a",
+    "worker_heartbeat_was_healthy": true,
+    "cause": "The existing shared-host scheduled Docker cleanup explicitly logged deletion of this native manifest.",
+    "execution": {
+      "created_at": "2026-10-20T00:00:04.000000Z",
+      "status": "success",
+      "native_image_mentioned": true,
+      "native_relevant_lines": [
+        "untagged: sha256:54863f14d9f92d2805f5fddcfb78d146c6aac2ad77dc348e304059e2252a400a",
+        "deleted: sha256:54863f14d9f92d2805f5fddcfb78d146c6aac2ad77dc348e304059e2252a400a"
+      ]
+    }
+  },
+  "restoration": {
+    "image_was_present_before": false,
+    "image_restored_from_existing_archive": true,
+    "native_image_config_id": "sha256:73e1213d073ce52a9a509decb15628a7c043e0690609171c4b9382ed0c2730da",
+    "native_image_manifest_id": "sha256:54863f14d9f92d2805f5fddcfb78d146c6aac2ad77dc348e304059e2252a400a",
+    "archive": {
+      "sha256": "bebb6c05ad13ffbe1ebd383b291f9b84080e1cbc27a173eb2e443f3a9020dee8",
+      "size_bytes": 622435670
+    },
+    "archive_hash_verified": true,
+    "config_manifest_and_layers_verified": true,
+    "layers_verified": 11,
+    "existing_services_identical": true,
+    "existing_current_release_unchanged": true,
+    "site_http_codes_before": [
+      200,
+      200,
+      200,
+      200
+    ],
+    "site_http_codes_after": [
+      200,
+      200,
+      200,
+      200
+    ]
+  },
+  "retention": {
+    "invocations": [
+      {
+        "name": "meridian-native-runtime-retention",
+        "image_id": "sha256:54863f14d9f92d2805f5fddcfb78d146c6aac2ad77dc348e304059e2252a400a",
+        "created": true,
+        "state": "created",
+        "never_started": true,
+        "mount_count": 0,
+        "network": "none",
+        "readonly_rootfs": true,
+        "coolify_managed": false
+      },
+      {
+        "name": "meridian-native-runtime-retention",
+        "image_id": "sha256:54863f14d9f92d2805f5fddcfb78d146c6aac2ad77dc348e304059e2252a400a",
+        "created": false,
+        "state": "created",
+        "never_started": true,
+        "mount_count": 0,
+        "network": "none",
+        "readonly_rootfs": true,
+        "coolify_managed": false
+      }
+    ],
+    "next_scheduled_cleanup_observed": false,
+    "cleanup_policy_changed": false
+  },
+  "preservation": {
+    "existing_four_service_identities_unchanged": true,
+    "database_counts_unchanged": true,
+    "active_release_unchanged": true,
+    "https_sites_checked": 4,
+    "https_sites_all_200": true
+  },
+  "helper": "deploy/workspace/retain-native-runtime.py",
+  "limitations": [
+    "The container is an inert image reference, not a backup or execution service.",
+    "Inspected cleanup filters exclude this non-Coolify container; no cleanup was triggered to test preservation.",
+    "Survival of a future scheduled cleanup was not observed; deliberate forced deletion remains possible.",
+    "No shared-host cleanup policy or other application configuration was changed."
+  ]
+}

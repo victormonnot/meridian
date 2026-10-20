@@ -1,19 +1,24 @@
 # Deploy the project workspace
 
 This deployment serves accounts, private projects, versioned experiments and
-durable VIO jobs with synchronized result investigation and saved run comparisons.
+durable VIO jobs with synchronized result investigation, saved run comparisons
+and source-only experiment exports.
 Computation is opt-in: the `compute` Compose profile adds a
 trusted worker after the qualified native image, prepared reference dataset and
 bounded scratch filesystem have been installed separately. The API image does
-not contain the estimator, Docker CLI, NumPy or recordings. The separate
+not contain an estimator executable, Docker CLI, NumPy or recordings. It contains
+a curated copy of public reproduction sources and notices. The separate
 `compose.investigation.yaml` override grants the API read-only access to published
 artifacts and the two prepared camera-image directories.
 The [workspace contract](hosted-workspace.md) describes authentication, ownership
 and retention. The original static explorer is also served at `/index.html`.
 
-The 2026-10-19 comparison release is qualified locally and on the hosted stack.
-The [comparison evidence](../results/comparisons/README.md) records the exact
-release, three real runs, saved-analysis checks, service isolation and API resources.
+The 2026-10-20 export release is qualified locally and on the hosted stack.
+The [export evidence](../results/exports/README.md) records the exact release,
+actual downloads, independent source-built replays after source deletion,
+service isolation and API resources. The earlier
+[comparison evidence](../results/comparisons/README.md) records its separate
+three-run qualification.
 
 ## Services and isolation
 
@@ -122,6 +127,17 @@ comparison migration before replacing the API and worker. Both images include th
 same standard-library comparison module because Django's worker startup checks
 also import the URL configuration.
 
+Exports use the existing artifact mount and require no database migration,
+additional service or numerical dependency in the API. Both application images
+copy an explicit source allowlist to `/app/export-source` and set
+`MERIDIAN_EXPORT_SOURCE_ROOT` accordingly. The payload includes the native build
+recipe, adapter and calibration sources, notices, evaluation protocol, independent
+Python runner and its dependency lock. It excludes the hosted application,
+credentials, recordings, binaries and private files. An incomplete or modified
+payload must fail export validation rather than fetching replacement code.
+The [export contract](vio-exports.md) defines size, access, integrity and
+reproduction requirements.
+
 For an application-only upgrade, preserve the existing database container with
 `--no-recreate`; moving to a new source-release directory otherwise changes the
 initialization script's bind path and can recreate it unnecessarily. Keep the
@@ -150,7 +166,28 @@ is absent, verify that archive and restore it with `docker image load`; verify
 the configuration/manifest/layer relationship again before accepting jobs. A
 healthy worker heartbeat does not establish image availability. The comparison
 rollout used this recovery procedure without rebuilding the estimator or changing
-its pins; the cause of the observed image absence was not established.
+its pins; the cause of that first observed image absence was not established.
+A subsequent absence on 2026-10-20 was traced to the shared host's scheduled image
+cleanup log, which explicitly recorded deletion of the qualified native manifest.
+
+After loading and verifying the qualified image, retain it through a dedicated
+container reference:
+
+```sh
+python3 deploy/workspace/retain-native-runtime.py \
+  --image sha256:54863f14d9f92d2805f5fddcfb78d146c6aac2ad77dc348e304059e2252a400a
+```
+
+Use the exact image ID exposed by the local Docker store. The helper creates
+`meridian-native-runtime-retention` without ever starting it: no process, mount
+or network access, a read-only root filesystem and a non-root user. Repeated
+invocations verify the existing container and refuse an incompatible replacement.
+The inspected shared-host cleanup removes unreferenced images and filters its
+container pruning to Coolify-managed containers; this Meridian reference has no
+such label. No global cleanup policy is changed. This preserves an image reference,
+not a backup; monitor its presence and retain the verified recovery archive.
+Creation and idempotent verification do not establish survival through a future
+scheduled cleanup or deliberate forced removal.
 
 The saved specification pins the native image configuration digest
 `sha256:73e1213d073ce52a9a509decb15628a7c043e0690609171c4b9382ed0c2730da`.
@@ -303,7 +340,8 @@ Scheduled backups, off-server copies and a verified restoration procedure are
 not established by the Compose file. Until those are configured, treat the
 hosted application as a preview, not the only copy of engineering work.
 No user recording upload exists in this increment; only the maintained room1
-profile executes. Independent exports remain a later increment.
+profile executes. Independent exports preserve a downloaded experiment outside
+the service; later hosted deletion cannot revoke a copy already downloaded.
 If operators retain database snapshots, deleted records may remain in them until
 those snapshots are removed; publish their retention period before relying on
 such a backup service.

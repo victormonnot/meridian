@@ -1,0 +1,15 @@
+{
+  "archive_sha256": "c6d67f1b722c327c0bc215a89829927a1aca380421b61f09b3c7f9076db330a0",
+  "archive_size_bytes": 681589,
+  "execution_identity_equal_to_raw_api_response": true,
+  "job_id": "192b25f2-d7a1-40b3-a40e-11c7fc176b20",
+  "job_response_sha256": "1313d65a00884387a0d6f2e26ee0aa6cd87702880471756005fc62dc5cc2b227",
+  "metrics_protocol_support_equal_to_raw_api_response": true,
+  "payload_files_verified": 38,
+  "qualification_summary_equal_to_raw_api_response": true,
+  "schema_version": 1,
+  "source_files_equal_to_workspace": 24,
+  "specification_sha256": "98e780babbc5fd1b8214a3afbe65e5b5dbe39196017a83361b93f7f7cd3e5f73",
+  "status": "passed",
+  "trajectory_sha256": "5640a2349c71c67c1ffeda44a59b0226cb8d5f9ea86ec58d068a78b30660462e"
+}

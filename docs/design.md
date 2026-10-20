@@ -17,7 +17,10 @@ attempts, a separate worker and independently evaluated VIO results.
 [Synchronized investigation](vio-investigation.md) adds retained full-resolution
 camera/IMU/pose evidence and interval scores under the same global alignment.
 [Saved comparisons](vio-comparisons.md) add exact execution identities, compatible
-configuration differences and explicit own/common-support metrics. General
+configuration differences and explicit own/common-support metrics.
+[Independent exports](vio-exports.md) retain exact successful-run evidence and
+standalone source/recipes, with explicit runtime identities and numerical
+reproduction tolerances. General
 3D estimator development, broader visual-inertial development and engineering
 automation remain planned work.
 

@@ -242,6 +242,9 @@ rect.support-neither { fill: var(--neither); }
 .job-failure { border: 1px solid var(--error); padding: 18px 22px; margin-top: 18px; overflow-wrap: anywhere; }
 .job-failure > p { font-size: .875rem; margin-top: 8px; }
 .job-result { border-top: 1px solid var(--line); padding-top: 26px; }
+.job-export { border-top: 1px solid var(--line); margin-top: 28px; padding-top: 26px; }
+.job-export > p { margin-top: 12px; font-size: .8125rem; max-width: 86ch; }
+.job-export .job-feedback { overflow-wrap: anywhere; }
 .qualification-note { font-size: .875rem; margin: 14px 0 24px; }
 .job-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--line); border-left: 1px solid var(--line); margin: 20px 0; }
 .job-metrics > div { padding: 20px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--surface); }

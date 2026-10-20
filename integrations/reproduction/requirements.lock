@@ -1,0 +1,2 @@
+# Python 3.12 on Linux x86-64. No Django, PostgreSQL, account, or worker required.
+numpy==2.5.3

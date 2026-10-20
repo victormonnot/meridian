@@ -7,6 +7,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential=12.10ubuntu1 \
     cmake=3.28.3-1build7 \
     git=1:2.43.0-1ubuntu7.3 \
+    git-man=1:2.43.0-1ubuntu7.3 \
     libopencv-dev=4.6.0+dfsg-13.1ubuntu1 \
     libeigen3-dev=3.4.0-4build0.1 \
     libceres-dev=2.2.0+dfsg-4.1ubuntu2 \

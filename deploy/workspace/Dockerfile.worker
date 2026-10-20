@@ -2,7 +2,8 @@ FROM docker:29.8.1-cli@sha256:018edbc908e08fcc9dbf029c812c34251e9b4719e6f71ca0e5
 FROM python:3.12.15-slim-bookworm@sha256:34386ef0cb081344d7ec1c103ba398e6e9f64e9ab3a1509accc92a4e24a07258 AS dependencies
 
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PIP_DISABLE_PIP_VERSION_CHECK=1 \
-    PYTHONPATH=/app/src OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1
+    PYTHONPATH=/app/src OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 \
+    MERIDIAN_EXPORT_SOURCE_ROOT=/app/export-source
 WORKDIR /app
 COPY --from=docker_cli /usr/local/bin/docker /usr/local/bin/docker
 COPY server/requirements.lock /app/server/requirements.lock
@@ -22,6 +23,21 @@ COPY src/meridian/__init__.py src/meridian/vio_specification.py \
     src/meridian/vio_reference.py src/meridian/vio_job_control.py \
     src/meridian/vio_job_evaluation.py src/meridian/vio_runtime_identity.py \
     src/meridian/vio_investigation.py src/meridian/vio_investigation_metrics.py \
-    src/meridian/vio_comparison.py /app/src/meridian/
+    src/meridian/vio_comparison.py src/meridian/vio_export.py /app/src/meridian/
+COPY src/meridian/__init__.py src/meridian/vio_dataset.py \
+    src/meridian/vio_evaluation.py src/meridian/vio_reference.py \
+    src/meridian/vio_specification.py src/meridian/vio_runtime_identity.py \
+    src/meridian/vio_export.py src/meridian/vio_reproduction.py /app/export-source/src/meridian/
+COPY integrations/openvins/Dockerfile integrations/openvins/CMakeLists.txt \
+    integrations/openvins/runner.cpp integrations/openvins/LICENSE \
+    integrations/openvins/NOTICE.md integrations/openvins/README.md \
+    integrations/openvins/smoke_test.py /app/export-source/integrations/openvins/
+COPY integrations/openvins/config/estimator_config.yaml \
+    integrations/openvins/config/kalibr_imu_chain.yaml \
+    integrations/openvins/config/kalibr_imucam_chain.yaml \
+    integrations/openvins/config/mask_tumvi0.png \
+    integrations/openvins/config/mask_tumvi1.png /app/export-source/integrations/openvins/config/
+COPY integrations/reproduction/README.md integrations/reproduction/requirements.lock /app/export-source/integrations/reproduction/
+COPY docs/vio-reference.md docs/vio-exports.md /app/export-source/docs/
 USER 10001:10001
 CMD ["python", "server/manage.py", "run_vio_worker"]

@@ -308,7 +308,9 @@ Increment 1.3 adds [versioned VIO experiments](versioned-experiments.md), with
 immutable specifications consumed unchanged by the local runner. Increment 1.4
 adds durable isolated VIO jobs using those same specifications. Increment 1.5
 adds synchronized investigation, and increment 1.6 adds saved comparisons with
-explicit common support. Independent exports and full hosted acceptance remain planned.
+explicit common support. Increment 1.7 adds
+[independent exports and verified reproduction](../results/exports/README.md).
+Full hosted acceptance remains planned for increment 1.8.
 
 ## Existing tools and research
 
