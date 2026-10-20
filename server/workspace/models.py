@@ -70,6 +70,8 @@ class ComputeQueue(models.Model):
     id = models.PositiveSmallIntegerField(primary_key=True, default=1, editable=False)
     heartbeat_at = models.DateTimeField(null=True)
     capacity_available = models.BooleanField(default=False)
+    import_heartbeat_at = models.DateTimeField(null=True)
+    import_capacity_available = models.BooleanField(default=False)
 
 
 class Job(models.Model):
@@ -153,3 +155,62 @@ class RunComparison(models.Model):
         if not self._state.adding:
             raise ValidationError("Run comparisons cannot be edited; create a new comparison.")
         return super().save(*args, **kwargs)
+
+
+class Acquisition(models.Model):
+    """Private immutable input version with a resumable, fenced import lifecycle."""
+    STATES = [(value, value) for value in ("receiving", "validating", "ready", "rejected", "cancelled")]
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="acquisitions")
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="acquisitions")
+    name = models.CharField(max_length=100)
+    filename = models.CharField(max_length=200)
+    size_bytes = models.PositiveBigIntegerField()
+    bytes_received = models.PositiveBigIntegerField(default=0)
+    sha256 = models.CharField(max_length=64, blank=True)
+    idempotency_key = models.UUIDField()
+    request_sha256 = models.CharField(max_length=64)
+    options = models.JSONField(default=dict)
+    budget = models.JSONField(default=dict)
+    state = models.CharField(max_length=16, choices=STATES, default="receiving")
+    phase = models.CharField(max_length=24, default="receiving")
+    attempt_count = models.PositiveSmallIntegerField(default=0)
+    current_attempt = models.UUIDField(null=True)
+    worker_id = models.UUIDField(null=True)
+    lease_until = models.DateTimeField(null=True)
+    cancel_requested_at = models.DateTimeField(null=True)
+    descriptor = models.JSONField(null=True)
+    result = models.JSONField(null=True)
+    failure = models.JSONField(null=True)
+    manifest = models.JSONField(null=True)
+    published_attempt = models.UUIDField(null=True)
+    files_available = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(null=True)
+    reserved_bytes = models.PositiveBigIntegerField(default=0)
+    retained_bytes = models.PositiveBigIntegerField(default=0)
+    reserved_files = models.PositiveIntegerField(default=0)
+    retained_files = models.PositiveIntegerField(default=0)
+    expires_at = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    finished_at = models.DateTimeField(null=True)
+
+    class Meta:
+        ordering = ["-created_at", "id"]
+        constraints = [
+            models.UniqueConstraint(fields=["owner", "idempotency_key"], name="acquisition_submission_unique"),
+            models.CheckConstraint(condition=models.Q(state__in=["receiving", "validating", "ready", "rejected", "cancelled"]), name="acquisition_state_valid"),
+            models.CheckConstraint(condition=models.Q(bytes_received__lte=models.F("size_bytes")), name="acquisition_upload_bounded"),
+        ]
+        indexes = [models.Index(fields=["state", "created_at"], name="acquisition_queue_order")]
+
+
+class UploadChunk(models.Model):
+    acquisition = models.ForeignKey(Acquisition, on_delete=models.CASCADE, related_name="chunks")
+    offset = models.PositiveBigIntegerField()
+    size_bytes = models.PositiveIntegerField()
+    sha256 = models.CharField(max_length=64)
+
+    class Meta:
+        ordering = ["offset"]
+        constraints = [models.UniqueConstraint(fields=["acquisition", "offset"], name="acquisition_chunk_unique")]

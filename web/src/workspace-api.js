@@ -42,6 +42,23 @@ export function createApiClient(fetchImpl = globalThis.fetch) {
       if (response.status !== 204 && payload?.schema_version !== 1) throw new ApiError(502, null);
       return payload;
     },
+    async upload(path, { offset, sha256, body, signal } = {}) {
+      checkPath(path);
+      if (!Number.isSafeInteger(offset) || offset < 0 || !/^[a-f\d]{64}$/.test(sha256 || '')
+        || !(body instanceof ArrayBuffer) || body.byteLength < 1 || body.byteLength > 4 * 1024 * 1024) {
+        throw new TypeError('Invalid upload chunk');
+      }
+      const response = await fetchImpl(`/api/v1${path}`, {
+        method: 'PUT', credentials: 'same-origin', cache: 'no-store', signal, body,
+        headers: { Accept: 'application/json', 'Content-Type': 'application/octet-stream',
+          'X-CSRFToken': csrfToken, 'Upload-Offset': String(offset), 'X-Chunk-SHA256': sha256 },
+      });
+      let payload;
+      try { payload = await response.json(); } catch { throw new ApiError(response.ok ? 502 : response.status, null); }
+      if (!response.ok) throw new ApiError(response.status, payload);
+      if (payload?.schema_version !== 1) throw new ApiError(502, null);
+      return payload;
+    },
     async image(path, { signal } = {}) {
       checkPath(path);
       const response = await fetchImpl(`/api/v1${path}`, { credentials: 'same-origin', cache: 'no-store', headers: { Accept: 'image/png' }, signal });
@@ -96,6 +113,8 @@ export function escapeHtml(value) {
 export function parseRoute(hash) {
   if (!hash || hash === '#' || hash === '#projects') return { page: 'projects' };
   const uuid = '[a-f\\d]{8}-[a-f\\d]{4}-[a-f\\d]{4}-[a-f\\d]{4}-[a-f\\d]{12}';
+  const acquisition = new RegExp(`^#project/(${uuid})/data/acquisitions/(${uuid})$`, 'i').exec(hash);
+  if (acquisition) return { page: 'project', id: acquisition[1], section: 'data', acquisitionId: acquisition[2] };
   const comparison = new RegExp(`^#project/(${uuid})/results/comparisons/(${uuid})$`, 'i').exec(hash);
   if (comparison) return { page: 'project', id: comparison[1], section: 'results', comparisonId: comparison[2] };
   const job = new RegExp(`^#project/(${uuid})/results/(${uuid})(/investigation)?$`, 'i').exec(hash);

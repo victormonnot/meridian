@@ -74,9 +74,10 @@ The worker is a trusted infrastructure component with access to the Docker daemo
 That access is equivalent to host administration; it is not an arbitrary-code
 sandbox. The HTTP container has no Docker client/socket or numerical dependencies.
 The optional [investigation overlay](vio-investigation.md) mounts published files
-and the two camera directories read-only for authenticated access; raw IMU,
-reference and scratch directories remain unavailable to HTTP. Only the maintained
-reference is executable.
+and the two camera directories read-only for authenticated access; that reference
+recording's raw IMU, reference and scratch directories remain unavailable to HTTP.
+The separate [acquisition overlay](hosted-acquisitions.md) permits owned downloads
+of retained private inputs. Only the maintained reference is executable.
 
 | Component | Limits and access |
 | --- | --- |
@@ -96,6 +97,12 @@ active jobs per account and eight globally, and retains at most 20 job records
 per account and 200 globally. Separate fixed 24-hour submission windows allow
 10 per account and 100 globally; deleting jobs does not reset these counters.
 Repeated idempotent requests do not consume another submission.
+
+[Private acquisition imports](hosted-acquisitions.md) share that slot through the
+same queue mutex. An import or VIO attempt, including one awaiting confirmed
+cleanup after a lost lease, prevents the other worker from claiming work.
+The import sandbox has its own finite disk scratch and resource limits; VIO
+continues to use the existing 128 MiB tmpfs and qualified reference inputs.
 
 The worker admits new work only with at least 5 GiB host `MemAvailable` and 10 GiB
 free artifact storage. Otherwise work stays queued. These are admission checks,

@@ -176,12 +176,14 @@ def _selected_streams(acquisition, imu_stream, include_reference):
 
 def prepare_package(source: Path, output: Path, *, prepared_id=None, imu_stream=None,
                     include_reference=True, image_encoding="preserve",
-                    limits=DEFAULT_LIMITS) -> dict:
+                    limits=DEFAULT_LIMITS, output_limits=None) -> dict:
     """Prepare all segments of a validated acquisition into a new directory.
 
     Explicitly choose an IMU when several are present. Reference copying can be
     disabled without changing the source acquisition. Unknown clocks/axes remain
     unknown; the result is never promoted to estimator readiness.
+    ``output_limits`` may impose a smaller derived-payload byte budget while
+    keeping the source acquisition's independent validation limits.
     """
     if type(include_reference) is not bool or image_encoding not in {"preserve", "mono8"}:
         raise ValueError("Unsupported preparation option.")
@@ -189,6 +191,7 @@ def prepare_package(source: Path, output: Path, *, prepared_id=None, imu_stream=
             or re.fullmatch(r"[A-Za-z][A-Za-z0-9._-]{0,79}", prepared_id) is None):
         raise ValueError("Prepared identity must be an ASCII slug of at most 80 characters.")
     source, output = Path(source), Path(output)
+    output_limits = limits if output_limits is None else output_limits
     _check_destination(source, output)
     result = validate_package(source, limits=limits)
     acquisition = result["acquisition"]
@@ -210,8 +213,8 @@ def prepare_package(source: Path, output: Path, *, prepared_id=None, imu_stream=
         conversion_evidence, summaries, payload_bytes = [], [], 0
         def account(amount, *, csv_file=False):
             nonlocal payload_bytes
-            ceiling = min(limits.max_file_bytes, limits.max_csv_bytes) if csv_file else limits.max_file_bytes
-            if amount > ceiling or payload_bytes + amount > limits.max_total_bytes:
+            ceiling = min(output_limits.max_file_bytes, output_limits.max_csv_bytes) if csv_file else output_limits.max_file_bytes
+            if amount > ceiling or payload_bytes + amount > output_limits.max_total_bytes:
                 raise ValueError("Prepared payload exceeds the configured byte limits.")
             payload_bytes += amount
         for stream in streams:
@@ -266,7 +269,7 @@ def prepare_package(source: Path, output: Path, *, prepared_id=None, imu_stream=
                             width, height = stream["camera"]["resolution"]
                             raw_size = height * (width + 1)
                             png_size = raw_size + 5 * ((raw_size + 65534) // 65535) + 63
-                            if png_size > limits.max_png_bytes:
+                            if png_size > output_limits.max_png_bytes:
                                 raise ValueError("Prepared PNG exceeds the configured byte limit.")
                             account(png_size)
                             snapshot = target.with_suffix(".source16")
@@ -288,8 +291,8 @@ def prepare_package(source: Path, output: Path, *, prepared_id=None, imu_stream=
                         prepared["files"].append({"path": target_relative, **identity, "role": "sensor"})
                         row[3] = f"images/{raw[0]}.png"
                     csv_bytes += writer.writerow(row)
-                    if (csv_bytes > min(limits.max_csv_bytes, limits.max_file_bytes)
-                            or payload_bytes + csv_bytes > limits.max_total_bytes):
+                    if (csv_bytes > min(output_limits.max_csv_bytes, output_limits.max_file_bytes)
+                            or payload_bytes + csv_bytes > output_limits.max_total_bytes):
                         raise ValueError("Prepared CSV exceeds the configured byte limits.")
                     count += 1
                     first = row[2] if first is None else first

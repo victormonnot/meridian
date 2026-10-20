@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-20",
+  "core": {
+    "passed": 1736,
+    "cpp_integration_enabled": true,
+    "command": "MERIDIAN_CPP_BINARY=\"$PWD/build/cpp/meridian_ekf_replay\" .venv/bin/python -m pytest -q -ra"
+  },
+  "server": {
+    "passed": 193,
+    "database": "PostgreSQL 17.11",
+    "api_only_image_passed": true,
+    "pillow_installed_in_api_image": false,
+    "command": "python server/manage.py test workspace",
+    "test_storage": "Disk-backed temporary directory with sufficient space for the enforced 10 GiB floor."
+  },
+  "web": {
+    "passed": 252,
+    "production_build_passed": true,
+    "commands": [
+      "npm --prefix web test",
+      "npm --prefix web run build"
+    ]
+  },
+  "limitations": [
+    "Counts describe the complete suites at this change, not exclusively newly added tests.",
+    "The minimal-image server run initially rejected uploads on an undersized temporary filesystem; the unchanged suite passed with a disk-backed temporary directory.",
+    "No new physical, onboard or flight validation."
+  ]
+}

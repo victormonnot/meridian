@@ -1,5 +1,5 @@
 from django.urls import path, re_path
-from workspace import api, comparisons, experiments, exports, investigation, jobs
+from workspace import acquisitions, api, comparisons, experiments, exports, investigation, jobs
 
 urlpatterns = [
     path("api/v1/session", api.session),
@@ -8,6 +8,16 @@ urlpatterns = [
     path("api/v1/auth/logout", api.sign_out),
     path("api/v1/projects", api.projects),
     path("api/v1/projects/<uuid:project_id>", api.project),
+    path("api/v1/projects/<uuid:project_id>/acquisitions", acquisitions.acquisitions),
+    path("api/v1/projects/<uuid:project_id>/acquisitions/<uuid:acquisition_id>", acquisitions.acquisition),
+    path("api/v1/projects/<uuid:project_id>/acquisitions/<uuid:acquisition_id>/chunks", acquisitions.chunks),
+    path("api/v1/projects/<uuid:project_id>/acquisitions/<uuid:acquisition_id>/content", acquisitions.content),
+    path("api/v1/projects/<uuid:project_id>/acquisitions/<uuid:acquisition_id>/complete", acquisitions.complete),
+    path("api/v1/projects/<uuid:project_id>/acquisitions/<uuid:acquisition_id>/cancel", acquisitions.cancel),
+    path("api/v1/projects/<uuid:project_id>/acquisitions/<uuid:acquisition_id>/original", acquisitions.original),
+    path("api/v1/projects/<uuid:project_id>/acquisitions/<uuid:acquisition_id>/descriptor", acquisitions.descriptor),
+    path("api/v1/projects/<uuid:project_id>/acquisitions/<uuid:acquisition_id>/report", acquisitions.report),
+    path("api/v1/projects/<uuid:project_id>/acquisitions/<uuid:acquisition_id>/files", acquisitions.files),
     path("api/v1/configuration-profile", experiments.profile),
     path("api/v1/projects/<uuid:project_id>/experiments", experiments.experiments),
     path("api/v1/projects/<uuid:project_id>/experiments/<uuid:experiment_id>", experiments.experiment),

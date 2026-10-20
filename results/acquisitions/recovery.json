@@ -1,0 +1,154 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-20",
+  "deployment": {
+    "schema_version": 1,
+    "release": "20261020-9d3ac46e8262",
+    "bundle_sha256": "9d3ac46e826247fd4d8dc18a384b4a104e0a31036df5a30381faba74479e4bbc",
+    "release_files_verified": 120,
+    "runtime_sources_verified": {
+      "api": 34,
+      "worker": 37,
+      "importer": 37
+    },
+    "database_container_image_mounts_start_preserved": true,
+    "services": {
+      "api": {
+        "image_id": "sha256:f250393eae15ccaa8a4b8df7d4db8c5d61055ffb712dcd2e8976ce565c08dd8b",
+        "healthy": true,
+        "oom_killed": false
+      },
+      "web": {
+        "image_id": "sha256:2c836838e0504fa7499b5121da86b355eeeb8ced3a5dc826483075cdb7bbcacd",
+        "healthy": true,
+        "oom_killed": false
+      },
+      "worker": {
+        "image_id": "sha256:4a1e103d52919daeda0059a5ecaaabf1f53a1bb4a36f99968c27c6970db95522",
+        "healthy": true,
+        "oom_killed": false
+      },
+      "importer": {
+        "image_id": "sha256:4a1e103d52919daeda0059a5ecaaabf1f53a1bb4a36f99968c27c6970db95522",
+        "healthy": true,
+        "oom_killed": false
+      },
+      "db": {
+        "image_id": "sha256:3645570cccdfa447589da9f57dd740faa29b30938e861289a5574b6ca6b03826",
+        "healthy": true,
+        "oom_killed": false
+      }
+    },
+    "import_scratch": {
+      "filesystem": "ext4",
+      "capacity_bytes": 8438378496,
+      "mount_enabled": true,
+      "mount_active": true
+    },
+    "native_image_id": "sha256:54863f14d9f92d2805f5fddcfb78d146c6aac2ad77dc348e304059e2252a400a",
+    "prepared_manifest_sha256": "e55f0480533611fc1e198d16b181814a8d34752cb748becbfeec7bcb4908ba6d",
+    "vio_scratch_capacity_bytes": 134217728
+  },
+  "rehearsals": [
+    {
+      "environment": "local",
+      "backup_schema_version": 2,
+      "file_count": 45,
+      "payload_bytes": 21105962,
+      "retained_acquisitions": 2,
+      "retained_jobs": 0,
+      "write_pause_seconds": 6.822,
+      "source_database_size_bytes": 9680563,
+      "database_fingerprints_verified": true,
+      "all_backup_files_verified": true,
+      "backup_manifest_sha256": "00ae76712bf100d36324a2f2e08445b955f4a2a4669f0ce0fdefe57510fbf2db",
+      "restore_network": "none",
+      "restore_database_storage_mib": 256,
+      "restore_container_memory_mib": 512,
+      "application_role_flags": {
+        "create_database": false,
+        "create_role": false,
+        "replication": false,
+        "superuser": false
+      },
+      "copied_sessions_cleared": 19,
+      "copied_sessions_present_before_login": 0,
+      "source_accounts_modified_by_restore": false,
+      "access_checks_passed": 34,
+      "access_method": "Django in-process client with real password/CSRF authentication in a pinned API image; separate restored PostgreSQL network namespace. No browser or TLS replay is claimed.",
+      "original_bytes": 5250234,
+      "original_sha256": "ca4d8aaa2ef616076ff34b6b1964ae10c95c420ff28e74db58300444ddf07c4b",
+      "prepared_csv_files_verified": 3,
+      "prepared_csv_bytes_verified": 446,
+      "prepared_csv_inventory_sha256": "16618f3654d8dc7fcee362ca792f5c9d2b81053e271d15bfcdde6a56e7e33718"
+    },
+    {
+      "environment": "hosted_offserver",
+      "backup_schema_version": 2,
+      "file_count": 23,
+      "payload_bytes": 10580203,
+      "retained_acquisitions": 1,
+      "retained_jobs": 0,
+      "write_pause_seconds": 18.848,
+      "source_database_size_bytes": 9590451,
+      "database_fingerprints_verified": true,
+      "all_backup_files_verified": true,
+      "backup_manifest_sha256": "f88edb5821d6592867dba6a2fa5e05febfc21bf54a29371c2472ddb0dfa1b880",
+      "restore_network": "none",
+      "restore_database_storage_mib": 256,
+      "restore_container_memory_mib": 512,
+      "application_role_flags": {
+        "create_database": false,
+        "create_role": false,
+        "replication": false,
+        "superuser": false
+      },
+      "copied_sessions_cleared": 3,
+      "copied_sessions_present_before_login": 0,
+      "source_accounts_modified_by_restore": false,
+      "access_checks_passed": 34,
+      "access_method": "Django in-process client with real password/CSRF authentication in a pinned API image; separate restored PostgreSQL network namespace. No browser or TLS replay is claimed.",
+      "original_bytes": 5250234,
+      "original_sha256": "ca4d8aaa2ef616076ff34b6b1964ae10c95c420ff28e74db58300444ddf07c4b",
+      "prepared_csv_files_verified": 3,
+      "prepared_csv_bytes_verified": 446,
+      "prepared_csv_inventory_sha256": "16618f3654d8dc7fcee362ca792f5c9d2b81053e271d15bfcdde6a56e7e33718"
+    }
+  ],
+  "offserver_transfer": {
+    "authenticated_ssh_with_pinned_hosts": true,
+    "manifest_sha256_matches_before_and_after": true,
+    "snapshot_verified": true,
+    "archive_bytes": 10670080,
+    "archive_sha256": "0855d514a147c440737d15852694b2a60b3cee770ff62d1873373ad9c749902e"
+  },
+  "api_image_transfer": {
+    "source_image_id": "sha256:f250393eae15ccaa8a4b8df7d4db8c5d61055ffb712dcd2e8976ce565c08dd8b",
+    "destination_image_id": "sha256:b8a56623de261c5b796e019a7db7968d8e05e6053b7325c5e63072066cf575d5",
+    "architecture": "amd64",
+    "os": "linux",
+    "config_and_rootfs_layer_ids_equal": true,
+    "archive_sha256": "69a853b5e10d115acc30ba7cce7e2a500011c08050e3502bd369d2930758d81c",
+    "archive_bytes": 63056896,
+    "identity_note": "Source containerd OCI image identity and destination classic Docker configuration identity may differ; transferred configuration and all rootfs diffIDs are compared exactly."
+  },
+  "limitations": [
+    "Snapshots contain only the small observed database and retained synthetic acquisitions; no full-quota restoration benchmark is claimed.",
+    "Restored authentication uses the in-process Django client in the exact transferred API image, not a restored browser/TLS deployment.",
+    "The ordinary application database role is used. Only two QA passwords are changed in each isolated restored copy; source accounts are unaffected.",
+    "This is an operator-run backup/recovery rehearsal, not scheduled backups or an automatic retention service.",
+    "Private accounts, project/input identifiers, payload paths, database dumps and environment values are excluded."
+  ],
+  "cleanup": {
+    "exact_local_qa_accounts_removed": 6,
+    "exact_hosted_qa_accounts_removed": 4,
+    "preexisting_workspace_counts_restored": true,
+    "authentication_and_submission_budgets_preserved": true,
+    "local_and_hosted_retained_acquisition_roots_empty": true,
+    "all_five_services_preserved_and_healthy": true,
+    "temporary_snapshot_dumps_payloads_and_restore_containers_removed": true,
+    "private_manifests_and_access_reports_retained": true,
+    "transferred_api_image_copy_removed": true,
+    "manual_rehearsal_copies_removed_after_verification": true
+  }
+}

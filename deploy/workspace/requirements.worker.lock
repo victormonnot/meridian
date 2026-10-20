@@ -2,3 +2,5 @@
 -r server/requirements.lock
 # Same version as the qualified numerical environment in requirements.lock.
 numpy==2.5.3
+# Fully decode uploaded PNGs inside the isolated import child.
+pillow==12.3.0

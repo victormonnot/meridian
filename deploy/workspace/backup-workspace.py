@@ -27,6 +27,10 @@ MAX_FILE = 32 * 1024 * 1024
 MAX_DATABASE = 512 * 1024 * 1024
 MAX_TOTAL = 7 * 1024 * 1024 * 1024
 MAX_FILES = 16384
+MAX_ACQUISITION_FILE = 4 * 1024**3
+MAX_ACQUISITION_FILES = 240000
+MAX_COMPLETE_TOTAL = 32 * 1024**3
+MAX_MANIFEST = 256 * 1024**2
 DATABASE_DIGEST = "sha256:3645570cccdfa447589da9f57dd740faa29b30938e861289a5574b6ca6b03826"
 DATABASE_IMAGE = "postgres:17.11-bookworm@" + DATABASE_DIGEST
 TABLES = (
@@ -34,6 +38,7 @@ TABLES = (
     "workspace_experimentrevision", "workspace_job", "workspace_jobattempt",
     "workspace_runcomparison", "workspace_authwindow", "workspace_computequeue",
 )
+ACQUISITION_TABLES = ("workspace_acquisition", "workspace_uploadchunk")
 
 
 def command(args, **kwargs):
@@ -77,6 +82,15 @@ def sql(container, query, *, user="meridian_admin", database="meridian"):
 
 def canonical(value):
     return (json.dumps(value, sort_keys=True, separators=(",", ":")) + "\n").encode()
+
+
+def backup_manifest_bytes(value):
+    """Use UTF-8 for the outer v2 report, keeping path lengths bounded in bytes.
+
+    Publication markers retain their original ASCII canonical encoding; only
+    the backup envelope avoids multiplying non-ASCII path lengths.
+    """
+    return (json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False) + "\n").encode("utf-8")
 
 
 def relative(name):
@@ -200,9 +214,57 @@ def artifact_members(rows):
     return members
 
 
-def database_state(container, *, user="meridian_admin"):
+def acquisition_members(rows):
+    """Bind retained originals and derived inputs to the same database snapshot."""
+    members = {}
+    for row in rows:
+        acquisition, attempt = str(UUID(row["id"])), str(UUID(row["published_attempt"]))
+        manifest = row["manifest"]
+        if (set(manifest) != {"schema_version", "files"} or manifest["schema_version"] != 1
+                or type(manifest["files"]) is not dict or not manifest["files"]):
+            raise ValueError("Invalid acquisition publication manifest.")
+        entries = {f"{acquisition}/original": {
+            "size_bytes": row["size_bytes"], "sha256": row["sha256"],
+        }}
+        prefix = f"{acquisition}/published/{attempt}/"
+        for name, item in manifest["files"].items():
+            relative(name)
+            if name == "publication-manifest.json":
+                raise ValueError("Acquisition publication cannot inventory itself.")
+            entries[prefix + name] = item
+        publication = canonical(manifest)
+        entries[prefix + "publication-manifest.json"] = {
+            "size_bytes": len(publication), "sha256": hashlib.sha256(publication).hexdigest(),
+        }
+        for name, item in entries.items():
+            if (type(item) is not dict or set(item) != {"size_bytes", "sha256"}
+                    or type(item["size_bytes"]) is not int
+                    or not 0 <= item["size_bytes"] <= MAX_ACQUISITION_FILE
+                    or not isinstance(item["sha256"], str)
+                    or not re.fullmatch(r"[0-9a-f]{64}", item["sha256"])):
+                raise ValueError("Invalid acquisition file identity.")
+            if name in members:
+                raise ValueError("Duplicate retained acquisition.")
+            members[name] = item
+    # Originals and publication records add two files per acquisition.
+    if (len(members) > MAX_ACQUISITION_FILES + 200
+            or sum(v["size_bytes"] for v in members.values()) > 24 * 1024**3):
+        raise ValueError("Acquisition backup exceeds its aggregate budget.")
+    return members
+
+
+def member_limit(name):
+    if name == "database.dump":
+        return MAX_DATABASE
+    return MAX_ACQUISITION_FILE if name.startswith("acquisitions/") else MAX_FILE
+
+
+def database_state(container, *, user="meridian_admin", fingerprint_version=2):
+    has_acquisitions = sql(container, "SELECT to_regclass('workspace_acquisition') IS NOT NULL",
+                           user=user) == "t"
+    tables = TABLES + (ACQUISITION_TABLES if has_acquisitions else ())
     counts = {table: int(sql(container, "SELECT count(*) FROM " + table, user=user))
-              for table in TABLES}
+              for table in tables}
     jobs = json.loads(sql(container, """
         SELECT coalesce(json_agg(row_to_json(j)), '[]') FROM (
           SELECT id, published_attempt, artifact_manifest, artifacts_expire_at
@@ -214,28 +276,53 @@ def database_state(container, *, user="meridian_admin"):
           (SELECT app,name FROM django_migrations ORDER BY app,name) m
         """, user=user))
     fingerprints = {}
-    for table in TABLES:
-        raw = sql(container, "SELECT coalesce(jsonb_agg(to_jsonb(t) ORDER BY "
-                  "to_jsonb(t)::text), '[]'::jsonb) FROM " + table + " t", user=user)
+    if fingerprint_version not in {1, 2}:
+        raise ValueError("Unsupported database fingerprint version.")
+    for table in tables:
+        if fingerprint_version == 1:
+            # Historical backups fingerprinted one aggregate JSON array.
+            raw = sql(container, "SELECT coalesce(jsonb_agg(to_jsonb(t) ORDER BY "
+                      "to_jsonb(t)::text), '[]'::jsonb) FROM " + table + " t", user=user)
+        else:
+            # Hash each row before sorting: only fixed-size digests cross the
+            # process boundary, even for large acquisition descriptors.
+            raw = sql(container, "SELECT encode(sha256(convert_to(to_jsonb(t)::text, 'UTF8')), 'hex') "
+                      "FROM " + table + " t ORDER BY 1", user=user)
         fingerprints[table] = hashlib.sha256(raw.encode()).hexdigest()
-    return {"counts": counts, "retained_jobs": jobs, "migrations": migrations,
-            "table_content_sha256": fingerprints}
+    result = {"counts": counts, "retained_jobs": jobs, "migrations": migrations,
+              "table_content_sha256": fingerprints}
+    if fingerprint_version == 2:
+        result["fingerprint_version"] = 2
+    if has_acquisitions:
+        result["retained_acquisitions"] = json.loads(sql(container, """
+            SELECT coalesce(json_agg(row_to_json(a)), '[]') FROM (
+              SELECT id, published_attempt, manifest, size_bytes, sha256
+              FROM workspace_acquisition WHERE files_available ORDER BY id
+            ) a
+            """, user=user))
+    return result
 
 
 def require_idle(container):
     if int(sql(container, "SELECT count(*) FROM workspace_job "
                          "WHERE state IN ('queued','running','evaluating')")):
         raise ValueError("Backup requires an empty queue and no active attempts.")
-    children = command(["docker", "ps", "--all", "--filter",
-                        "label=meridian.component=vio-job", "--format", "{{.ID}}"]).stdout
-    if children.strip():
-        raise ValueError("Numerical child containers must be absent before backup.")
+    if (sql(container, "SELECT to_regclass('workspace_acquisition') IS NOT NULL") == "t"
+            and int(sql(container, "SELECT count(*) FROM workspace_acquisition "
+                        "WHERE state IN ('receiving','validating') OR current_attempt IS NOT NULL"))):
+        raise ValueError("Backup requires completed or cancelled transfers and no active imports.")
+    for component in ("vio-job", "sensor-import"):
+        children = command(["docker", "ps", "--all", "--filter",
+                            "label=meridian.component=" + component, "--format", "{{.ID}}"]).stdout
+        if children.strip():
+            raise ValueError("Numerical/import child containers must be absent before backup.")
 
 
 def backup(args):
     if not re.fullmatch(r"meridian-workspace(?:-[a-z0-9-]+)?", args.project):
         raise ValueError("Expected an explicit Meridian Compose project.")
-    services = {key: inspect(f"{args.project}-{key}-1") for key in ("api", "worker", "db")}
+    writers = ("api", "worker", "importer") if getattr(args, "acquisitions", None) is not None else ("api", "worker")
+    services = {key: inspect(f"{args.project}-{key}-1") for key in (*writers, "db")}
     for key, container in services.items():
         labels = container["Config"].get("Labels") or {}
         if (labels.get("com.docker.compose.project") != args.project
@@ -260,6 +347,17 @@ def backup(args):
                   if m["Source"] == str(artifacts)]
         if len(mounts) != 1 or mounts[0]["Type"] != "bind":
             raise ValueError("Artifact root differs from the actual service mount.")
+    acquisitions = getattr(args, "acquisitions", None)
+    if acquisitions is not None:
+        acquisitions = Path(acquisitions).absolute()
+        if (acquisitions.resolve(strict=True) != acquisitions or not acquisitions.is_dir()
+                or intended.is_relative_to(acquisitions) or acquisitions.is_relative_to(intended)
+                or acquisitions.is_relative_to(artifacts) or artifacts.is_relative_to(acquisitions)):
+            raise ValueError("Acquisition root must be real and separate from backup/artifact storage.")
+        for key in ("api", "importer"):
+            mounts = [m for m in services[key]["Mounts"] if m["Source"] == str(acquisitions)]
+            if len(mounts) != 1 or mounts[0]["Type"] != "bind":
+                raise ValueError("Acquisition root differs from the actual service mount.")
     output = private_directory(args.output, new=True)
     (output / "artifacts").mkdir(mode=0o700)
     started, pause_started = datetime.now(timezone.utc).isoformat(), time.monotonic()
@@ -267,7 +365,7 @@ def backup(args):
     report = None
     try:
         # API first prevents new submissions while the idle worker shuts down.
-        for key in ("api", "worker"):
+        for key in writers:
             container = services[key]
             if container["State"]["Running"]:
                 # Register before calling stop so a timeout still attempts recovery.
@@ -275,7 +373,13 @@ def backup(args):
                 command(["docker", "stop", "--time", "45", container["Id"]], timeout=60)
         require_idle(db)
         before = database_state(db)
+        database_size_bytes = int(sql(db, "SELECT pg_database_size(current_database())"))
         members = artifact_members(before["retained_jobs"])
+        if "retained_acquisitions" in before and acquisitions is None:
+            raise ValueError("This release requires --acquisitions, including for an empty store.")
+        input_members = acquisition_members(before.get("retained_acquisitions", []))
+        if acquisitions is not None:
+            (output / "acquisitions").mkdir(mode=0o700)
         descriptor = os.open(output / "database.dump", os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
         with os.fdopen(descriptor, "wb") as stream:
             subprocess.run(
@@ -292,16 +396,23 @@ def backup(args):
             files["artifacts/" + name] = copy_file(
                 artifacts, name, output / "artifacts", expected=expected,
             )
+        for name, expected in input_members.items():
+            files["acquisitions/" + name] = copy_file(
+                acquisitions, name, output / "acquisitions", limit=MAX_ACQUISITION_FILE,
+                expected=expected,
+            )
+        if sum(item["size_bytes"] for item in files.values()) > MAX_COMPLETE_TOTAL:
+            raise ValueError("Backup exceeds its complete size budget.")
         if database_state(db) != before:
             raise ValueError("Database changed while services were stopped.")
         report = {
-            "format": FORMAT, "schema_version": 1, "started_at_utc": started,
+            "format": FORMAT, "schema_version": 2, "started_at_utc": started,
             "completed_at_utc": datetime.now(timezone.utc).isoformat(),
             "database_image_id": services["db"]["Image"],
             "database_runtime": runtime,
-            "application_image_ids": {key: services[key]["Image"] for key in ("api", "worker")},
-            "database_state": before, "files": files,
-            "scope": "Database metadata and published artifacts; no environment secrets or recordings.",
+            "application_image_ids": {key: services[key]["Image"] for key in writers},
+            "database_state": before, "database_size_bytes": database_size_bytes, "files": files,
+            "scope": "Database metadata, published job artifacts and retained private acquisition originals/derived inputs; no environment secrets or public reference recordings.",
             "sensitive_contents": "Includes password hashes, session records and private project data.",
         }
     finally:
@@ -314,29 +425,38 @@ def backup(args):
         if failures:
             raise RuntimeError("Service restart failed; inspect the original API/worker immediately.")
     report["write_pause_seconds"] = time.monotonic() - pause_started
-    (output / "manifest.json").write_bytes(canonical(report))
+    encoded_report = backup_manifest_bytes(report)
+    if len(encoded_report) > MAX_MANIFEST:
+        raise ValueError("Backup manifest exceeds its metadata budget.")
+    (output / "manifest.json").write_bytes(encoded_report)
     os.chmod(output / "manifest.json", 0o600)
     verify(output)
     return {"backup_verified": True, "files": len(report["files"]),
             "bytes": sum(x["size_bytes"] for x in report["files"].values()),
             "retained_jobs": len(report["database_state"]["retained_jobs"]),
+            "retained_acquisitions": len(report["database_state"].get("retained_acquisitions", [])),
             "write_pause_seconds": report["write_pause_seconds"]}
 
 
 def verify(directory):
     root = private_directory(directory)
-    stream, _ = checked_file(root, "manifest.json", MAX_FILE)
+    stream, _ = checked_file(root, "manifest.json", MAX_MANIFEST)
     with stream:
         manifest = json.load(stream)
-    if manifest.get("format") != FORMAT or manifest.get("schema_version") != 1:
+    if manifest.get("format") != FORMAT or manifest.get("schema_version") not in {1, 2}:
         raise ValueError("Unsupported backup format.")
     files = manifest.get("files")
-    if not isinstance(files, dict) or not 1 <= len(files) <= MAX_FILES + 1 or "database.dump" not in files:
+    maximum_files = MAX_FILES + 1 + (MAX_ACQUISITION_FILES + 200 if manifest["schema_version"] == 2 else 0)
+    if not isinstance(files, dict) or not 1 <= len(files) <= maximum_files or "database.dump" not in files:
         raise ValueError("Invalid backup inventory.")
     required = {"database.dump", *("artifacts/" + name for name in
                                    artifact_members(manifest["database_state"]["retained_jobs"]))}
+    input_members = acquisition_members(manifest["database_state"].get("retained_acquisitions", []))
+    if manifest["schema_version"] == 1 and input_members:
+        raise ValueError("Legacy backups cannot contain private acquisitions.")
+    required.update("acquisitions/" + name for name in input_members)
     if set(files) != required:
-        raise ValueError("Backup inventory differs from retained job metadata.")
+        raise ValueError("Backup inventory differs from retained publication metadata.")
     actual = set()
     for path in root.rglob("*"):
         if path.is_symlink() or stat.S_IMODE(path.stat().st_mode) & 0o077:
@@ -349,21 +469,34 @@ def verify(directory):
         raise ValueError("Backup contains missing or unexpected files.")
     total = 0
     for name, expected in files.items():
-        limit = MAX_DATABASE if name == "database.dump" else MAX_FILE
-        observed = identity(root, name, limit)
+        observed = identity(root, name, member_limit(name))
         if observed != expected:
             raise ValueError("Backup member integrity check failed.")
         total += observed["size_bytes"]
     expected_artifacts = artifact_members(manifest["database_state"]["retained_jobs"])
     if any(files["artifacts/" + name] != expected for name, expected in expected_artifacts.items()):
         raise ValueError("Backup artifacts differ from their database publication manifest.")
-    if total > MAX_TOTAL:
+    if any(files["acquisitions/" + name] != expected for name, expected in input_members.items()):
+        raise ValueError("Backup acquisitions differ from their database publication manifest.")
+    if total > (MAX_COMPLETE_TOTAL if manifest["schema_version"] == 2 else MAX_TOTAL):
         raise ValueError("Backup exceeds its total size budget.")
     return manifest
 
 
 def restore(args):
     manifest = verify(args.backup)
+    database_mib = getattr(args, "database_mib", 256)
+    if type(database_mib) is not int or not 256 <= database_mib <= 8192:
+        raise ValueError("Restore --database-mib must be between 256 and 8192 MiB.")
+    database_bytes = manifest.get("database_size_bytes")
+    if database_bytes is not None:
+        if type(database_bytes) is not int or database_bytes < 0:
+            raise ValueError("Invalid source database size metadata.")
+        required = 2 * database_bytes + 64 * 1024**2
+        if database_mib * 1024**2 < required:
+            minimum = (required + 1024**2 - 1) // 1024**2
+            raise ValueError(f"Restore database capacity is insufficient; choose --database-mib at least {minimum} (maximum 8192) on a host with sufficient memory.")
+    memory_mib = max(512, database_mib + 256)
     source = Path(args.backup).absolute()
     destination = Path(args.output).absolute()
     if destination.is_relative_to(source) or source.is_relative_to(destination):
@@ -377,9 +510,11 @@ def restore(args):
         raise ValueError("Restore container already exists; refusing replacement.")
     output = private_directory(args.output, new=True)
     for name, expected in manifest["files"].items():
-        if name.startswith("artifacts/"):
-            copy_file(source, name, output, expected=expected)
+        if name.startswith(("artifacts/", "acquisitions/")):
+            copy_file(source, name, output, limit=member_limit(name), expected=expected)
     (output / "artifacts").mkdir(mode=0o700, exist_ok=True)
+    if manifest["schema_version"] == 2:
+        (output / "acquisitions").mkdir(mode=0o700, exist_ok=True)
     # No published ports, network, named volume, source environment or application
     # secret is reused. PostgreSQL data are disposable and bounded in this drill.
     environment = output / "restore.env"
@@ -395,9 +530,9 @@ def restore(args):
             "--label", "meridian.component=restore-drill",
             "--label", "meridian.restore-token=" + restore_token, "--network", "none",
             "--read-only", "--user", "999:999", "--cap-drop", "ALL",
-            "--security-opt", "no-new-privileges", "--memory", "512m",
-            "--memory-swap", "512m", "--cpus", "0.5", "--pids-limit", "128",
-            "--tmpfs", "/var/lib/postgresql/data:rw,uid=999,gid=999,mode=0700,size=256m",
+            "--security-opt", "no-new-privileges", "--memory", f"{memory_mib}m",
+            "--memory-swap", f"{memory_mib}m", "--cpus", "0.5", "--pids-limit", "128",
+            "--tmpfs", f"/var/lib/postgresql/data:rw,uid=999,gid=999,mode=0700,size={database_mib}m",
             "--tmpfs", "/var/run/postgresql:rw,uid=999,gid=999,mode=0770,size=8m",
             "--tmpfs", "/tmp:rw,mode=1777,size=16m", "--env-file", str(environment),
             runtime["image_id"], "postgres", "-c", "shared_buffers=32MB",
@@ -433,7 +568,8 @@ def restore(args):
             command(["docker", "exec", "-i", args.name, "pg_restore", "-U", "meridian",
                      "--dbname=meridian", "--no-owner", "--no-acl",
                      "--exit-on-error", "--single-transaction"], stdin=dump, timeout=120)
-        actual = database_state(args.name, user="meridian")
+        fingerprint_version = manifest["database_state"].get("fingerprint_version", 1)
+        actual = database_state(args.name, user="meridian", fingerprint_version=fingerprint_version)
         if actual != manifest["database_state"]:
             raise ValueError("Restored database metadata differs from the backup.")
         sessions = actual["counts"]["django_session"]
@@ -446,13 +582,14 @@ def restore(args):
         if any(role_flags.values()):
             raise ValueError("Restored application role has excessive privileges.")
         for name, expected in manifest["files"].items():
-            if name.startswith("artifacts/") and identity(output, name, MAX_FILE) != expected:
-                raise ValueError("Restored artifact differs from the backup.")
+            if name.startswith(("artifacts/", "acquisitions/")) and identity(output, name, member_limit(name)) != expected:
+                raise ValueError("Restored publication differs from the backup.")
         report = {
             "schema_version": 1, "backup_manifest_sha256": hashlib.sha256(
                 (source / "manifest.json").read_bytes()).hexdigest(),
             "database_metadata_verified_before_session_clear": True,
             "restored_artifacts_verified": True, "copied_sessions_cleared": sessions,
+            "restored_acquisitions_verified": manifest["schema_version"] == 2,
             "database_image_id": runtime["image_id"],
             "source_database_image_id": manifest["database_image_id"],
             "database_runtime": runtime,
@@ -460,6 +597,8 @@ def restore(args):
             "application_role_flags": role_flags,
             "restored_counts": database_state(args.name, user="meridian")["counts"],
             "container": args.name, "network": "none", "database_storage": "disposable tmpfs",
+            "database_storage_mib": database_mib, "container_memory_mib": memory_mib,
+            "source_database_size_bytes": database_bytes,
             "completed_at_utc": datetime.now(timezone.utc).isoformat(),
         }
         (output / "restore-report.json").write_bytes(canonical(report))
@@ -485,6 +624,8 @@ def main():
     create = sub.add_parser("backup", help="Briefly stop idle API/worker; restart them in finally.")
     create.add_argument("--project", required=True)
     create.add_argument("--artifacts", required=True, type=Path)
+    create.add_argument("--acquisitions", type=Path,
+                        help="Required for releases with private acquisitions, even when empty.")
     create.add_argument("--output", required=True, type=Path)
     check = sub.add_parser("verify")
     check.add_argument("--backup", required=True, type=Path)
@@ -492,6 +633,8 @@ def main():
     recovery.add_argument("--backup", required=True, type=Path)
     recovery.add_argument("--output", required=True, type=Path)
     recovery.add_argument("--name", required=True)
+    recovery.add_argument("--database-mib", type=int, default=256,
+                       help="Disposable database tmpfs capacity, 256..8192 MiB; memory limit is capacity plus 256 MiB.")
     args = parser.parse_args()
     os.umask(0o077)
     if args.action == "backup":

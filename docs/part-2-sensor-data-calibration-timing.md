@@ -1,6 +1,6 @@
 # Part 2 — Sensor data, calibration, and timing
 
-**Status: increments 2.1–2.2 implemented, 2026-10-20. Increments 2.3–2.13 remain planned.**
+**Status: increments 2.1–2.3 implemented, 2026-10-20. Increments 2.4–2.13 remain planned.**
 
 The intended outcome is a private, versioned acquisition with traceable sensor
 semantics, calibration and timing, usable by a supported estimator and
@@ -9,7 +9,7 @@ inspect their limitations, supply or estimate supported calibration parameters,
 run the maintained VIO implementation, and deliver the inputs and evidence.
 The [roadmap](professional-estimation-roadmap.md) defines the broader scope.
 
-## Starting point verified in the repository
+## Starting point at the part 1 boundary
 
 Part 1 provides hosted projects, immutable experiments, isolated OpenVINS jobs,
 investigation, comparisons and independent exports. Its
@@ -29,7 +29,9 @@ workflow and the negative room2 coverage result.
 
 Increments 2.1–2.2 add local metadata contracts, convention checks and actual
 file import/preparation. Existing room1 inputs provide regression evidence.
-No new acquisition, calibration fit, VIO execution or deployment is claimed.
+Those local increments introduced no new physical acquisition, calibration fit,
+VIO execution or deployment. Increment 2.3 adds private hosted uploads and
+isolated preparation with coherent original/derived input recovery.
 
 ## Proposed boundaries
 
@@ -130,6 +132,15 @@ inconsistent metadata have explicit outcomes. TUM-VI compatibility is checked
 against the frozen preparation. A valid recording without truth imports.
 
 ### 2.3 — Private hosted recordings and upload lifecycle
+
+**Implemented:** [private acquisitions](hosted-acquisitions.md), resumable browser
+transfers, owner-scoped metadata/files, isolated preparation, fenced publication,
+storage reservations, cancellation and deletion. [Backup version 2](workspace-backup.md)
+retains original archives and prepared snapshots with the database. The hosted
+profile accepts Meridian packages after any required local adapter; it does not
+admit private acquisitions to the VIO runner.
+The [acceptance report](../results/acquisitions/README.md) records local/HTTPS
+transfers, induced import faults and off-server restoration of owned inputs.
 
 **Dependency:** 2.2.
 

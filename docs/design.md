@@ -32,8 +32,10 @@ calibration and timing increments. Its first increment implements
 [sensor contracts](sensor-contract.md), exact clock/unit/geometry checks and
 synthetic linked examples. The [local importer](sensor-import.md) verifies actual
 payloads, retains originals and prepares SI/ns observations deterministically.
-Accepted imports do not establish physical quality or estimator readiness;
-hosted uploads and calibration execution remain unimplemented.
+Accepted imports do not establish physical quality or estimator readiness.
+[Private hosted acquisitions](hosted-acquisitions.md) add resumable transfers,
+isolated preparation and atomic publication, with input-aware backup/restore.
+Calibration execution and VIO on private inputs remain unimplemented.
 [Recording reservations](sensor-data-sources.md) separate future
 fitting and evaluation before any new payload inspection.
 General 3D estimator development, broader visual-inertial development and

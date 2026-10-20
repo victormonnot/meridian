@@ -13,4 +13,7 @@ class Command(BaseCommand):
         now = timezone.now()
         sessions, _ = Session.objects.filter(expire_date__lt=now).delete()
         windows, _ = AuthWindow.objects.filter(started_at__lt=now - timedelta(days=1)).delete()
+        from workspace.acquisition_queue import cleanup_abandoned
+        acquisitions = cleanup_abandoned()
+        self.stdout.write(f"Cleaned {acquisitions} inactive recording transfers.")
         self.stdout.write(f"Deleted {sessions} expired sessions and {windows} inactive authentication counters.")

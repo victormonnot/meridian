@@ -5,6 +5,8 @@ reference catalog. [Versioned experiments](versioned-experiments.md) add support
 OpenVINS configurations, historical snapshots, duplication and exact differences.
 [Durable VIO jobs](hosted-vio-jobs.md) execute a saved revision through a separate
 worker and independent evaluator; the qualified local runner remains available.
+[Private acquisitions](hosted-acquisitions.md) add resumable sensor-package
+uploads, isolated validation and retained acquisition/preparation snapshots.
 
 The [hosted preview](https://meridian.victormonnot.com/) uses the canonical
 HTTPS hostname; the earlier temporary address redirects there.
@@ -20,7 +22,9 @@ The Vite workspace is a separate entry point, `web/workspace.html`. The original
 roll explorer remains at `web/index.html`. The deployment serves the workspace
 at `/`, the original explorer at `/index.html`, and the metadata API at `/api/v1`.
 Projects expose Data, Experiments, Results and Settings views. Experiments contain
-saved configurations and history. Results lists persisted jobs, execution
+saved configurations and history. Data lists private acquisitions and their
+transfer, validation and availability states alongside the reference catalog.
+Results lists persisted jobs, execution
 attempts, failures and validated metric summaries. Retained evidence opens a
 [synchronized investigation](vio-investigation.md) of images, IMU, poses and errors.
 Results also contains [saved comparisons](vio-comparisons.md) of exact terminal
@@ -29,12 +33,16 @@ runs, with configuration differences and explicit own/common-support metrics.
 Django 5.2 LTS supplies authentication, password validation/hashing, server-side
 sessions, CSRF protection and database migrations. This replaces the earlier
 FastAPI candidate for the initial metadata service. PostgreSQL persists accounts,
-sessions, projects, experiments, jobs, attempts, comparisons and submission/authentication budgets. The HTTP service
-imports only the shared standard-library specification, comparison and interval-summary
+sessions, projects, experiments, jobs, attempts, comparisons, acquisitions and
+submission/authentication budgets. The HTTP service
+imports only the shared standard-library specification, sensor, comparison and interval-summary
 contracts from the numerical package. The API image has no VIO runtime, NumPy,
 Docker access, host repositories or private notes. An optional deployment overlay
 mounts only published artifacts and prepared camera directories read-only for
-authenticated investigation; raw IMU and reference files remain outside HTTP.
+authenticated investigation. A separate acquisition overlay mounts private
+retained uploads and published inputs; authenticated downloads are restricted
+to the owning project and its published manifest. Archive decoding, image
+processing and preparation run in a separate import sandbox.
 
 The reference catalog describes the exact calibrated TUM-VI room1 variant
 qualified in increment 1.1. It distinguishes motion-capture coverage from
@@ -71,13 +79,17 @@ artifact identifiers, source code, container names or execution commands.
 
 Each account can retain 20 projects, with names up to 100 characters and
 descriptions up to 2000 characters. Creation locks the owner's database row so
-concurrent requests cannot exceed the project cap on PostgreSQL. Uploads remain
-unavailable; [job quotas](hosted-vio-jobs.md#isolation-and-budgets) bound hosted
-computation. JSON request bodies are bounded to 8 KiB and unknown fields are rejected.
+concurrent requests cannot exceed the project cap on PostgreSQL.
+[Acquisition budgets](hosted-acquisitions.md#storage-and-resource-budgets) bound
+private uploads and retained files; [job quotas](hosted-vio-jobs.md#isolation-and-budgets)
+bound hosted computation. JSON request bodies are bounded to 8 KiB and unknown
+fields are rejected. Only the authenticated binary upload route accepts 4 MiB
+chunks. Upload availability is controlled by `MERIDIAN_UPLOADS_ENABLED`.
 
 Projects remain until their owner deletes them. Deletion removes the live project
 metadata immediately and cannot be undone through the application. Active jobs
-block project/experiment deletion with 409; terminal jobs are deleted with their
+block project/experiment deletion with 409; receiving or validating acquisitions
+also block project deletion. Terminal jobs are deleted with their
 parent, and the worker subsequently removes orphaned private files. Account
 removal is currently an operator action; deleting the Django user cascades to
 their projects. Database backups can retain earlier copies until their retention
@@ -98,7 +110,9 @@ shared access; they are not an internet-wide abuse-prevention guarantee.
 
 Responses carry `schema_version: 1`. Errors have
 `error: {code, message, fields?}`; field errors are arrays of messages.
-Mutations send JSON and `X-CSRFToken`. Cookies remain on the same origin.
+Metadata mutations send JSON and `X-CSRFToken`; acquisition chunks use bounded
+binary bodies with the same CSRF protection. Cookies remain on the same origin.
+The [acquisition contract](hosted-acquisitions.md) describes its additional workflow.
 
 | Endpoint | Behavior |
 | --- | --- |
@@ -116,7 +130,8 @@ Mutations send JSON and `X-CSRFToken`. Cookies remain on the same origin.
 | `GET /api/health` | Report database connectivity without user or environment details. |
 
 API responses are not cached. The production ingress serves compiled assets only;
-unknown static paths return 404. There is no general file download route.
+unknown static paths return 404. File downloads use explicit owned publications;
+there is no arbitrary filesystem download route.
 
 ## Local development and verification
 

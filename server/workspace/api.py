@@ -68,7 +68,7 @@ def session_payload(request):
     return {
         "user": {"id": request.user.pk, "username": request.user.username} if request.user.is_authenticated else None,
         "csrf_token": get_token(request),
-        "capabilities": {"execution": settings.MERIDIAN_EXECUTION_ENABLED, "uploads": False},
+        "capabilities": {"execution": settings.MERIDIAN_EXECUTION_ENABLED, "uploads": settings.MERIDIAN_UPLOADS_ENABLED},
         "limits": {"projects": settings.MERIDIAN_PROJECT_LIMIT},
         "registration_open": settings.MERIDIAN_REGISTRATION_OPEN,
     }
@@ -217,6 +217,9 @@ def projects(request):
 @endpoint(["GET", "PATCH", "DELETE"])
 def project(request, project_id):
     with transaction.atomic():
+        if request.method == "DELETE":
+            from .job_queue import queue_lock
+            queue_lock()
         query = Project.objects.filter(pk=project_id, owner=request.user)
         if request.method != "GET":
             # Serialize deletion with child creation before Django collects cascades.
@@ -227,6 +230,17 @@ def project(request, project_id):
         if request.method == "DELETE":
             if value.jobs.filter(state__in=["queued", "running", "evaluating"]).exists():
                 return error("active_jobs", "Cancel active executions and wait for them to stop before deleting this project.", 409)
+            if value.acquisitions.filter(state__in=["receiving", "validating"]).exists():
+                return error("active_imports", "Cancel active recording transfers/imports and wait before deleting this project.", 409)
+            from .acquisition_queue import compute_active, release_files_locked
+            if value.acquisitions.exists() and compute_active():
+                return error("cleanup_busy", "Wait for active executions and recording imports to stop before deleting this project's files.", 409)
+            try:
+                for acquisition in value.acquisitions.all():
+                    release_files_locked(acquisition)
+                    acquisition.save()
+            except (OSError, ValueError):
+                return error("storage_unavailable", "Recording cleanup remains incomplete; its quota is still reserved.", 503)
             value.delete()
             return response({"deleted": True})
         if request.method == "PATCH":

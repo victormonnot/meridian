@@ -2,7 +2,7 @@
 
 This deployment serves accounts, private projects, versioned experiments and
 durable VIO jobs with synchronized result investigation, saved run comparisons
-and source-only experiment exports.
+source-only experiment exports and private sensor acquisitions.
 The canonical deployment is
 [meridian.victormonnot.com](https://meridian.victormonnot.com/).
 The [hostname migration report](../results/domain-migration/README.md) records
@@ -15,6 +15,9 @@ not contain an estimator executable, Docker CLI, NumPy or recordings. It contain
 a curated copy of public reproduction sources and notices. The separate
 `compose.investigation.yaml` override grants the API read-only access to published
 artifacts and the two prepared camera-image directories.
+The `compose.acquisitions.yaml` overlay adds a separate import worker and a
+private retained-input mount. It requires its own bounded disk scratch allocation
+before uploads are enabled; see [acquisition provisioning](#enable-private-acquisitions).
 The [workspace contract](hosted-workspace.md) describes authentication, ownership
 and retention. The original static explorer is also served at `/index.html`.
 
@@ -33,10 +36,10 @@ three-run qualification.
 ## Services and isolation
 
 The Compose stack has a dedicated PostgreSQL 17 database, a Django/Gunicorn API,
-an unprivileged Nginx frontend and an optional computation worker. Only Nginx
-joins the existing external `coolify` proxy network; the API, database and worker
+an unprivileged Nginx frontend and optional VIO/import workers. Only Nginx
+joins the existing external `coolify` proxy network; the API, database and workers
 use an internal project network. No production service publishes a host port.
-Only the worker mounts the Docker socket. This maintained orchestrator has
+Only the trusted workers mount the Docker socket. Each maintained orchestrator has
 host-level daemon privileges and is trusted infrastructure, not a sandbox for
 arbitrary user code. Neither API nor numerical child containers get the socket.
 Traefik routes this hostname through the existing `http`/`https` entrypoints and
@@ -49,10 +52,12 @@ Meridian. Do not replace or reconfigure the shared proxy or other applications.
 | API | 512 MiB | 0.75 | 128 PIDs, 32 MiB temporary filesystem |
 | Nginx | 128 MiB | 0.25 | 64 PIDs, 16 MiB temporary filesystem |
 | Worker | 512 MiB | 0.25 | 128 PIDs, 32 MiB temporary filesystem |
+| Optional importer | 512 MiB | 0.25 | 128 PIDs, 32 MiB temporary filesystem |
 | Native estimator | 4096 MiB | 2 | 900 seconds, 128 PIDs, 128 MiB `/tmp` |
 | Separate evaluator | 512 MiB | 0.5 | 120 seconds, no network or secrets |
+| Isolated sensor import | 1024 MiB | 1 | 900 seconds, 64 PIDs, no network or secrets; dedicated 8 GiB disk scratch |
 
-Only one job executes globally. Native estimation and evaluation run sequentially;
+Only one VIO or import attempt executes globally. Native estimation and evaluation run sequentially;
 the worker checks host memory available of at least 5120 MiB and free artifact-disk
 space of at least 10 GiB before admission. These thresholds do not reserve memory
 against subsequent activity by other applications on a shared host. A capacity
@@ -73,6 +78,10 @@ prepared reference trajectory, IMU CSV or calibration tree, and no scratch or
 Docker-socket mount. Published artifacts include the run's rendered configuration.
 Nginx has no data mounts: image and investigation requests pass through Django
 ownership checks.
+With acquisitions enabled, the API also mounts the private retained-input root
+read-write for bounded binary transfers and owned downloads. It does not decode
+archives or images, and never mounts the import scratch. A child import receives
+only its read-only original archive and private scratch attempt directory.
 
 PostgreSQL uses a separate bootstrap administrator. The application role owns
 only its database and has no superuser, role-creation, database-creation or
@@ -101,7 +110,8 @@ logs; it contains secrets.
 
 Set `MERIDIAN_API_IMAGE`, `MERIDIAN_WEB_IMAGE` and, when enabled,
 `MERIDIAN_WORKER_IMAGE` to unique release tags. The worker resolves its evaluator
-image to an immutable content ID at startup. The
+image to an immutable content ID at startup; the importer resolves the same
+release image for its child. The
 `MERIDIAN_DOMAIN` value is a hostname, without scheme, port or path. The hostname
 must resolve to this server before certificate issuance. Keep registration open
 for the public preview, or set `MERIDIAN_REGISTRATION_OPEN=0` to close new accounts
@@ -147,6 +157,16 @@ credentials, recordings, binaries and private files. An incomplete or modified
 payload must fail export validation rather than fetching replacement code.
 The [export contract](vio-exports.md) defines size, access, integrity and
 reproduction requirements.
+
+If a release is transferred as a curated source bundle, its allowlist must also
+include `sensor_contract.py`, `sensor_conventions.py`, `sensor_package.py`,
+`sensor_import.py` and `sensor_hosted_import.py` from `src/meridian`, the new
+server modules and migration, the acquisition web sources, and
+`compose.acquisitions.yaml` plus `provision-import-scratch.py` from
+`deploy/workspace`. Preserve the checked-in Dockerfiles, dependency lock and
+`.dockerignore`; never transfer the working directory wholesale. Record the
+source manifest and image identities. The API copies only the two standard-library
+sensor contract modules; Pillow and archive preparation remain in the worker image.
 
 For an application-only upgrade, preserve the existing database container with
 `--no-recreate`; moving to a new source-release directory otherwise changes the
@@ -289,6 +309,79 @@ or changed artifacts, expired access, and browser display of the original PNGs.
 The [investigation validation report](../results/investigation/README.md) records
 the tested release, artifact sizes and observed browser/API resource measurements.
 
+## Enable private acquisitions
+
+The [acquisition contract](hosted-acquisitions.md) defines supported packages,
+transfer states and quotas. This overlay requires no new reference dataset.
+Upload conversion and preparation are independent of native VIO execution;
+private acquisitions are not yet executable by the hosted estimator.
+
+Provision an ordinary private retained directory and a separate finite ext4
+scratch filesystem. The retained directory uses database-enforced 12 GiB account
+and 24 GiB global budgets, rather than a dedicated filesystem quota. Allow for
+those reservations, the preallocated 8 GiB scratch image and at least 10 GiB
+remaining host storage. The importer checks at least 2 GiB host available memory,
+6 GiB scratch free and 16 GiB retained-filesystem free before claiming work; the
+last threshold covers a 6 GiB publication plus the 10 GiB host floor. These checks
+do not reserve capacity against other applications.
+
+For the default paths in `.env.example`:
+
+```sh
+sudo install -d -m 0700 -o 10001 -g 10001 /srv/meridian-workspace/acquisitions
+sudo python3 deploy/workspace/provision-import-scratch.py \
+  --image /srv/meridian-workspace/import-scratch.ext4 \
+  --mount /srv/meridian-workspace/import-scratch
+python3 deploy/workspace/provision-import-scratch.py \
+  --image /srv/meridian-workspace/import-scratch.ext4 \
+  --mount /srv/meridian-workspace/import-scratch --print-unit
+```
+
+The helper fully allocates the backing file and formats it only on first creation.
+It refuses an incompatible existing image or occupied mount; it never reformats
+existing data. The mounted filesystem is `nosuid,nodev,noexec`, owned by
+UID/GID 10001, mode 0700. Its usable capacity is slightly below 8 GiB. An ordinary
+directory or the VIO 128 MiB tmpfs cannot substitute for it.
+
+Persist the printed unit under the filename returned by
+`systemd-escape --path --suffix=mount /srv/meridian-workspace/import-scratch` in
+`/etc/systemd/system`, mode 0644. Inspect any existing unit before replacing it;
+then run `systemctl daemon-reload` and `systemctl enable` for that exact unit.
+Provisioning already mounted it, so a live deployment needs no unmount or daemon
+restart. Verify its active/enabled state and backing file with `findmnt` and
+`losetup`; keep the backing image at its configured path across releases.
+
+Set `MERIDIAN_UPLOADS_ENABLED=1`, `MERIDIAN_ACQUISITION_ROOT` and
+`MERIDIAN_IMPORT_SCRATCH_ROOT` in the protected environment. Bind sources and
+targets must be identical absolute host paths. Include all enabled overlays on
+each upgrade; for a deployment already using investigation:
+
+```sh
+docker compose --project-name meridian-workspace \
+  --env-file /srv/meridian-workspace/.env \
+  -f deploy/workspace/compose.yaml -f deploy/workspace/compose.investigation.yaml \
+  -f deploy/workspace/compose.acquisitions.yaml --profile compute build api web importer
+docker compose --project-name meridian-workspace \
+  --env-file /srv/meridian-workspace/.env \
+  -f deploy/workspace/compose.yaml -f deploy/workspace/compose.investigation.yaml \
+  -f deploy/workspace/compose.acquisitions.yaml --profile compute \
+  run --rm --no-deps api python manage.py migrate --noinput
+docker compose --project-name meridian-workspace \
+  --env-file /srv/meridian-workspace/.env \
+  -f deploy/workspace/compose.yaml -f deploy/workspace/compose.investigation.yaml \
+  -f deploy/workspace/compose.acquisitions.yaml --profile compute \
+  up -d --wait --no-deps api web worker importer
+```
+
+Retain any canonical-domain overlay already in use. The `importer` service uses
+the same worker release image and a separate management command. Its healthcheck
+establishes a recent database heartbeat; a synthetic upload that reaches ready,
+an invalid package rejection, cancellation and recovery checks establish the
+import path. Capture actual limits, storage use and exact source/image identities
+separately from those liveness checks. The [backup procedure](workspace-backup.md)
+must include retained acquisitions and stop both workers and the API while
+capturing their consistent state.
+
 ## Local container check
 
 Use a different environment file, distinct secrets and the explicit local override:
@@ -325,6 +418,12 @@ option `--ignore-capacity` bypasses admission thresholds only with Django debug
 enabled; it does not remove native process or scratch limits. Do not enable this
 override on the shared server.
 
+For local acquisitions, also include `compose.acquisitions.yaml`, provision the
+same finite disk profile at an absolute local path and set
+`MERIDIAN_IMPORT_DEBUG=1` in the ignored local environment. The original VIO
+tmpfs/keeper still serves only VIO. Use the generated mount unit when imports
+must survive host reboot; starting Docker alone does not provision the disk mount.
+
 ## Operations and limitations
 
 Keep the PostgreSQL volume and environment file across service restarts and
@@ -351,8 +450,8 @@ operator-triggered idle database/artifact snapshot and isolated restoration
 rehearsal. It never replaces production storage. Scheduled backups, recurring
 off-server retention and a recovery-time guarantee are not established by the
 Compose file; treat this hosted preview as an additional copy of engineering work.
-No user recording upload exists in this increment; only the maintained room1
-profile executes. Independent exports preserve a downloaded experiment outside
+Private recordings can be uploaded and prepared with the acquisition overlay;
+only the maintained room1 profile executes. Independent exports preserve a downloaded experiment outside
 the service; later hosted deletion cannot revoke a copy already downloaded.
 If operators retain database snapshots, deleted records may remain in them until
 those snapshots are removed; publish their retention period before relying on

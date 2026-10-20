@@ -1,0 +1,61 @@
+# Enable only after provisioning the private retained root and bounded 8 GiB
+# disk scratch. API and importer share retained files; the API has no Docker socket.
+services:
+  api:
+    environment:
+      MERIDIAN_UPLOADS_ENABLED: ${MERIDIAN_UPLOADS_ENABLED:-0}
+      MERIDIAN_ACQUISITION_ROOT: ${MERIDIAN_ACQUISITION_ROOT:-/srv/meridian-workspace/acquisitions}
+    volumes:
+      - type: bind
+        source: ${MERIDIAN_ACQUISITION_ROOT:-/srv/meridian-workspace/acquisitions}
+        target: ${MERIDIAN_ACQUISITION_ROOT:-/srv/meridian-workspace/acquisitions}
+        bind: {create_host_path: false}
+  importer:
+    profiles: [compute]
+    image: ${MERIDIAN_WORKER_IMAGE:-meridian-workspace-worker:local}
+    build: {context: ../.., dockerfile: deploy/workspace/Dockerfile.worker}
+    command: [python, server/manage.py, run_import_worker]
+    user: "10001:10001"
+    group_add: ['${MERIDIAN_DOCKER_GID:-0}']
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    restart: unless-stopped
+    stop_grace_period: 40s
+    environment:
+      MERIDIAN_DEBUG: ${MERIDIAN_IMPORT_DEBUG:-0}
+      MERIDIAN_SECRET_KEY: ${MERIDIAN_SECRET_KEY:?Set a random Django secret key}
+      MERIDIAN_UPLOADS_ENABLED: ${MERIDIAN_UPLOADS_ENABLED:-0}
+      DATABASE_URL: postgresql://meridian:${MERIDIAN_DATABASE_PASSWORD}@db:5432/meridian
+      MERIDIAN_ACQUISITION_ROOT: ${MERIDIAN_ACQUISITION_ROOT:-/srv/meridian-workspace/acquisitions}
+      MERIDIAN_IMPORT_SCRATCH_ROOT: ${MERIDIAN_IMPORT_SCRATCH_ROOT:-/srv/meridian-workspace/import-scratch}
+      MERIDIAN_IMPORT_IMAGE: ${MERIDIAN_WORKER_IMAGE:-meridian-workspace-worker:local}
+    volumes:
+      - type: bind
+        source: /var/run/docker.sock
+        target: /var/run/docker.sock
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${MERIDIAN_ACQUISITION_ROOT:-/srv/meridian-workspace/acquisitions}
+        target: ${MERIDIAN_ACQUISITION_ROOT:-/srv/meridian-workspace/acquisitions}
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${MERIDIAN_IMPORT_SCRATCH_ROOT:-/srv/meridian-workspace/import-scratch}
+        target: ${MERIDIAN_IMPORT_SCRATCH_ROOT:-/srv/meridian-workspace/import-scratch}
+        bind: {create_host_path: false}
+    tmpfs: ["/tmp:size=32m,mode=1777"]
+    networks: [backend]
+    depends_on: {db: {condition: service_healthy}}
+    mem_limit: 512m
+    memswap_limit: 512m
+    cpus: 0.25
+    pids_limit: 128
+    healthcheck:
+      test: [CMD, python, server/manage.py, run_import_worker, --healthcheck]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+      start_period: 30s
+    logging:
+      driver: json-file
+      options: {max-size: 10m, max-file: "3"}

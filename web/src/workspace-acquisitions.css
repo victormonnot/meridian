@@ -1,0 +1,50 @@
+.acquisitions { margin-bottom: 36px; padding-bottom: 30px; border-bottom: 1px solid var(--line); }
+.acquisitions > .section-heading { margin-bottom: 14px; }
+.acquisition-intro { max-width: 800px; margin-bottom: 16px; font-size: .875rem; }
+.acquisition-limits { margin: 8px 0; }
+.acquisition-list { border-top: 1px solid var(--line); margin-top: 22px; }
+.acquisition-row { display: grid; grid-template-columns: minmax(0, 1fr) auto 18px; gap: 20px; align-items: center; padding: 20px; border-bottom: 1px solid var(--line); background: var(--surface); text-decoration: none; }
+.acquisition-row:hover { background: var(--soft); }
+.acquisition-row h3, .acquisition-row p { overflow-wrap: anywhere; }
+.acquisition-row p { margin-top: 6px; }
+.acquisition-status { display: inline-block; padding: 4px 9px; border: 1px solid var(--control-border); font: .75rem/1.5 var(--mono); }
+.acquisition-status-active { color: var(--accent); border-color: var(--accent); }
+.acquisition-status-error { color: var(--error); border-color: var(--error); }
+.acquisition-empty { padding: 24px 0; }
+.acquisition-empty p { margin-top: 8px; color: var(--muted); font-size: .875rem; }
+.acquisition-guide { margin-top: 20px; }
+.acquisition-progress { display: grid; gap: 7px; margin: 14px 0; max-width: 600px; }
+.acquisition-progress progress { appearance: none; height: 8px; width: 100%; border: none; background: var(--soft); accent-color: var(--accent); }
+.acquisition-progress progress::-webkit-progress-bar { background: var(--soft); }
+.acquisition-progress progress::-webkit-progress-value { background: var(--accent); }
+.acquisition-progress progress::-moz-progress-bar { background: var(--accent); }
+.acquisition-progress span { color: var(--muted); font: .75rem var(--mono); }
+.acquisition-detail .back-link { display: inline-block; margin-bottom: 22px; font-size: .875rem; }
+.acquisition-detail [data-acquisition-status] { margin-top: 22px; max-width: 850px; }
+.acquisition-detail [data-acquisition-status] > p + p { margin-top: 12px; }
+.acquisition-detail [data-acquisition-resume] { display: flex; align-items: end; flex-wrap: wrap; gap: 14px; margin-top: 20px; }
+.acquisition-detail [data-acquisition-resume] label { flex: 1; min-width: min(280px, 100%); }
+.acquisition-feedback { margin: 14px 0; font-size: .8125rem; overflow-wrap: anywhere; }
+.acquisition-feedback:empty { display: none; }
+.acquisition-identity { margin: 24px 0; }
+.acquisition-downloads, .acquisition-actions { display: flex; flex-wrap: wrap; gap: 12px; margin: 22px 0; }
+.acquisition-failure { padding: 16px 20px; margin: 18px 0; border: 1px solid var(--error); color: var(--error); overflow-wrap: anywhere; }
+.acquisition-failure p + p { margin-top: 8px; }
+.acquisition-metadata { margin: 28px 0; }
+.acquisition-metadata > p { margin-top: 16px; }
+.acquisition-streams > div { display: grid; grid-template-columns: minmax(100px, 1fr) 1fr 1fr 1fr; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--line); font-size: .8125rem; }
+.acquisition-streams strong { font-weight: 500; overflow-wrap: anywhere; }
+.acquisition-streams span { color: var(--muted); }
+.acquisition-dialog { width: min(620px, calc(100% - 32px)); }
+.acquisition-dialog > p { margin: 14px 0 22px; }
+.acquisition-dialog .form-actions { margin-top: 20px; }
+.acquisition-dialog details > label { margin-top: 15px; }
+.acquisition-checkbox { display: flex; align-items: center; gap: 10px; }
+.acquisition-checkbox input { width: 18px; min-height: 18px; flex: 0 0 18px; }
+@media (max-width: 600px) {
+  .acquisition-row { grid-template-columns: minmax(0, 1fr) 18px; padding: 16px; gap: 12px; }
+  .acquisition-row > .acquisition-status { grid-row: 2; justify-self: start; }
+  .acquisition-row > span:last-child { grid-column: 2; grid-row: 1; }
+  .acquisition-streams > div { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .acquisitions > .section-heading { align-items: start; flex-direction: column; gap: 14px; }
+}

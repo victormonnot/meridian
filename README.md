@@ -41,14 +41,15 @@ development remains planned. The
 [part 2 plan](docs/part-2-sensor-data-calibration-timing.md) details sensor
 imports, calibration and timing. Its initial increments add
 [sensor contracts](docs/sensor-contract.md) and
-[local import and deterministic preparation](docs/sensor-import.md).
-Hosted uploads and calibration execution remain planned.
+[local import and deterministic preparation](docs/sensor-import.md), followed by
+[private hosted acquisitions and resumable uploads](docs/hosted-acquisitions.md).
+Calibration execution and VIO on private inputs remain planned.
 
 The hosted preview is available at
 [meridian.victormonnot.com](https://meridian.victormonnot.com/); the previous
 address redirects there. [Domain validation](results/domain-migration/README.md)
-records DNS, HTTPS and authenticated browser checks. Password recovery and
-recording uploads remain unavailable. The
+records DNS, HTTPS and authenticated browser checks. Password recovery remains
+unavailable. Private uploads accept the documented Meridian package profile. The
 [complete acceptance report](results/hosted-acceptance/README.md) records the
 browser workflow, fault and quota checks, off-server backup restoration and
 independent export replay after source deletion. The reserved room2 evaluation
@@ -87,10 +88,13 @@ The [earlier export report](results/exports/README.md) and
   through the filters offline.
 - Versioned sensor-data descriptors with exact integer clocks, explicit
   calibration provenance, linked preparation metadata and synthetic convention
-  checks. These validate declarations; they do not enable recording uploads.
+  checks. These validate declarations; hosted transfers separately verify payloads.
 - Local sensor-package, calibrated TUM-VI and DataFlash-snapshot import with
   original preservation, full payload validation and deterministic preparation.
   See the [import regression evidence](results/sensor-import/README.md).
+- Multiple private acquisitions per project, resumable browser transfers,
+  isolated bounded preparation, atomic publication and coherent input backups.
+  Import validity remains separate from calibration and estimator readiness.
 
 The original roll study still needs a new bench recording with known angles
 to check the estimates against a physical reference. The historical
@@ -132,6 +136,7 @@ The simulations include known motion for comparison; the historical log does not
 
 | Study | What it looks at |
 | --- | --- |
+| [Private acquisition validation](results/acquisitions/README.md) | Resumable transfers, isolated preparation, cancellation/recovery, ownership and input-aware backup restoration. |
 | [Complete hosted acceptance](results/hosted-acceptance/README.md) | Full local/HTTPS workflow, bounded faults and quotas, off-server restoration, independent replay and the reserved room2 coverage failure. |
 | [Independent VIO exports](results/exports/README.md) | Verified experiment downloads and source-built reproduction outside the service after source deletion. |
 | [Saved VIO comparisons](results/comparisons/README.md) | Actual baseline, variant and repeat executions; own/common support, configuration tradeoffs and immutable private snapshots. |

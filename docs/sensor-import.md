@@ -3,7 +3,9 @@
 **Implemented in increment 2.2.** These tools verify actual payloads against the
 [sensor contracts](sensor-contract.md), retain original observations and create
 separate prepared inputs. They do not run an estimator, fit calibration or
-enable hosted uploads. An accepted import establishes supported syntax and
+enable hosted uploads by themselves. The separate
+[hosted acquisition workflow](hosted-acquisitions.md) accepts their Meridian
+packages with stricter service budgets. An accepted import establishes supported syntax and
 declared content identity, not physical accuracy, clock synchronization or VIO
 readiness.
 

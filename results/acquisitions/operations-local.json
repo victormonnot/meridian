@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "qualified_on": "2026-10-20",
+  "environment": "Local Docker Compose deployment over HTTP",
+  "passed": true,
+  "source_scope": "Analytic sensor fixtures with explicit synthetic original-file padding; no recorded sensor data or estimator execution.",
+  "images": {
+    "api": "sha256:98ef1db951c22cec7d36c3330f63337b9453e4535d17dd8524a860afc472a92f",
+    "worker": "sha256:2c1aab17dfadb7ec9ce3ef136dba27b44bb7adf41c930a48e841042c405991aa",
+    "importer": "sha256:2c1aab17dfadb7ec9ce3ef136dba27b44bb7adf41c930a48e841042c405991aa"
+  },
+  "fixture": {
+    "size_bytes": 67116243,
+    "sha256": "1976ed5989e48139183264e49b91c5076690e70d594c891c90415bc282d9f1f5",
+    "padding_bytes": 67108864,
+    "synthetic": true
+  },
+  "cancellation": {
+    "injection": "Pause the observed owned import sandbox, then send the authenticated cancellation twice.",
+    "terminal_state": "cancelled",
+    "attempt_count": 1,
+    "reserved_bytes_after_cleanup": 0,
+    "files_available": false,
+    "publication_count": 0,
+    "published_attempt_present": false,
+    "paused_sandbox_removed": true
+  },
+  "importer_crash_recovery": {
+    "injection": "Pause the observed owned sandbox and send SIGKILL to the trusted importer; restart the same container.",
+    "lease_seconds": 30,
+    "terminal_state": "ready",
+    "attempt_count": 2,
+    "retry_observed_after_recorded_lease_expiry": true,
+    "old_child_confirmed_absent_when_retry_observed": true,
+    "published_attempt_differs_from_interrupted_attempt": true,
+    "publication_count": 1,
+    "only_current_attempt_publication_remains": true,
+    "original_download_sha256_matches": true,
+    "original_download_bytes": 67116243,
+    "retained_bytes_before_test_cleanup": 134248095,
+    "calibration_validity": "not_assessed",
+    "execution_readiness": "not_assessed"
+  },
+  "shared_queue": {
+    "reference_job_observations_while_import_paused": 6,
+    "reference_job_state_during_observations": "queued",
+    "reference_job_terminal_state": "cancelled",
+    "reference_job_attempt_count": 0,
+    "compute_observations": 31,
+    "maximum_observed_active_global_slots": 1,
+    "maximum_observed_running_import_children": 1
+  },
+  "cleanup": {
+    "only_disposable_test_account_removed": true,
+    "own_sessions_removed": 1,
+    "prior_accounts_preserved": 19,
+    "prior_projects_preserved": 6,
+    "prior_jobs_preserved": 0,
+    "prior_acquisitions_preserved": 5,
+    "all_auth_and_submission_budgets_unchanged": true,
+    "owned_retained_files_removed": true,
+    "all_owned_attempt_scratch_removed": true,
+    "checked_attempts": 3,
+    "no_import_children_remain": true,
+    "importer_healthy": true
+  },
+  "limitations": [
+    "Faults are deliberately induced on one disposable account and its tracked inputs.",
+    "Database and Docker observations are sampled sequentially; they are not an atomic trace or a throughput guarantee.",
+    "The queued frozen-reference job exercises exclusion without starting the estimator.",
+    "These local checks do not establish remote recovery, sensor calibration, synchronization accuracy, or flight validation."
+  ]
+}

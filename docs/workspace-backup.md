@@ -9,7 +9,9 @@ replaces production data.
 An experiment export is a different deliverable: it reproduces one successful
 execution without an account. A workspace backup contains accounts, password
 hashes, session records, private project names, authentication/submission counters,
-experiment revisions, jobs and saved comparisons. Keep it private. The script
+experiment revisions, jobs, saved comparisons, acquisition records and upload
+chunk identities. Version 2 also includes retained private acquisition originals
+and prepared inputs. Keep it private. The script
 creates mode 0700 directories and mode 0600 files, requires copies to remain
 owner-only, and rejects links and unexpected files. These permissions and hashes do not encrypt or authenticate
 a backup. Store off-server copies through an authenticated private channel and
@@ -20,13 +22,15 @@ restrict access and retention separately.
 The supported source is the dedicated Meridian Compose project on Linux with
 Docker access. Use the same release's operator tool. The database image must be
 available locally. Run as an operator who can read the private artifact tree and
-control the three exact containers. The output directory must not already exist.
+control the exact API, VIO worker, importer and database containers. The output
+directory must not already exist.
 
 ```sh
 umask 077
 python3 deploy/workspace/backup-workspace.py backup \
   --project meridian-workspace \
   --artifacts /srv/meridian-workspace/jobs \
+  --acquisitions /srv/meridian-workspace/acquisitions \
   --output /srv/meridian-backups/2026-10-20
 python3 deploy/workspace/backup-workspace.py verify \
   --backup /srv/meridian-backups/2026-10-20
@@ -34,20 +38,31 @@ python3 deploy/workspace/backup-workspace.py verify \
 
 Create and protect the parent directory before running these commands. Coordinate
 a short maintenance window: requests cannot complete while the API is stopped.
-The tool refuses queued/running/evaluating jobs and any labelled numerical child
-container. It validates actual Compose labels and artifact mounts, stops only the
-API and worker that were running, then checks that the queue remains empty.
+The tool refuses queued/running/evaluating jobs, receiving/validating acquisitions,
+outstanding import attempts and any labelled numerical or import child container.
+Finish or cancel interrupted transfers before capture; this snapshot does not
+preserve resumable partial uploads. It validates actual Compose labels and both
+artifact/acquisition mounts, stops only the
+API and workers that were running, then checks that the queue remains empty.
 PostgreSQL and Nginx keep running. A custom-format `pg_dump` and exact copies of
-published attempt files are captured while application writers are stopped.
+published attempt files, retained original archives and derived acquisition
+files are captured while application writers are stopped. The acquisition root
+is required for current releases even when empty.
 Database content fingerprints are checked before and after copying. A `finally`
-block restarts precisely the previously running API/worker, including on failure.
+block restarts precisely the previously running API/workers, including on failure.
 Operators must check their health afterward; a failed restart is reported.
 
 The completed manifest records PostgreSQL and application image IDs, migrations,
 counts and row-content hashes for account/workspace tables, publication manifests,
 file sizes/hashes and the observed pause duration. The database dump includes the
 whole application database. Artifact limits are 32 MiB per file, 512 MiB for the
-dump, 16,384 artifact files and 7 GiB total. A failed capture leaves an incomplete
+dump, 16,384 job artifact files and 7 GiB of job artifacts. Acquisition bounds
+are 4 GiB per file, 240,000 published files plus at most 200 original/publication
+records, and 24 GiB total. The complete backup is limited to 32 GiB with a
+256 MiB UTF-8 manifest. Publication marker serialization remains unchanged.
+Version 2 fingerprints tables from sorted per-row PostgreSQL SHA-256 digests,
+so fingerprinting does not aggregate a complete table's JSON in memory.
+A failed capture leaves an incomplete
 private directory without a completed manifest; do not treat it as a backup.
 The helper does not install cron tasks or modify other applications.
 
@@ -58,7 +73,11 @@ for the same pinned distribution. Restoration resolves the same qualified
 reference on the destination, verifies its digest/platform and executes that
 exact local ID, while retaining both source and destination IDs in the report.
 
-Only published attempt files are copied. The prepared recording, bounded scratch,
+Only files referenced by retained publications are copied, including each
+acquisition's exact uploaded archive and its prepared snapshot. Deleted inputs,
+partial transfers, abandoned staging directories and scratch are excluded.
+Version 1 backups remain verifiable and restorable with their original scope.
+The shared public reference recording, bounded scratch,
 native/runtime images, application source releases, environment secrets,
 database roles and passwords are separate recovery prerequisites. Keep the exact
 release and immutable images or reproducible build inputs, verified prepared
@@ -88,13 +107,20 @@ python3 deploy/workspace/backup-workspace.py restore \
 
 The destination and container name must both be unused. The helper creates a
 network-none container with no published ports, a read-only root filesystem,
-512 MiB memory/0.5 CPU limits and 256 MiB of disposable database tmpfs. It uses a
+512 MiB memory/0.5 CPU limits and 256 MiB of disposable database tmpfs by default.
+Use `--database-mib` to size that disposable store explicitly from 256 to 8192 MiB;
+its memory limit becomes the larger of 512 MiB and the store size plus 256 MiB.
+Version 2 captures the measured source database size and refuses a restore store
+smaller than twice that size plus 64 MiB, before creating the output or container.
+This is a capacity check, not a universal upper bound on PostgreSQL restore growth;
+choose a destination with enough available memory. The 512 MiB dump limit remains
+an explicit backup-profile bound. It uses a
 new bootstrap administrator and a separate restricted application role, each
 with a distinct random password. The helper waits for the final TCP server,
 not the entrypoint's temporary initialization server. `pg_restore` runs
 transactionally as the application owner with no source role restoration.
 Counts, migrations, row-content fingerprints and
-published artifact hashes must match before the rehearsal succeeds. Copied
+published artifact and private acquisition hashes must match before the rehearsal succeeds. Copied
 sessions are then deleted, and the application role's actual PostgreSQL flags
 are checked: non-superuser/no database creation/no role creation/no replication.
 
@@ -102,18 +128,21 @@ The generated password remains in the private Docker container configuration;
 the temporary environment file is removed. The restore report is private.
 The new database's data disappear when its container is removed; this is a
 recovery **rehearsal**, not a replacement persistent production deployment.
-The separate restored artifact directory remains until explicitly removed.
+The separate restored artifact and acquisition directories remain until explicitly removed.
 
 Exercise the restored database using the matching API image and a new temporary
 Django secret: verify signed-out rejection, owner access, other-account
-rejection, saved comparisons and actual experiment download integrity. Copied
+rejection, saved comparisons, actual experiment download integrity, acquisition
+metadata and original/prepared file downloads. Copied
 sessions must not become valid sessions. Use an existing consenting QA account
 password or reset only an identified disposable account on the restored copy.
 If using Django's in-process test client, report that accurately; it does not
-replace the browser/TLS acceptance. Mount only the restored artifacts read-only
+replace the browser/TLS acceptance. Mount only the restored artifacts and private
+acquisition tree read-only
 and use an isolated network namespace for this check. Prepared images are a
 separate prerequisite for visual investigation; exports do not require copying
-raw recordings into the API.
+the shared public reference recording into the API. Private acquisition download
+routes resolve ownership before opening a file in their separate private mount.
 
 For an actual disaster recovery, provision new persistent storage and restricted
 database roles from the deployment runbook, restore the verified dump/artifacts,

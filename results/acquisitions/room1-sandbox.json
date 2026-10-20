@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "measured_on": "2026-10-20",
+  "environment": "Local Docker import sandbox",
+  "passed": true,
+  "recording": "Previously consumed calibrated TUM-VI room1, adapted to a Meridian transfer package.",
+  "image_id": "sha256:71235064f0c19aee574c625ae6795296a145d889f592284ae58626a7a73cad05",
+  "image_scope": "This measurement uses an earlier local worker image before final hosted queue and cleanup refinements. It qualifies the measured child profile; final-release HTTP fault checks use the separate operational evidence.",
+  "source": {
+    "sha256": "91233c98ed0aef1a4c99a251b213ac59a178dccbb64cbf9fb05eafbda498243e",
+    "size_bytes": 3411189760
+  },
+  "acquisition_descriptor": {
+    "id": "tumvi-room1-regression",
+    "sha256": "f4187ed3a4c55166f6b22d11bba41f85895aada06e26afcaff1d7281dbb25d67"
+  },
+  "prepared_input_descriptor": {
+    "id": "prepared-room1-hosted-profile",
+    "sha256": "2625f02a8f1d7013a82e7d3976941a1347147faa2e5e3e05d1fe1faeacef2b65"
+  },
+  "streams": [
+    {
+      "id": "cam0",
+      "kind": "camera",
+      "samples": 2821,
+      "segments": 1
+    },
+    {
+      "id": "cam1",
+      "kind": "camera",
+      "samples": 2821,
+      "segments": 1
+    },
+    {
+      "id": "imu0",
+      "kind": "imu",
+      "samples": 28122,
+      "segments": 1
+    },
+    {
+      "id": "mocap0",
+      "kind": "reference_pose",
+      "samples": 16541,
+      "segments": 1
+    }
+  ],
+  "reference_availability": "present",
+  "calibration_validity": "not_assessed",
+  "execution_readiness": "not_assessed",
+  "result": {
+    "state": "ready",
+    "supervisor_exit_code": 0,
+    "manifest_files": 11299,
+    "manifest_accounted_output_bytes": 5106570899,
+    "supervised_import_elapsed_seconds": 130.57
+  },
+  "measured_limits": {
+    "cpus": 1.0,
+    "memory_bytes": 1073741824,
+    "memory_plus_swap_bytes": 1073741824,
+    "pids": 64,
+    "network": "none",
+    "read_only_root": true,
+    "all_capabilities_dropped": true,
+    "no_new_privileges": true,
+    "docker_child_log_driver": "none",
+    "wall_timeout_seconds": 900,
+    "scratch_backing_image_bytes": 8589934592,
+    "original_mount_read_only": true
+  },
+  "hosting_policy": {
+    "acquisition_bytes": 4294967296,
+    "archive_members": 30000,
+    "cpus": 1,
+    "image_encoding": "preserve",
+    "memory_mb": 1024,
+    "network": "none",
+    "pids": 64,
+    "prepared_bytes": 2147483648,
+    "result_bytes": 6442450944,
+    "rows": 100000,
+    "schema_version": 1,
+    "scratch_bytes": 8589934592,
+    "timeout_seconds": 900,
+    "upload_bytes": 4294967296
+  },
+  "memory_observation": {
+    "source": "cgroup v2 memory.peak",
+    "samples": 25,
+    "maximum_observed_bytes": 1073741824,
+    "interpretation": "The cgroup peak reached the 1 GiB limit and includes filesystem cache and all processes in that cgroup; it is not a measurement of Python resident memory. The supervised import completed successfully."
+  },
+  "limitations": [
+    "The stopwatch covers supervised local package validation and preparation, not browser upload or durable hosted publication.",
+    "Output sizes count validated manifest files in scratch, excluding the original archive and hosted publication marker.",
+    "The original archive is read-only; the probe does not duplicate it into scratch.",
+    "The measured earlier image is not presented as a rerun of the final deployed release.",
+    "No new reserved recording is opened, no calibration is fitted, and no estimator or flight experiment is run."
+  ]
+}

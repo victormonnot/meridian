@@ -5,6 +5,8 @@ import { activeJob, jobPath, renderJobRows, renderRevisionJobs, renderJobList, r
 import { investigationShell, mountInvestigation } from './workspace-investigation.js';
 import { comparisonPath, comparisonPayload, terminalRuns, createComparisonDialog, selectionSummary, renderComparisonList, renderRunComparison } from './workspace-comparisons.js';
 import { mountRunExport } from './workspace-exports.js';
+import { acquisitionRoute, renderAcquisitionList, renderAcquisitionDetail, mountAcquisitions } from './workspace-acquisitions.js';
+import './workspace-acquisitions.css';
 
 initializeTheme();
 const api = createApiClient();
@@ -29,6 +31,8 @@ let jobPoller;
 let investigationView;
 let runComparisonView;
 let exportView;
+let acquisitionsView;
+let acquisitionsMount;
 const submissions = new Map();
 const comparisonSubmissions = new Map();
 
@@ -47,6 +51,8 @@ function announce(message = '', isError = false) {
 }
 
 function setSession(value) {
+  acquisitionsMount?.destroy();
+  acquisitionsView = null;
   jobPoller?.stop();
   investigationView?.destroy();
   exportView?.destroy();
@@ -68,6 +74,8 @@ function setSession(value) {
 }
 
 function removePrivateState() {
+  acquisitionsMount?.destroy();
+  acquisitionsView = null;
   navigation += 1;
   sessionEpoch += 1;
   controller?.abort();
@@ -128,7 +136,7 @@ function projectDialog() {
       <label for="project-name">Project name<input id="project-name" name="name" maxlength="100" required autocomplete="off"></label>
       <label for="project-description">Description <span class="muted">Optional</span><textarea id="project-description" name="description" maxlength="2000" rows="3"></textarea></label>
       <div class="form-field"><label for="project-dataset">Reference dataset</label><select id="project-dataset" name="dataset_id" required>${datasets.map(dataset => `<option value="${e(dataset.id)}">${e(dataset.name)} · ${e(dataset.version)}</option>`).join('')}</select></div>
-      <p class="muted">This links the prepared reference recording. Personal recording uploads are not available.</p>
+      <p class="muted">This links the prepared reference recording for existing VIO experiments. Private recordings can be added separately in Data.</p>
       <p class="form-error" role="alert"></p>
       <div class="form-actions"><button type="button" data-action="close-dialog">Cancel</button><button type="submit" class="primary">Create project</button></div>
     </fieldset></form>
@@ -218,8 +226,8 @@ function renderSettings(project) {
     <p class="muted">Projects are retained until you delete them.</p><p class="form-error" role="alert"></p>
     <div class="form-actions"><button type="submit" class="primary">Save changes</button></div>
   </fieldset></form>
-  <div class="delete-panel"><h2>Delete project</h2><p>Remove this project, its experiments, saved versions, run history and saved comparisons. Active runs must finish or be cancelled first.</p><button class="danger" data-action="delete-project" type="button">Delete project</button></div>
-  <dialog id="delete-dialog" aria-labelledby="delete-heading"><h2 id="delete-heading">Delete ${e(project.name)}?</h2><p>Permanently delete this project, its experiments, saved versions, run history and saved comparisons? Artifact cleanup is asynchronous.</p><form id="delete-project-form"><fieldset><p class="form-error" role="alert"></p><div class="form-actions"><button type="button" data-action="close-dialog" autofocus>Keep project</button><button type="submit" class="danger">Delete project</button></div></fieldset></form></dialog>
+  <div class="delete-panel"><h2>Delete project</h2><p>Remove this project, its private acquisitions, experiments, saved versions, run history and saved comparisons. Active imports and runs must finish or be cancelled first.</p><button class="danger" data-action="delete-project" type="button">Delete project</button></div>
+  <dialog id="delete-dialog" aria-labelledby="delete-heading"><h2 id="delete-heading">Delete ${e(project.name)}?</h2><p>Permanently delete this project, its private acquisitions, experiments, saved versions, run history and saved comparisons? File cleanup is asynchronous; backup copies follow the retention policy.</p><form id="delete-project-form"><fieldset><p class="form-error" role="alert"></p><div class="form-actions"><button type="button" data-action="close-dialog" autofocus>Keep project</button><button type="submit" class="danger">Delete project</button></div></fieldset></form></dialog>
   </section>`;
 }
 
@@ -227,7 +235,7 @@ function renderProject(project, section) {
   const tabs = [['data', 'Data'], ['experiments', 'Experiments'], ['results', 'Results'], ['settings', 'Settings']];
   const dataset = datasets.find(item => item.id === project.dataset_id);
   let content;
-  if (section === 'data') content = renderDataset(dataset);
+  if (section === 'data') content = `<div id="acquisitions-content">${acquisitionsView?.acquisition ? renderAcquisitionDetail(project, acquisitionsView) : renderAcquisitionList(project, acquisitionsView || {})}</div>${acquisitionsView?.acquisition ? '' : renderDataset(dataset)}`;
   else if (section === 'settings') content = renderSettings(project);
   else if (section === 'experiments') content = experimentView.experiment ? renderExperimentDetail(project, experimentView, draftState, renderRevisionJobs(experimentView, session.capabilities.execution, draftState?.kind === 'edit')) : renderExperimentList(project, experimentView);
   else if (runComparisonView?.comparison) content = renderRunComparison(runComparisonView.comparison);
@@ -239,13 +247,17 @@ function renderProject(project, section) {
   if (pending?.inFlight) app.querySelector('[data-action="launch-job"]')?.setAttribute('disabled', '');
   if (jobView?.investigation) investigationView = mountInvestigation(app.querySelector('#investigation-content'), { api, job: jobView.job, onSessionExpired: expireSession });
   if (jobView?.job && !jobView.investigation) exportView = mountRunExport(app.querySelector('#jobs-content'), { api, job: jobView.job, onSessionExpired: expireSession });
+  if (section === 'data') acquisitionsMount = mountAcquisitions(app.querySelector('#acquisitions-content'), {
+    api, project, view: acquisitionsView || { acquisitions: [] }, onSessionExpired: expireSession,
+    onNavigate: acquisitionId => navigateTo(acquisitionRoute(project.id, acquisitionId)),
+  });
 }
 
 function routeError(error) {
   const unavailable = error instanceof ApiError && error.status === 404;
   const csrf = error instanceof ApiError && error.status === 403;
   const route = parseRoute(window.location.hash);
-  const resource = route.comparisonId ? 'Comparison' : route.jobId ? 'Run' : route.experimentId ? 'Experiment' : 'Project';
+  const resource = route.acquisitionId ? 'Acquisition' : route.comparisonId ? 'Comparison' : route.jobId ? 'Run' : route.experimentId ? 'Experiment' : 'Project';
   mount(`<div class="empty error" role="alert"><h1>${unavailable ? `${resource} unavailable` : 'Unable to load the workspace'}</h1><p>${unavailable ? `This ${resource.toLowerCase()} does not exist or is not available to your account.` : e(errorMessage(error))}</p>${csrf ? '<button type="button" data-action="reload">Reload session</button>' : '<button type="button" data-action="retry">Try again</button>'} <a class="button" href="#projects">Return to Projects</a></div>`, 'Workspace unavailable', true);
 }
 
@@ -264,6 +276,9 @@ async function renderRoute() {
   jobPoller?.stop();
   investigationView?.destroy();
   exportView?.destroy();
+  acquisitionsMount?.destroy();
+  acquisitionsMount = null;
+  acquisitionsView = null;
   exportView = null;
   investigationView = null;
   controller = new AbortController();
@@ -285,7 +300,15 @@ async function renderRoute() {
     datasets = catalog.datasets;
     if (route.page === 'projects') renderProjects(resource.projects);
     else {
-      if (route.section === 'experiments') {
+      if (route.section === 'data') {
+        acquisitionsView = await api.request(`/projects/${route.id}/acquisitions${route.acquisitionId ? `/${route.acquisitionId}` : ''}`, { signal: controller.signal });
+        if (id !== navigation) return;
+        if (acquisitionsView.acquisition?.state === 'ready' && acquisitionsView.acquisition.files_available) {
+          const metadata = await api.request(`/projects/${route.id}/acquisitions/${route.acquisitionId}/descriptor`, { signal: controller.signal });
+          if (id !== navigation) return;
+          acquisitionsView.descriptor = metadata.descriptor;
+        }
+      } else if (route.section === 'experiments') {
         const path = `/projects/${route.id}/experiments`;
         const tasks = [api.request('/configuration-profile', { signal: controller.signal }), api.request(path, { signal: controller.signal })];
         if (route.experimentId) {
