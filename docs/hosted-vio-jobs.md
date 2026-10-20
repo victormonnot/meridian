@@ -130,9 +130,10 @@ history even when a later publication replaces earlier diagnostic files.
 Private files expire after seven days. Job metadata and validated metric summaries
 remain until explicit deletion, subject to the retained-record quotas. The worker
 collects expired/orphaned files during its polling loop; deletion is deferred while
-it is stopped or busy. This is application retention, not a qualified backup or
-restoration service. Independent downloadable reproduction packages remain a
-later increment; the browser exposes persisted execution summaries and retained
+it is stopped or busy. Application retention is separate from the
+[backup/restore rehearsal](workspace-backup.md). Successful retained executions
+have [independent reproduction downloads](vio-exports.md); the browser also
+exposes persisted execution summaries and retained
 [investigation evidence](vio-investigation.md), including valid partial outputs
 when independent evaluation is possible. The job's failure state is preserved.
 Saved [run comparisons](vio-comparisons.md) retain their derived outcome snapshots

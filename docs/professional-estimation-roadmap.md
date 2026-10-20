@@ -4,8 +4,9 @@
 professional state-estimation engineering with visual-inertial odometry (VIO)
 and operation without reliable GNSS. Part 1's bounded hosted workflow is
 complete; the remaining major parts describe planned work.
-Part 1 has a [detailed implementation record](part-1-hosted-vio-workspace.md);
-later parts remain at outcome level. The [README](../README.md) and
+Part 1 has a [detailed implementation record](part-1-hosted-vio-workspace.md).
+Part 2 has a [proposed increment plan](part-2-sensor-data-calibration-timing.md);
+parts 3–8 remain at outcome level. The [README](../README.md) and
 [design notes](design.md) describe the implementation available today. The first
 [local VIO reference](vio-reference.md) is implemented and qualified, and a
 [private project workspace](hosted-workspace.md) is deployed.
@@ -316,8 +317,10 @@ explicit common support. Increment 1.7 adds
 Increment 1.8 completes [hosted acceptance](../results/hosted-acceptance/README.md),
 including operational faults, quotas, off-server backup restoration and replay
 after deleting the source job. The separately evaluated room2 recording fails
-the unchanged coverage gates. Subsequent parts must retain that result and address
-input/reference validation; they are not detailed in advance here.
+the unchanged coverage gates. The
+[part 2 proposal](part-2-sensor-data-calibration-timing.md) retains that result
+and details acquisition, calibration, timing and input/reference validation.
+No part 2 increment is implemented; parts 3–8 are not detailed here.
 
 ## Existing tools and research
 
@@ -342,12 +345,13 @@ engineers. No source review establishes that any feature is unique.
 
 ## Decisions still required
 
-The remaining part 1 work builds independent reproduction on versioned
-configurations, durable VIO execution, synchronized investigation and saved comparisons, then
-qualifies the complete hosted workflow. Preserve the evaluation protocol and
-reserved sequence. Numerical formulations,
-additional formats/sensors, and automation tasks will be specified with their
-corresponding parts, using the evidence available then.
+Part 1 is complete. Part 2 must qualify its supported transfer formats,
+calibration models/tools, clock corrections, private-data budgets and independent
+calibration/evaluation recordings. Its proposed increments resolve these choices
+from measured evidence. Room2 is already evaluated and cannot be reused as an
+untouched reserved sequence. Preserve its recorded negative result.
+Numerical formulations, broader formats/sensors and automation tasks remain
+decisions for their corresponding parts.
 
 Broader estimator development and hardware integration remain
 future work. The existing technical reports remain evidence for their stated scope.

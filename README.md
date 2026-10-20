@@ -37,7 +37,9 @@ implementations, and automated engineering workflows. The
 [local VIO reference](docs/vio-reference.md), private project workspace and
 [versioned experiments](docs/versioned-experiments.md) underpin the hosted
 execution, investigation, comparison and export workflow. Broader estimator
-development remains planned.
+development remains planned. The
+[part 2 proposal](docs/part-2-sensor-data-calibration-timing.md) details sensor
+imports, calibration and timing; none of those increments is implemented yet.
 
 The hosted preview is available at
 [meridian.victormonnot.com](https://meridian.victormonnot.com/); the previous

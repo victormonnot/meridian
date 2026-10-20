@@ -27,9 +27,10 @@ independent export replay. Its reserved room2 evaluation fails the unchanged
 reference/evaluated coverage gates, despite repeatable native completion.
 The [backup helper](workspace-backup.md) supports an isolated recovery rehearsal;
 scheduled backups and a persistent disaster-recovery deployment remain separate.
-General
-3D estimator development, broader visual-inertial development and engineering
-automation remain planned work.
+The [part 2 proposal](part-2-sensor-data-calibration-timing.md) describes the next
+data, calibration and timing increments; it does not add implemented capability.
+General 3D estimator development, broader visual-inertial development and
+engineering automation remain planned work.
 
 Python gyro integration, accelerometer tilt, complementary fusion, and the
 angle/bias Kalman reference are implemented, with tests and

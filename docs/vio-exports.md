@@ -82,5 +82,7 @@ reproduction performance guarantee.
 The report separately records byte identity, actual numerical differences,
 support checks, runtime provenance and the original integration-gate outcome.
 Reproducing an output does not establish estimator accuracy, covariance
-consistency, flight validity or cross-platform bit identity. TUM-VI room2 remains
-reserved for the later complete acceptance increment.
+consistency, flight validity or cross-platform bit identity. TUM-VI room2 was
+subsequently evaluated in the
+[complete acceptance increment](../results/hosted-acceptance/README.md) and failed
+its unchanged reference/evaluated coverage gates.
