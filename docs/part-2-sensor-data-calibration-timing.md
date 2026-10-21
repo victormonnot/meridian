@@ -1,6 +1,6 @@
 # Part 2 — Sensor data, calibration, and timing
 
-**Status: increments 2.1–2.3 implemented, 2026-10-20. Increments 2.4–2.13 remain planned.**
+**Status: increments 2.1–2.4 implemented, 2026-10-21. Increments 2.5–2.13 remain planned.**
 
 The intended outcome is a private, versioned acquisition with traceable sensor
 semantics, calibration and timing, usable by a supported estimator and
@@ -169,6 +169,12 @@ expansion limits, quota races, cancellation and deletion are exercised. Restore
 recovers an acquisition with matching hashes and access boundaries.
 
 ### 2.4 — Data-quality investigation before estimation
+
+**Implemented:** [input inspection](sensor-inspection.md) with full-resolution
+timing, separate sensor/reference support, linked grayscale previews and all
+IMU axes. Inspection artifacts share acquisition publication, ownership and
+retention. Clock resets and unsupported comparisons remain explicit; physical
+calibration and estimator compatibility are not inferred.
 
 **Dependency:** 2.3.
 

@@ -27,6 +27,7 @@ COPY src/meridian/__init__.py src/meridian/vio_specification.py \
 COPY src/meridian/sensor_contract.py src/meridian/sensor_conventions.py \
     src/meridian/sensor_package.py src/meridian/sensor_import.py \
     src/meridian/sensor_hosted_import.py /app/src/meridian/
+COPY src/meridian/sensor_inspection.py /app/src/meridian/
 COPY src/meridian/__init__.py src/meridian/vio_dataset.py \
     src/meridian/vio_evaluation.py src/meridian/vio_reference.py \
     src/meridian/vio_specification.py src/meridian/vio_runtime_identity.py \

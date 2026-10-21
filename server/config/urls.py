@@ -1,5 +1,5 @@
 from django.urls import path, re_path
-from workspace import acquisitions, api, comparisons, experiments, exports, investigation, jobs
+from workspace import acquisition_inspection, acquisitions, api, comparisons, experiments, exports, investigation, jobs
 
 urlpatterns = [
     path("api/v1/session", api.session),
@@ -18,6 +18,9 @@ urlpatterns = [
     path("api/v1/projects/<uuid:project_id>/acquisitions/<uuid:acquisition_id>/descriptor", acquisitions.descriptor),
     path("api/v1/projects/<uuid:project_id>/acquisitions/<uuid:acquisition_id>/report", acquisitions.report),
     path("api/v1/projects/<uuid:project_id>/acquisitions/<uuid:acquisition_id>/files", acquisitions.files),
+    path("api/v1/projects/<uuid:project_id>/acquisitions/<uuid:acquisition_id>/inspection", acquisition_inspection.inspection),
+    path("api/v1/projects/<uuid:project_id>/acquisitions/<uuid:acquisition_id>/inspection/window", acquisition_inspection.window),
+    path("api/v1/projects/<uuid:project_id>/acquisitions/<uuid:acquisition_id>/inspection/images/<str:stream_id>/<str:sample_id>", acquisition_inspection.image),
     path("api/v1/configuration-profile", experiments.profile),
     path("api/v1/projects/<uuid:project_id>/experiments", experiments.experiments),
     path("api/v1/projects/<uuid:project_id>/experiments/<uuid:experiment_id>", experiments.experiment),

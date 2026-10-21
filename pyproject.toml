@@ -29,6 +29,7 @@ meridian-dataflash-audit = "meridian.dataflash_audit:main"
 meridian-imu-replay = "meridian.imu_replay:main"
 meridian-imu-cpp-parity = "meridian.imu_cpp_parity:main"
 meridian-sensor-import = "meridian.sensor_import:main"
+meridian-sensor-inspect = "meridian.sensor_inspection:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

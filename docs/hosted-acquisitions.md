@@ -94,6 +94,14 @@ After it exits, the trusted worker verifies and copies the publication into
 durable staging. A rename completes the directory, and a fenced database update
 makes its immutable version visible. Partial output is never a ready acquisition.
 
+## Inspect the accepted observations
+
+Open **Inspect sensor data** to examine [camera/IMU and timing evidence](sensor-inspection.md)
+without an estimator run. New imports retain immutable inspection summaries,
+stream chunks and grayscale previews within the existing publication budget.
+Older acquisitions retain their exact version and may report inspection as not
+generated; reimport the original package to create a new inspected version.
+
 ## Storage and resource budgets
 
 The existing room1 regression measures approximately 1.707 GB for the upstream

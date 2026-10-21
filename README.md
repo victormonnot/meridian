@@ -42,7 +42,9 @@ development remains planned. The
 imports, calibration and timing. Its initial increments add
 [sensor contracts](docs/sensor-contract.md) and
 [local import and deterministic preparation](docs/sensor-import.md), followed by
-[private hosted acquisitions and resumable uploads](docs/hosted-acquisitions.md).
+[private hosted acquisitions and resumable uploads](docs/hosted-acquisitions.md),
+and [sensor inspection before estimation](docs/sensor-inspection.md), with
+[recorded room2 regression evidence](results/sensor-inspection/README.md).
 Calibration execution and VIO on private inputs remain planned.
 
 The hosted preview is available at
@@ -95,6 +97,8 @@ The [earlier export report](results/exports/README.md) and
 - Multiple private acquisitions per project, resumable browser transfers,
   isolated bounded preparation, atomic publication and coherent input backups.
   Import validity remains separate from calibration and estimator readiness.
+- Owned input inspection with camera previews, all IMU axes, exact timing
+  diagnostics and separate sensor/reference support before any estimator run.
 
 The original roll study still needs a new bench recording with known angles
 to check the estimates against a physical reference. The historical

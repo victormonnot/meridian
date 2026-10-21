@@ -45,6 +45,10 @@ def test_hosted_import_preserves_original_and_links_every_published_file(tmp_pat
     assert a["sha256"] == hashlib.sha256(original).hexdigest()
     assert a["descriptor"] == descriptor and a["state"] == "ready"
     assert a["result"]["execution_readiness"] == "not_assessed"
+    assert a["result"]["inspection"]["status"] == "available"
+    inspection = json.loads((tmp_path / "a/result/inspection/summary.json").read_bytes())
+    assert inspection["acquisition"]["sha256"] == a["result"]["acquisition"]["sha256"]
+    assert inspection["evidence"]["calibration_suitability"] == "not_assessed"
     prepared = json.loads((tmp_path / "a/result/prepared/prepared-input.json").read_bytes())
     validate_bundle([descriptor, prepared])
     validate_package(tmp_path / "a/result/acquisition", limits=hosted.HOSTED_LIMITS)
@@ -68,6 +72,31 @@ def test_preparation_output_budget_is_independent_from_valid_input_budget(tmp_pa
     assert not output.exists()
     # The same acquisition is valid and remains intact after derived output refusal.
     validate_package(source)
+
+
+def test_inspection_resource_limit_retains_valid_sources_without_partial_evidence(tmp_path, monkeypatch):
+    _, archive, descriptor = package(tmp_path)
+    def exhausted(source, output, **kwargs):
+        output.mkdir()
+        (output / "partial.json").write_text("{}")
+        raise hosted.InspectionLimitError("Synthetic inspection budget exhaustion")
+    monkeypatch.setattr(hosted, "write_inspection", exhausted)
+    result = hosted.run_import(archive, tmp_path / "limited", REQUEST)
+    assert result["state"] == "ready" and result["descriptor"] == descriptor
+    assert result["result"]["inspection"] == {"status": "unavailable", "reason": "inspection_resource_limit"}
+    assert not (tmp_path / "limited/result/inspection").exists()
+    assert not any(name.startswith("inspection/") for name in result["manifest"]["files"])
+    validate_package(tmp_path / "limited/result/acquisition", limits=hosted.HOSTED_LIMITS)
+
+
+def test_unexpected_inspection_failure_cannot_publish_a_ready_outcome(tmp_path, monkeypatch):
+    _, archive, _ = package(tmp_path)
+    def invalid(*args, **kwargs):
+        raise ValueError("Synthetic corrupt evidence")
+    monkeypatch.setattr(hosted, "write_inspection", invalid)
+    with pytest.raises(ValueError, match="corrupt evidence"):
+        hosted.run_import(archive, tmp_path / "invalid", REQUEST)
+    assert not (tmp_path / "invalid/completion.json").exists()
 
 
 def test_hosted_profile_checks_row_and_prepared_storage_limits(tmp_path, monkeypatch):

@@ -7,6 +7,8 @@ import { comparisonPath, comparisonPayload, terminalRuns, createComparisonDialog
 import { mountRunExport } from './workspace-exports.js';
 import { acquisitionRoute, renderAcquisitionList, renderAcquisitionDetail, mountAcquisitions } from './workspace-acquisitions.js';
 import './workspace-acquisitions.css';
+import { inspectionShell, mountAcquisitionInspection } from './workspace-acquisition-inspection.js';
+import './workspace-acquisition-inspection.css';
 
 initializeTheme();
 const api = createApiClient();
@@ -33,6 +35,7 @@ let runComparisonView;
 let exportView;
 let acquisitionsView;
 let acquisitionsMount;
+let acquisitionInspection;
 const submissions = new Map();
 const comparisonSubmissions = new Map();
 
@@ -51,6 +54,7 @@ function announce(message = '', isError = false) {
 }
 
 function setSession(value) {
+  acquisitionInspection?.destroy();
   acquisitionsMount?.destroy();
   acquisitionsView = null;
   jobPoller?.stop();
@@ -74,6 +78,7 @@ function setSession(value) {
 }
 
 function removePrivateState() {
+  acquisitionInspection?.destroy();
   acquisitionsMount?.destroy();
   acquisitionsView = null;
   navigation += 1;
@@ -235,7 +240,9 @@ function renderProject(project, section) {
   const tabs = [['data', 'Data'], ['experiments', 'Experiments'], ['results', 'Results'], ['settings', 'Settings']];
   const dataset = datasets.find(item => item.id === project.dataset_id);
   let content;
-  if (section === 'data') content = `<div id="acquisitions-content">${acquisitionsView?.acquisition ? renderAcquisitionDetail(project, acquisitionsView) : renderAcquisitionList(project, acquisitionsView || {})}</div>${acquisitionsView?.acquisition ? '' : renderDataset(dataset)}`;
+  if (section === 'data') content = acquisitionsView?.inspection
+    ? inspectionShell(acquisitionsView.acquisition)
+    : `<div id="acquisitions-content">${acquisitionsView?.acquisition ? renderAcquisitionDetail(project, acquisitionsView) : renderAcquisitionList(project, acquisitionsView || {})}</div>${acquisitionsView?.acquisition ? '' : renderDataset(dataset)}`;
   else if (section === 'settings') content = renderSettings(project);
   else if (section === 'experiments') content = experimentView.experiment ? renderExperimentDetail(project, experimentView, draftState, renderRevisionJobs(experimentView, session.capabilities.execution, draftState?.kind === 'edit')) : renderExperimentList(project, experimentView);
   else if (runComparisonView?.comparison) content = renderRunComparison(runComparisonView.comparison);
@@ -247,7 +254,10 @@ function renderProject(project, section) {
   if (pending?.inFlight) app.querySelector('[data-action="launch-job"]')?.setAttribute('disabled', '');
   if (jobView?.investigation) investigationView = mountInvestigation(app.querySelector('#investigation-content'), { api, job: jobView.job, onSessionExpired: expireSession });
   if (jobView?.job && !jobView.investigation) exportView = mountRunExport(app.querySelector('#jobs-content'), { api, job: jobView.job, onSessionExpired: expireSession });
-  if (section === 'data') acquisitionsMount = mountAcquisitions(app.querySelector('#acquisitions-content'), {
+  if (section === 'data' && acquisitionsView?.inspection) acquisitionInspection = mountAcquisitionInspection(
+    app.querySelector('#acquisition-inspection-content'), { api, acquisition: acquisitionsView.acquisition,
+      descriptor: acquisitionsView.descriptor, onSessionExpired: expireSession });
+  if (section === 'data' && !acquisitionsView?.inspection) acquisitionsMount = mountAcquisitions(app.querySelector('#acquisitions-content'), {
     api, project, view: acquisitionsView || { acquisitions: [] }, onSessionExpired: expireSession,
     onNavigate: acquisitionId => navigateTo(acquisitionRoute(project.id, acquisitionId)),
   });
@@ -277,6 +287,8 @@ async function renderRoute() {
   investigationView?.destroy();
   exportView?.destroy();
   acquisitionsMount?.destroy();
+  acquisitionInspection?.destroy();
+  acquisitionInspection = null;
   acquisitionsMount = null;
   acquisitionsView = null;
   exportView = null;
@@ -303,6 +315,7 @@ async function renderRoute() {
       if (route.section === 'data') {
         acquisitionsView = await api.request(`/projects/${route.id}/acquisitions${route.acquisitionId ? `/${route.acquisitionId}` : ''}`, { signal: controller.signal });
         if (id !== navigation) return;
+        acquisitionsView.inspection = Boolean(route.inspection);
         if (acquisitionsView.acquisition?.state === 'ready' && acquisitionsView.acquisition.files_available) {
           const metadata = await api.request(`/projects/${route.id}/acquisitions/${route.acquisitionId}/descriptor`, { signal: controller.signal });
           if (id !== navigation) return;

@@ -1,0 +1,212 @@
+{
+  "schema_version": 1,
+  "measured_on": "2026-10-21",
+  "method_version": "sensor-inspection-v1",
+  "evidence_verification_passed": true,
+  "recording": "Previously consumed calibrated TUM-VI room2 512_16; input inspection regression only.",
+  "identities": {
+    "source_archive": {
+      "size_bytes": 1759395840,
+      "sha256": "70343c5bbd9d674d0a2790bf934ee7d9cc08c1dea7cd77747a5557e4c94973f6"
+    },
+    "transfer_archive": {
+      "size_bytes": 3515863040,
+      "sha256": "30228867762a13543151da13d51817bd517e3603d72e56b2aa1561b20ca21cb5"
+    },
+    "acquisition_descriptor_sha256": "629db8ab20011874222578b85f35391d3eaa6bb63bfbf8bb8012afe99daf8aea",
+    "legacy_prepared_manifest_sha256": "edef18aca9b0672e7580ca10e2f6fd9d4a4f2ad8d0bcdb223d24d229fcfa39ba",
+    "historical_acceptance_sha256": "00f3a26d9ce9d7eff411dddd8f6628f3c5f8c81737013bddd488c9352934f3c0",
+    "historical_reference_support_audit_sha256": "b4c96199e3148e0eba883c1f4ad55209996b8be324759490cbcb5bfa651bbee2",
+    "inspection_summary_sha256": "1d424cdb7cf7746440be9907155b37f25305229302adc9ebce04847db7c3b958"
+  },
+  "inspection": {
+    "status": "available",
+    "verified_files": 5963,
+    "verified_bytes": 258656742,
+    "all_retained_files_match_outcome_manifest": true,
+    "all_source_index_hashes_match_acquisition": true,
+    "camera_reference_counts_match_independent_integer_bracketing": true,
+    "all_reference_gap_endpoints_preserved_in_full_window_display": true,
+    "reference_gap_count": 49,
+    "maximum_reference_gap_ns": "2491667000",
+    "reference_maximum_bracket_ns": "20000000",
+    "stereo": {
+      "kind": "stereo_pairing",
+      "matched_samples": 2882,
+      "policy": "declared_exact",
+      "reason": null,
+      "status": "available",
+      "stream_ids": [
+        "cam0",
+        "cam1"
+      ],
+      "tolerance_ns": "0",
+      "unmatched_samples": {
+        "cam0": 0,
+        "cam1": 0
+      }
+    },
+    "cameras": [
+      {
+        "stream_id": "cam0",
+        "samples": 2882,
+        "reference_support": {
+          "supported": 2573,
+          "gap": 308,
+          "outside": 1
+        },
+        "reference_support_fraction": 0.8927827897293547,
+        "imu_support": {
+          "supported": 2882,
+          "gap": 0,
+          "outside": 0
+        },
+        "imu_support_fraction": 1.0
+      },
+      {
+        "stream_id": "cam1",
+        "samples": 2882,
+        "reference_support": {
+          "supported": 2573,
+          "gap": 308,
+          "outside": 1
+        },
+        "reference_support_fraction": 0.8927827897293547,
+        "imu_support": {
+          "supported": 2882,
+          "gap": 0,
+          "outside": 0
+        },
+        "imu_support_fraction": 1.0
+      }
+    ],
+    "streams": [
+      {
+        "id": "cam0",
+        "kind": "camera",
+        "sample_count": 2882,
+        "segments": 1,
+        "gap_count": 0,
+        "gap_policy": "cadence_median_multiplier",
+        "gap_threshold_ns": "150006000",
+        "interval_ns": {
+          "minimum": "48851386",
+          "p05": "49913000",
+          "p50": "50002000",
+          "p95": "50060158",
+          "maximum": "51205929"
+        },
+        "average_rate_hz": 19.999399210550543,
+        "display_points": 1161,
+        "display_status": "available"
+      },
+      {
+        "id": "cam1",
+        "kind": "camera",
+        "sample_count": 2882,
+        "segments": 1,
+        "gap_count": 0,
+        "gap_policy": "cadence_median_multiplier",
+        "gap_threshold_ns": "150006000",
+        "interval_ns": {
+          "minimum": "48851386",
+          "p05": "49913000",
+          "p50": "50002000",
+          "p95": "50060158",
+          "maximum": "51205929"
+        },
+        "average_rate_hz": 19.999399210550543,
+        "display_points": 1161,
+        "display_status": "available"
+      },
+      {
+        "id": "imu0",
+        "kind": "imu",
+        "sample_count": 28732,
+        "segments": 1,
+        "gap_count": 0,
+        "gap_policy": "cadence_median_multiplier",
+        "gap_threshold_ns": "15048000",
+        "interval_ns": {
+          "minimum": "4995000",
+          "p05": "5014000",
+          "p50": "5016000",
+          "p95": "5017000",
+          "maximum": "5037000"
+        },
+        "average_rate_hz": 199.37216815328037,
+        "display_points": 1197,
+        "display_status": "available"
+      },
+      {
+        "id": "mocap0",
+        "kind": "reference_pose",
+        "sample_count": 15477,
+        "segments": 1,
+        "gap_count": 49,
+        "gap_policy": "reference_bracket_limit",
+        "gap_threshold_ns": "20000000",
+        "interval_ns": {
+          "minimum": "8333000",
+          "p05": "8333000",
+          "p50": "8333000",
+          "p95": "8334000",
+          "maximum": "2491667000"
+        },
+        "average_rate_hz": 107.42248933960553,
+        "display_points": 1190,
+        "display_status": "available"
+      }
+    ],
+    "evidence": {
+      "calibration_suitability": "not_assessed",
+      "estimate_support": "not_generated",
+      "estimator_compatibility": "not_assessed",
+      "evaluation_availability": "not_assessed",
+      "import_validity": "validated",
+      "inspection_availability": "available"
+    }
+  },
+  "historical_qualification": {
+    "rerun": false,
+    "reference_gate_passed": false,
+    "reference_gate_threshold_fraction": 0.95,
+    "coverage_and_evaluation_failures_preserved": true,
+    "interpretation": "Inspection availability is not scientific qualification; historical reference and evaluated coverage failures remain unchanged."
+  },
+  "sandbox": {
+    "environment": "Local Docker import sandbox",
+    "image_id": "sha256:4a31d6816f09a72e35b7751e3e75e30ce1561155148007853410e648d90a77e4",
+    "supervisor_exit_code": 0,
+    "state": "ready",
+    "elapsed_seconds": 218.514232256,
+    "result_files": 17506,
+    "result_bytes": 5522056577,
+    "measured_limits": {
+      "cpus": 1.0,
+      "memory_bytes": 1073741824,
+      "memory_plus_swap_bytes": 1073741824,
+      "pids": 64,
+      "network": "none",
+      "read_only_root": true,
+      "all_capabilities_dropped": true,
+      "no_new_privileges": true,
+      "original_mount_read_only": true,
+      "wall_timeout_seconds": 900,
+      "scratch_backing_bytes": 8589934592
+    },
+    "memory_observation": {
+      "source": "cgroup v2 memory.peak",
+      "samples": 43,
+      "maximum_observed_bytes": 1073741824,
+      "interpretation": "The cgroup peak includes filesystem cache and all contained processes; it is not Python resident memory."
+    }
+  },
+  "limitations": [
+    "Already-consumed room2 is a regression recording; no reserved recording is newly opened.",
+    "No calibration fitting, timestamp fitting, estimator execution, alignment or new evaluation is performed.",
+    "Fixed reference support remains exact or bracketed within 20 ms; no extrapolation or wider-gap interpolation is allowed.",
+    "The stopwatch covers local supervised validation, preparation and inspection, excluding upload and durable publication.",
+    "Source images, IMU/reference samples, private identifiers and host paths are not redistributed here."
+  ]
+}

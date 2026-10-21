@@ -327,8 +327,10 @@ and details acquisition, calibration, timing and input/reference validation.
 Increments 2.1–2.2 implement local acquisition/calibration/clock contracts,
 convention checks, payload import and deterministic preparation. Increment 2.3
 adds [private hosted acquisitions](hosted-acquisitions.md), resumable uploads,
-isolated preparation and coherent input backups. Calibration fitting and VIO
-on private inputs remain planned. Parts 3–8 are not
+isolated preparation and coherent input backups. Increment 2.4 adds
+[sensor inspection before estimation](sensor-inspection.md), with exact sample
+identities, camera/IMU timing and separate reference support. Calibration fitting
+and VIO on private inputs remain planned. Parts 3–8 are not
 detailed here.
 
 ## Existing tools and research

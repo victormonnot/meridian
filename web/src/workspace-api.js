@@ -19,9 +19,16 @@ export function createApiClient(fetchImpl = globalThis.fetch) {
     async request(path, { method = 'GET', body, signal, query } = {}) {
       // API paths are application-owned. Never send session state to another origin.
       checkPath(path);
-      if (query && Object.entries(query).some(([key, value]) => ['start_ns', 'end_ns'].includes(key)
-        ? typeof value !== 'string' || !/^(0|[1-9]\d{0,19})$/.test(value)
-        : !Number.isSafeInteger(value) || value < 1)) throw new TypeError('Invalid query selector');
+      if (query && Object.entries(query).some(([key, value]) => {
+        if (['first_ns', 'last_ns'].includes(key)) return typeof value !== 'string'
+          || !/^(0|-?[1-9]\d{0,18})$/.test(value)
+          || BigInt(value) < -(1n << 63n) || BigInt(value) > (1n << 63n) - 1n;
+        if (['stream_id', 'segment_id'].includes(key)) return typeof value !== 'string'
+          || !/^[A-Za-z][A-Za-z0-9._-]{0,79}$/.test(value);
+        if (['start_ns', 'end_ns'].includes(key)) return typeof value !== 'string'
+          || !/^(0|[1-9]\d{0,19})$/.test(value);
+        return !Number.isSafeInteger(value) || value < 1;
+      })) throw new TypeError('Invalid query selector');
       const headers = { Accept: 'application/json' };
       if (method !== 'GET') {
         headers['Content-Type'] = 'application/json';
@@ -113,8 +120,9 @@ export function escapeHtml(value) {
 export function parseRoute(hash) {
   if (!hash || hash === '#' || hash === '#projects') return { page: 'projects' };
   const uuid = '[a-f\\d]{8}-[a-f\\d]{4}-[a-f\\d]{4}-[a-f\\d]{4}-[a-f\\d]{12}';
-  const acquisition = new RegExp(`^#project/(${uuid})/data/acquisitions/(${uuid})$`, 'i').exec(hash);
-  if (acquisition) return { page: 'project', id: acquisition[1], section: 'data', acquisitionId: acquisition[2] };
+  const acquisition = new RegExp(`^#project/(${uuid})/data/acquisitions/(${uuid})(/inspection)?$`, 'i').exec(hash);
+  if (acquisition) return { page: 'project', id: acquisition[1], section: 'data', acquisitionId: acquisition[2],
+    ...(acquisition[3] ? { inspection: true } : {}) };
   const comparison = new RegExp(`^#project/(${uuid})/results/comparisons/(${uuid})$`, 'i').exec(hash);
   if (comparison) return { page: 'project', id: comparison[1], section: 'results', comparisonId: comparison[2] };
   const job = new RegExp(`^#project/(${uuid})/results/(${uuid})(/investigation)?$`, 'i').exec(hash);

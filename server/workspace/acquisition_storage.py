@@ -153,6 +153,102 @@ def checked_manifest(manifest):
     return total
 
 
+def _inspection_json(staging, name):
+    def unique(pairs):
+        value = {}
+        for key, item in pairs:
+            if key in value:
+                raise ValueError("Duplicate inspection metadata key.")
+            value[key] = item
+        return value
+
+    def nonfinite(value):
+        raise ValueError("Nonfinite inspection metadata.")
+
+    with open_relative(Path(staging), name) as stream:
+        encoded = stream.read(1024**2 + 1)
+    if len(encoded) > 1024**2:
+        raise ValueError("Inspection metadata exceeds its byte budget.")
+    value = json.loads(encoded.decode("utf-8"), object_pairs_hook=unique, parse_constant=nonfinite)
+    if type(value) is not dict:
+        raise ValueError("Inspection metadata requires an object.")
+    return value
+
+
+def check_inspection_publication(staging, report, manifest, descriptor, *, checkpoint=None):
+    """Bind optional inspection indexes to this publication before exposing them."""
+    evidence = report.get("inspection")
+    if evidence is None:
+        return  # Existing 2.3 snapshots have no inspection-generation claim.
+    members = {name: identity for name, identity in manifest["files"].items()
+               if name.startswith("inspection/")}
+    if evidence == {"status": "unavailable", "reason": "inspection_resource_limit"}:
+        if members:
+            raise ValueError("Unavailable inspection must not publish partial evidence.")
+        return
+    from meridian.sensor_contract import contract_sha256
+    from meridian.sensor_inspection import validate_summary
+    name = "inspection/summary.json"
+    if evidence != {"status": "available", "method_version": "sensor-inspection-v1", "summary_path": name}:
+        raise ValueError("Unsupported inspection publication claim.")
+    if name not in members or sum(item["size_bytes"] for item in members.values()) > 512 * 1024**2:
+        raise ValueError("Inspection publication is missing or exceeds its storage budget.")
+    for path, identity in members.items():
+        if path == name or path.startswith("inspection/streams/") and path.endswith(".json"):
+            maximum = 1024**2
+        elif path.startswith("inspection/previews/") and path.endswith(".png"):
+            maximum = 128 * 1024
+        else:
+            raise ValueError("Unsupported inspection artifact path.")
+        if not 0 < identity["size_bytes"] <= maximum:
+            raise ValueError("Inspection artifact exceeds its individual byte budget.")
+    summary = _inspection_json(staging, name)
+    validate_summary(summary)
+    if (type(summary["schema_version"]) is not int
+            or summary["acquisition"] != {"id": descriptor["id"], "sha256": contract_sha256(descriptor)}):
+        raise ValueError("Inspection summary refers to a different acquisition.")
+    indexed = {chunk["path"] for stream in summary["streams"]
+               for segment in stream["segments"] for chunk in segment["chunks"]}
+    if indexed != {path for path in members if path.startswith("inspection/streams/")}:
+        raise ValueError("Inspection chunk inventory differs from its summary index.")
+    sources = {item["path"]: item for item in descriptor["files"]}
+    camera_sources = {item["id"]: item for item in descriptor["streams"] if item["kind"] == "camera"}
+    previews = set()
+    for stream in summary["streams"]:
+        if stream["kind"] != "camera":
+            continue
+        camera = camera_sources.get(stream["id"])
+        if camera is None or camera["camera"] != stream.get("camera"):
+            raise ValueError("Inspection camera differs from its source declaration.")
+        for segment in stream["segments"]:
+            for index in segment["chunks"]:
+                if checkpoint:
+                    checkpoint("publishing")
+                chunk = _inspection_json(staging, index["path"])
+                if (type(chunk.get("schema_version")) is not int or chunk["schema_version"] != 1
+                        or chunk.get("method_version") != "sensor-inspection-v1"
+                        or chunk.get("stream_id") != stream["id"] or chunk.get("segment_id") != segment["id"]
+                        or type(chunk.get("rows")) is not list or len(chunk["rows"]) != index["rows"]):
+                    raise ValueError("Camera chunk differs from its inspection index.")
+                for row in chunk["rows"]:
+                    image = row.get("image") if type(row) is dict else None
+                    if type(image) is not dict or type(image.get("preview_path")) is not str:
+                        raise ValueError("Camera observation omits its preview identity.")
+                    path = image["preview_path"]
+                    source = sources.get(image.get("source_path"))
+                    if (re.fullmatch(r"inspection/previews/[0-9]{6}\.png", path) is None or path not in members
+                            or source is None or source["role"] != "sensor"
+                            or source["sha256"] != image.get("source_sha256")
+                            or source["size_bytes"] != image.get("source_size_bytes")
+                            or [image.get("width"), image.get("height")] != camera["camera"]["resolution"]
+                            or any(type(image.get(key)) is not int or not 1 <= image[key] <= 320
+                                   for key in ("preview_width", "preview_height"))):
+                        raise ValueError("Published preview is absent or differs from its source image.")
+                    previews.add(path)
+    if previews != {path for path in members if path.startswith("inspection/previews/")}:
+        raise ValueError("Inspection publication contains an orphan preview.")
+
+
 def publish_import(acquisition_id, attempt_id, staging, outcome, *, checkpoint=None):
     """Copy verified child output to durable storage, then atomically rename.
 
@@ -179,6 +275,8 @@ def publish_import(acquisition_id, attempt_id, staging, outcome, *, checkpoint=N
     validate_bundle([descriptor, prepared])
     if descriptor != outcome["descriptor"] or metadata["report.json"] != outcome["result"]:
         raise ValueError("Published metadata differs from the worker outcome.")
+    check_inspection_publication(staging, metadata["report.json"], outcome["manifest"], descriptor,
+                                 checkpoint=checkpoint)
     for branch, contract in (("acquisition", descriptor), ("prepared", prepared)):
         for item in contract["files"]:
             if outcome["manifest"]["files"].get(branch + "/" + item["path"]) != {key: item[key] for key in ("sha256", "size_bytes")}:

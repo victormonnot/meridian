@@ -184,7 +184,10 @@ function basicMetadata(descriptor) {
     <dl class="details-list">${descriptor.rig ? detail('Rig', e(`${descriptor.rig.id} · ${descriptor.rig.revision}`)) : ''}
       ${descriptor.purpose ? detail('Declared purpose', e(descriptor.purpose)) : ''}
       ${detail('Independent reference', streams.some(stream => stream.kind === 'reference_pose') ? 'Included for evaluation only' : 'Not included')}
-    </dl>${streams.length ? `<div class="acquisition-streams">${streams.map(stream => `<div><strong>${e(stream.id)}</strong><span>${e(stream.kind?.replaceAll('_', ' '))}</span><span>${count(stream.segments.reduce((sum, segment) => sum + segment.sample_count, 0))} samples</span><span>${count(stream.segments.length)} segments</span></div>`).join('')}</div>` : ''}
+    </dl>${streams.length ? `<div class="acquisition-streams">${streams.map(stream => {
+      const samples = stream.segments.reduce((sum, segment) => sum + segment.sample_count, 0);
+      return `<div><strong>${e(stream.id)}</strong><span>${e(stream.kind?.replaceAll('_', ' '))}</span><span>${count(samples)} ${samples === 1 ? 'sample' : 'samples'}</span><span>${count(stream.segments.length)} ${stream.segments.length === 1 ? 'segment' : 'segments'}</span></div>`;
+    }).join('')}</div>` : ''}
     <p class="muted">Counts and declared metadata do not establish calibration accuracy, synchronization quality or estimator readiness.</p></section>`;
 }
 
@@ -216,7 +219,7 @@ export function renderAcquisitionDetail(project, view) {
       ${detail('Original SHA-256', acquisition.sha256 ? `<span class="mono">${e(acquisition.sha256)}</span>` : 'Available after the complete archive has been verified')}
       ${acquisition.expires_at && acquisition.state === 'receiving' ? detail('Resume before', e(new Date(acquisition.expires_at).toLocaleString('en'))) : ''}
     </dl>
-    ${ready ? `<div class="acquisition-downloads"><a class="button" href="/api/v1${path}/original" download>Download original archive</a><button type="button" data-acquisition-action="descriptor">Download descriptor</button><button type="button" data-acquisition-action="report">Download import report</button></div>` : ''}
+    ${ready ? `<div class="acquisition-downloads"><a class="button primary" href="${acquisitionRoute(project.id, acquisition.id)}/inspection">Inspect sensor data</a><a class="button" href="/api/v1${path}/original" download>Download original archive</a><button type="button" data-acquisition-action="descriptor">Download descriptor</button><button type="button" data-acquisition-action="report">Download import report</button></div>` : ''}
     ${ready ? basicMetadata(view.descriptor) : ''}
     <div class="acquisition-actions">${active && !acquisition.cancel_requested ? '<button type="button" class="danger" data-acquisition-action="cancel">Cancel acquisition</button>' : ''}
       ${!active && !deleted ? '<button type="button" class="danger" data-acquisition-action="delete">Delete acquisition</button>' : ''}
