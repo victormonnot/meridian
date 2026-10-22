@@ -45,7 +45,11 @@ imports, calibration and timing. Its initial increments add
 [private hosted acquisitions and resumable uploads](docs/hosted-acquisitions.md),
 and [sensor inspection before estimation](docs/sensor-inspection.md), with
 [recorded room2 regression evidence](results/sensor-inspection/README.md).
-Calibration execution and VIO on private inputs remain planned.
+[Supplied calibration and time mappings](docs/sensor-calibration.md) create
+immutable input revisions with explicit supported corrections. Calibration fitting
+and VIO on private inputs remain planned. The
+[calibration qualification](results/sensor-calibration/README.md) records analytic
+corrections, browser workflows, fault recovery and backup restoration.
 
 The hosted preview is available at
 [meridian.victormonnot.com](https://meridian.victormonnot.com/); the previous
@@ -99,6 +103,9 @@ The [earlier export report](results/exports/README.md) and
   Import validity remains separate from calibration and estimator readiness.
 - Owned input inspection with camera previews, all IMU axes, exact timing
   diagnostics and separate sensor/reference support before any estimator run.
+- Supplied calibration/time artifacts with exact provenance, compatibility checks
+  and immutable prepared revisions. Explicit IMU corrections and constant clock
+  mappings preserve original observations and prior candidates.
 
 The original roll study still needs a new bench recording with known angles
 to check the estimates against a physical reference. The historical

@@ -38,6 +38,8 @@ class Command(BaseCommand):
                 "keepalives_idle": 5, "keepalives_interval": 5, "keepalives_count": 2,
                 "tcp_user_timeout": 10000})
         from workspace.acquisition_worker import capacity_available, collect_scratch, reconcile, run_one, validate_storage
+        from workspace import input_revision_queue
+        from workspace.input_revision_worker import reconcile as reconcile_revisions, run_one as run_revision
         validate_storage()
         shutdown, worker_id = threading.Event(), uuid.uuid4()
         old = {sig: signal.getsignal(sig) for sig in (signal.SIGINT, signal.SIGTERM)}
@@ -49,13 +51,15 @@ class Command(BaseCommand):
                 try:
                     close_old_connections()
                     reconcile()
+                    reconcile_revisions()
                     if time.monotonic() - collected > 30:
                         collect_scratch()
                         queue.cleanup_abandoned()
+                        input_revision_queue.cleanup_abandoned()
                         collected = time.monotonic()
                     available = options["ignore_capacity"] or capacity_available()
                     queue.pulse_import(available)
-                    did_work = run_one(worker_id, shutdown) if available else False
+                    did_work = (run_one(worker_id, shutdown) or run_revision(worker_id, shutdown)) if available else False
                     if options["once"]:
                         return
                     if not did_work:

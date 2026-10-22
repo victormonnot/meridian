@@ -120,6 +120,9 @@ export function escapeHtml(value) {
 export function parseRoute(hash) {
   if (!hash || hash === '#' || hash === '#projects') return { page: 'projects' };
   const uuid = '[a-f\\d]{8}-[a-f\\d]{4}-[a-f\\d]{4}-[a-f\\d]{4}-[a-f\\d]{12}';
+  const calibration = new RegExp(`^#project/(${uuid})/data/acquisitions/(${uuid})/calibration(?:/revisions/(${uuid}))?$`, 'i').exec(hash);
+  if (calibration) return { page: 'project', id: calibration[1], section: 'data', acquisitionId: calibration[2],
+    calibration: true, ...(calibration[3] ? { inputRevisionId: calibration[3] } : {}) };
   const acquisition = new RegExp(`^#project/(${uuid})/data/acquisitions/(${uuid})(/inspection)?$`, 'i').exec(hash);
   if (acquisition) return { page: 'project', id: acquisition[1], section: 'data', acquisitionId: acquisition[2],
     ...(acquisition[3] ? { inspection: true } : {}) };

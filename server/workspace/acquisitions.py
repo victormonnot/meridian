@@ -154,6 +154,8 @@ def acquisition(request, project_id, acquisition_id):
         if value is None:
             return not_found(request)
         if request.method == "DELETE":
+            if value.input_revisions.filter(state__in=["queued", "preparing"]).exists():
+                return error("dependent_preparation", "Cancel dependent input preparations and wait before deleting source files.", 409)
             if value.state in {"receiving", "validating"}:
                 return error("active_import", "Cancel the transfer or import and wait for it to stop before deleting its files.", 409)
             if queue.compute_active():

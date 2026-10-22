@@ -232,10 +232,16 @@ def project(request, project_id):
                 return error("active_jobs", "Cancel active executions and wait for them to stop before deleting this project.", 409)
             if value.acquisitions.filter(state__in=["receiving", "validating"]).exists():
                 return error("active_imports", "Cancel active recording transfers/imports and wait before deleting this project.", 409)
+            if value.input_revisions.filter(state__in=["queued", "preparing"]).exists():
+                return error("active_preparations", "Cancel input preparations and wait before deleting this project.", 409)
             from .acquisition_queue import compute_active, release_files_locked
-            if value.acquisitions.exists() and compute_active():
+            if (value.acquisitions.exists() or value.input_revisions.exists()) and compute_active():
                 return error("cleanup_busy", "Wait for active executions and recording imports to stop before deleting this project's files.", 409)
             try:
+                from .input_revision_queue import release_files_locked as release_revision
+                for revision in value.input_revisions.all():
+                    release_revision(revision)
+                    revision.save()
                 for acquisition in value.acquisitions.all():
                     release_files_locked(acquisition)
                     acquisition.save()

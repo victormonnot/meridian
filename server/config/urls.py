@@ -1,5 +1,6 @@
 from django.urls import path, re_path
 from workspace import acquisition_inspection, acquisitions, api, comparisons, experiments, exports, investigation, jobs
+from workspace import sensor_artifact_api, input_revision_api
 
 urlpatterns = [
     path("api/v1/session", api.session),
@@ -8,6 +9,16 @@ urlpatterns = [
     path("api/v1/auth/logout", api.sign_out),
     path("api/v1/projects", api.projects),
     path("api/v1/projects/<uuid:project_id>", api.project),
+    path("api/v1/projects/<uuid:project_id>/sensor-artifacts", sensor_artifact_api.artifacts),
+    path("api/v1/projects/<uuid:project_id>/sensor-artifacts/<uuid:artifact_id>", sensor_artifact_api.artifact),
+    path("api/v1/projects/<uuid:project_id>/sensor-artifacts/<uuid:artifact_id>/contract", sensor_artifact_api.contract),
+    path("api/v1/projects/<uuid:project_id>/acquisitions/<uuid:acquisition_id>/input-revisions", input_revision_api.revisions),
+    path("api/v1/projects/<uuid:project_id>/acquisitions/<uuid:acquisition_id>/input-revisions/assess", input_revision_api.assess),
+    path("api/v1/projects/<uuid:project_id>/acquisitions/<uuid:acquisition_id>/input-revisions/<uuid:revision_id>", input_revision_api.revision),
+    path("api/v1/projects/<uuid:project_id>/acquisitions/<uuid:acquisition_id>/input-revisions/<uuid:revision_id>/cancel", input_revision_api.cancel),
+    path("api/v1/projects/<uuid:project_id>/acquisitions/<uuid:acquisition_id>/input-revisions/<uuid:revision_id>/contract", input_revision_api.contract),
+    path("api/v1/projects/<uuid:project_id>/acquisitions/<uuid:acquisition_id>/input-revisions/<uuid:revision_id>/report", input_revision_api.report),
+    path("api/v1/projects/<uuid:project_id>/acquisitions/<uuid:acquisition_id>/input-revisions/<uuid:revision_id>/files", input_revision_api.files),
     path("api/v1/projects/<uuid:project_id>/acquisitions", acquisitions.acquisitions),
     path("api/v1/projects/<uuid:project_id>/acquisitions/<uuid:acquisition_id>", acquisitions.acquisition),
     path("api/v1/projects/<uuid:project_id>/acquisitions/<uuid:acquisition_id>/chunks", acquisitions.chunks),

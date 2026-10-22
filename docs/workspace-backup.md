@@ -10,8 +10,9 @@ An experiment export is a different deliverable: it reproduces one successful
 execution without an account. A workspace backup contains accounts, password
 hashes, session records, private project names, authentication/submission counters,
 experiment revisions, jobs, saved comparisons, acquisition records and upload
-chunk identities. Version 2 also includes retained private acquisition originals
-and prepared inputs. Keep it private. The script
+chunk identities. Version 3 adds supplied calibration/time artifact metadata and
+immutable input revision publications to the retained originals and prepared
+inputs introduced by version 2. Keep it private. The script
 creates mode 0700 directories and mode 0600 files, requires copies to remain
 owner-only, and rejects links and unexpected files. These permissions and hashes do not encrypt or authenticate
 a backup. Store off-server copies through an authenticated private channel and
@@ -39,7 +40,8 @@ python3 deploy/workspace/backup-workspace.py verify \
 Create and protect the parent directory before running these commands. Coordinate
 a short maintenance window: requests cannot complete while the API is stopped.
 The tool refuses queued/running/evaluating jobs, receiving/validating acquisitions,
-outstanding import attempts and any labelled numerical or import child container.
+outstanding import attempts, queued/preparing input revisions and any labelled
+numerical, import or revision child container.
 Finish or cancel interrupted transfers before capture; this snapshot does not
 preserve resumable partial uploads. It validates actual Compose labels and both
 artifact/acquisition mounts, stops only the
@@ -54,11 +56,13 @@ Operators must check their health afterward; a failed restart is reported.
 
 The completed manifest records PostgreSQL and application image IDs, migrations,
 counts and row-content hashes for account/workspace tables, publication manifests,
-file sizes/hashes and the observed pause duration. The database dump includes the
+file sizes/hashes and the observed pause duration. Artifact and input revision
+tables participate in the same row-content fingerprints. The database dump includes the
 whole application database. Artifact limits are 32 MiB per file, 512 MiB for the
 dump, 16,384 job artifact files and 7 GiB of job artifacts. Acquisition bounds
-are 4 GiB per file, 240,000 published files plus at most 200 original/publication
-records, and 24 GiB total. The complete backup is limited to 32 GiB with a
+are 4 GiB per original/import file and 2 GiB per revision file, 240,000 published
+files plus at most 200 original/publication records, and 24 GiB total across
+acquisitions and revisions. The complete backup is limited to 32 GiB with a
 256 MiB UTF-8 manifest. Publication marker serialization remains unchanged.
 Version 2 fingerprints tables from sorted per-row PostgreSQL SHA-256 digests,
 so fingerprinting does not aggregate a complete table's JSON in memory.
@@ -74,9 +78,10 @@ reference on the destination, verifies its digest/platform and executes that
 exact local ID, while retaining both source and destination IDs in the report.
 
 Only files referenced by retained publications are copied, including each
-acquisition's exact uploaded archive and its prepared snapshot. Deleted inputs,
+acquisition's exact uploaded archive, its prepared snapshot and each retained
+input revision's independent publication. Deleted inputs,
 partial transfers, abandoned staging directories and scratch are excluded.
-Version 1 backups remain verifiable and restorable with their original scope.
+Version 1 and 2 backups remain verifiable and restorable with their original scope.
 The shared public reference recording, bounded scratch,
 native/runtime images, application source releases, environment secrets,
 database roles and passwords are separate recovery prerequisites. Keep the exact

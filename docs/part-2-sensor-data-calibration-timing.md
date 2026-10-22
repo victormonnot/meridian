@@ -1,6 +1,6 @@
 # Part 2 — Sensor data, calibration, and timing
 
-**Status: increments 2.1–2.4 implemented, 2026-10-21. Increments 2.5–2.13 remain planned.**
+**Status: increments 2.1–2.5 implemented, 2026-10-22. Increments 2.6–2.13 remain planned.**
 
 The intended outcome is a private, versioned acquisition with traceable sensor
 semantics, calibration and timing, usable by a supported estimator and
@@ -197,6 +197,16 @@ remain eligible for supported estimation.
 ### 2.5 — Versioned supplied calibration and time mappings
 
 **Dependency:** 2.4.
+
+**Implemented:** [supplied artifact selection and immutable input revisions](sensor-calibration.md).
+The v1 contracts remain unchanged. Method-v2 preparation applies explicit
+SI bias/diagonal gain, direct zero-translation IMU rotation and exact constant
+clock corrections. Camera geometry and continuous noise parameters are retained
+without image warping or implicit estimator configuration. The hosted importer
+shares admission, isolation and quotas with acquisition preparation; backup
+format 3 retains revision publications and artifact metadata. Fitting, clock
+drift, composition of corrections on one segment and private-input VIO are
+outside this increment.
 
 **Deliverable:** import, inspect, validate and select structured camera,
 stereo, camera–IMU and supported IMU calibration artifacts. Record method/source,

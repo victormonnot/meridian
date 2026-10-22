@@ -14,7 +14,7 @@ from django.utils import timezone
 
 from . import acquisition_storage as storage
 from .job_queue import queue_lock
-from .models import Acquisition, ComputeQueue, Job
+from .models import Acquisition, ComputeQueue, Job, InputRevision
 
 LEASE_SECONDS = 30
 MAX_ATTEMPTS = 2
@@ -44,12 +44,15 @@ def limits():
 
 
 def usage(owner=None):
-    query = Acquisition.objects.all()
-    if owner is not None:
-        query = query.filter(owner=owner)
-    totals = query.aggregate(reserved_bytes=Sum("reserved_bytes"), retained_bytes=Sum("retained_bytes"),
-                             reserved_files=Sum("reserved_files"), retained_files=Sum("retained_files"))
-    return {key: value or 0 for key, value in totals.items()}
+    totals = {key: 0 for key in ("reserved_bytes", "retained_bytes", "reserved_files", "retained_files")}
+    for model in (Acquisition, InputRevision):
+        query = model.objects.all()
+        if owner is not None:
+            query = query.filter(owner=owner)
+        aggregate = query.aggregate(**{key: Sum(key) for key in totals})
+        for key, value in aggregate.items():
+            totals[key] += value or 0
+    return totals
 
 
 def failure(code):
@@ -75,17 +78,20 @@ def service_status():
 
 def compute_active():
     return (Job.objects.filter(state__in=["running", "evaluating"]).exists()
-            or Acquisition.objects.filter(state="validating", current_attempt__isnull=False).exists())
+            or Acquisition.objects.filter(state="validating", current_attempt__isnull=False).exists()
+            or InputRevision.objects.filter(state="preparing", current_attempt__isnull=False).exists())
 
 
 def claim_import(worker_id):
     with transaction.atomic():
         queue_lock()
-        if (not settings.MERIDIAN_UPLOADS_ENABLED or Job.objects.filter(state__in=["running", "evaluating"]).exists()
-                or Acquisition.objects.filter(state="validating", current_attempt__isnull=False).exists()):
+        if not settings.MERIDIAN_UPLOADS_ENABLED or compute_active():
             return None
         value = Acquisition.objects.filter(state="validating", current_attempt__isnull=True).order_by("created_at", "id").first()
         if value is None:
+            return None
+        earlier = InputRevision.objects.filter(state="queued").order_by("created_at", "id").first()
+        if earlier and (earlier.created_at, earlier.pk) < (value.created_at, value.pk):
             return None
         now, attempt = timezone.now(), uuid.uuid4()
         value.current_attempt, value.worker_id = attempt, worker_id

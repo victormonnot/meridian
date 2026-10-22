@@ -39,6 +39,7 @@ TABLES = (
     "workspace_runcomparison", "workspace_authwindow", "workspace_computequeue",
 )
 ACQUISITION_TABLES = ("workspace_acquisition", "workspace_uploadchunk")
+REVISION_TABLES = ("workspace_sensorartifact", "workspace_inputrevision")
 
 
 def command(args, **kwargs):
@@ -214,7 +215,7 @@ def artifact_members(rows):
     return members
 
 
-def acquisition_members(rows):
+def acquisition_members(rows, revisions=()):
     """Bind retained originals and derived inputs to the same database snapshot."""
     members = {}
     for row in rows:
@@ -246,6 +247,28 @@ def acquisition_members(rows):
             if name in members:
                 raise ValueError("Duplicate retained acquisition.")
             members[name] = item
+    for row in revisions:
+        revision, attempt = str(UUID(row["id"])), str(UUID(row["published_attempt"]))
+        manifest = row["manifest"]
+        if (set(manifest) != {"schema_version", "files"} or manifest["schema_version"] != 1
+                or type(manifest["files"]) is not dict or not manifest["files"]):
+            raise ValueError("Invalid input revision publication manifest.")
+        prefix = f"revisions/{revision}/published/{attempt}/"
+        for name, item in manifest["files"].items():
+            relative(name)
+            if (name == "publication-manifest.json" or type(item) is not dict
+                    or set(item) != {"size_bytes", "sha256"}
+                    or type(item["size_bytes"]) is not int or not 0 <= item["size_bytes"] <= 2 * 1024**3
+                    or not isinstance(item["sha256"], str)
+                    or not re.fullmatch(r"[0-9a-f]{64}", item["sha256"])):
+                raise ValueError("Invalid input revision file identity.")
+            if prefix + name in members:
+                raise ValueError("Duplicate retained input revision.")
+            members[prefix + name] = item
+        publication = canonical(manifest)
+        members[prefix + "publication-manifest.json"] = {
+            "size_bytes": len(publication), "sha256": hashlib.sha256(publication).hexdigest(),
+        }
     # Originals and publication records add two files per acquisition.
     if (len(members) > MAX_ACQUISITION_FILES + 200
             or sum(v["size_bytes"] for v in members.values()) > 24 * 1024**3):
@@ -262,7 +285,9 @@ def member_limit(name):
 def database_state(container, *, user="meridian_admin", fingerprint_version=2):
     has_acquisitions = sql(container, "SELECT to_regclass('workspace_acquisition') IS NOT NULL",
                            user=user) == "t"
-    tables = TABLES + (ACQUISITION_TABLES if has_acquisitions else ())
+    has_revisions = sql(container, "SELECT to_regclass('workspace_inputrevision') IS NOT NULL",
+                        user=user) == "t"
+    tables = TABLES + (ACQUISITION_TABLES if has_acquisitions else ()) + (REVISION_TABLES if has_revisions else ())
     counts = {table: int(sql(container, "SELECT count(*) FROM " + table, user=user))
               for table in tables}
     jobs = json.loads(sql(container, """
@@ -300,6 +325,13 @@ def database_state(container, *, user="meridian_admin", fingerprint_version=2):
               FROM workspace_acquisition WHERE files_available ORDER BY id
             ) a
             """, user=user))
+    if has_revisions:
+        result["retained_input_revisions"] = json.loads(sql(container, """
+            SELECT coalesce(json_agg(row_to_json(r)), '[]') FROM (
+              SELECT id, published_attempt, manifest
+              FROM workspace_inputrevision WHERE files_available ORDER BY id
+            ) r
+            """, user=user))
     return result
 
 
@@ -311,7 +343,11 @@ def require_idle(container):
             and int(sql(container, "SELECT count(*) FROM workspace_acquisition "
                         "WHERE state IN ('receiving','validating') OR current_attempt IS NOT NULL"))):
         raise ValueError("Backup requires completed or cancelled transfers and no active imports.")
-    for component in ("vio-job", "sensor-import"):
+    if (sql(container, "SELECT to_regclass('workspace_inputrevision') IS NOT NULL") == "t"
+            and int(sql(container, "SELECT count(*) FROM workspace_inputrevision "
+                        "WHERE state IN ('queued','preparing') OR current_attempt IS NOT NULL"))):
+        raise ValueError("Backup requires completed or cancelled input revisions.")
+    for component in ("vio-job", "sensor-import", "sensor-revision"):
         children = command(["docker", "ps", "--all", "--filter",
                             "label=meridian.component=" + component, "--format", "{{.ID}}"]).stdout
         if children.strip():
@@ -377,7 +413,8 @@ def backup(args):
         members = artifact_members(before["retained_jobs"])
         if "retained_acquisitions" in before and acquisitions is None:
             raise ValueError("This release requires --acquisitions, including for an empty store.")
-        input_members = acquisition_members(before.get("retained_acquisitions", []))
+        input_members = acquisition_members(before.get("retained_acquisitions", []),
+                                            before.get("retained_input_revisions", []))
         if acquisitions is not None:
             (output / "acquisitions").mkdir(mode=0o700)
         descriptor = os.open(output / "database.dump", os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
@@ -406,13 +443,13 @@ def backup(args):
         if database_state(db) != before:
             raise ValueError("Database changed while services were stopped.")
         report = {
-            "format": FORMAT, "schema_version": 2, "started_at_utc": started,
+            "format": FORMAT, "schema_version": 3, "started_at_utc": started,
             "completed_at_utc": datetime.now(timezone.utc).isoformat(),
             "database_image_id": services["db"]["Image"],
             "database_runtime": runtime,
             "application_image_ids": {key: services[key]["Image"] for key in writers},
             "database_state": before, "database_size_bytes": database_size_bytes, "files": files,
-            "scope": "Database metadata, published job artifacts and retained private acquisition originals/derived inputs; no environment secrets or public reference recordings.",
+            "scope": "Database metadata, supplied sensor artifacts, published jobs, retained acquisition originals and immutable input revisions; no environment secrets or public reference recordings.",
             "sensitive_contents": "Includes password hashes, session records and private project data.",
         }
     finally:
@@ -435,6 +472,7 @@ def backup(args):
             "bytes": sum(x["size_bytes"] for x in report["files"].values()),
             "retained_jobs": len(report["database_state"]["retained_jobs"]),
             "retained_acquisitions": len(report["database_state"].get("retained_acquisitions", [])),
+            "retained_input_revisions": len(report["database_state"].get("retained_input_revisions", [])),
             "write_pause_seconds": report["write_pause_seconds"]}
 
 
@@ -443,15 +481,18 @@ def verify(directory):
     stream, _ = checked_file(root, "manifest.json", MAX_MANIFEST)
     with stream:
         manifest = json.load(stream)
-    if manifest.get("format") != FORMAT or manifest.get("schema_version") not in {1, 2}:
+    if manifest.get("format") != FORMAT or manifest.get("schema_version") not in {1, 2, 3}:
         raise ValueError("Unsupported backup format.")
     files = manifest.get("files")
-    maximum_files = MAX_FILES + 1 + (MAX_ACQUISITION_FILES + 200 if manifest["schema_version"] == 2 else 0)
+    maximum_files = MAX_FILES + 1 + (MAX_ACQUISITION_FILES + 200 if manifest["schema_version"] >= 2 else 0)
     if not isinstance(files, dict) or not 1 <= len(files) <= maximum_files or "database.dump" not in files:
         raise ValueError("Invalid backup inventory.")
     required = {"database.dump", *("artifacts/" + name for name in
                                    artifact_members(manifest["database_state"]["retained_jobs"]))}
-    input_members = acquisition_members(manifest["database_state"].get("retained_acquisitions", []))
+    revisions = manifest["database_state"].get("retained_input_revisions", [])
+    if manifest["schema_version"] < 3 and revisions:
+        raise ValueError("Legacy backups cannot contain input revisions.")
+    input_members = acquisition_members(manifest["database_state"].get("retained_acquisitions", []), revisions)
     if manifest["schema_version"] == 1 and input_members:
         raise ValueError("Legacy backups cannot contain private acquisitions.")
     required.update("acquisitions/" + name for name in input_members)
@@ -478,7 +519,7 @@ def verify(directory):
         raise ValueError("Backup artifacts differ from their database publication manifest.")
     if any(files["acquisitions/" + name] != expected for name, expected in input_members.items()):
         raise ValueError("Backup acquisitions differ from their database publication manifest.")
-    if total > (MAX_COMPLETE_TOTAL if manifest["schema_version"] == 2 else MAX_TOTAL):
+    if total > (MAX_COMPLETE_TOTAL if manifest["schema_version"] >= 2 else MAX_TOTAL):
         raise ValueError("Backup exceeds its total size budget.")
     return manifest
 
@@ -513,7 +554,7 @@ def restore(args):
         if name.startswith(("artifacts/", "acquisitions/")):
             copy_file(source, name, output, limit=member_limit(name), expected=expected)
     (output / "artifacts").mkdir(mode=0o700, exist_ok=True)
-    if manifest["schema_version"] == 2:
+    if manifest["schema_version"] >= 2:
         (output / "acquisitions").mkdir(mode=0o700, exist_ok=True)
     # No published ports, network, named volume, source environment or application
     # secret is reused. PostgreSQL data are disposable and bounded in this drill.
@@ -589,7 +630,8 @@ def restore(args):
                 (source / "manifest.json").read_bytes()).hexdigest(),
             "database_metadata_verified_before_session_clear": True,
             "restored_artifacts_verified": True, "copied_sessions_cleared": sessions,
-            "restored_acquisitions_verified": manifest["schema_version"] == 2,
+            "restored_acquisitions_verified": manifest["schema_version"] >= 2,
+            "restored_input_revisions_verified": manifest["schema_version"] >= 3,
             "database_image_id": runtime["image_id"],
             "source_database_image_id": manifest["database_image_id"],
             "database_runtime": runtime,

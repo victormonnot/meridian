@@ -277,6 +277,58 @@ def test_v2_backup_binds_original_and_prepared_files_to_database(tmp_path):
     assert backup.member_limit("artifacts/any/trajectory.csv") == 32 * 1024**2
 
 
+def revision_bundle(tmp_path):
+    root, manifest = acquisition_bundle(tmp_path)
+    revision, attempt = str(uuid4()), str(uuid4())
+    prefix = f"acquisitions/revisions/{revision}/published/{attempt}"
+    publication = {"schema_version": 1, "files": {
+        "sensors/imu/data.csv": write(root / prefix / "sensors/imu/data.csv", b"corrected vector\n"),
+        "evidence/calibration.json": write(root / prefix / "evidence/calibration.json", b"supplied parameters\n"),
+    }}
+    manifest["schema_version"] = 3
+    manifest["database_state"]["retained_input_revisions"] = [{
+        "id": revision, "published_attempt": attempt, "manifest": publication,
+    }]
+    manifest["files"].update({prefix + "/" + key: value for key, value in publication["files"].items()})
+    manifest["files"][prefix + "/publication-manifest.json"] = write(
+        root / prefix / "publication-manifest.json", backup.canonical(publication))
+    write(root / "manifest.json", backup.canonical(manifest))
+    return root, manifest
+
+
+def test_v3_backup_retains_original_and_independent_corrected_revision(tmp_path):
+    root, manifest = revision_bundle(tmp_path)
+    assert backup.verify(root) == manifest
+    rows = manifest["database_state"]["retained_input_revisions"]
+    with pytest.raises(ValueError, match="Duplicate"):
+        backup.acquisition_members([], rows * 2)
+
+
+@pytest.mark.parametrize("member", ["sensors/imu/data.csv", "evidence/calibration.json", "publication-manifest.json"])
+def test_v3_rehashed_correction_cannot_replace_original_publication(tmp_path, member):
+    root, manifest = revision_bundle(tmp_path)
+    path = next(name for name in manifest["files"] if name.startswith("acquisitions/revisions/") and name.endswith(member))
+    manifest["files"][path] = write(root / path, b"changed correction")
+    write(root / "manifest.json", backup.canonical(manifest))
+    with pytest.raises(ValueError, match="database publication"):
+        backup.verify(root)
+
+
+def test_legacy_backup_cannot_silently_claim_revision_coverage(tmp_path):
+    root, manifest = revision_bundle(tmp_path)
+    manifest["schema_version"] = 2
+    write(root / "manifest.json", backup.canonical(manifest))
+    with pytest.raises(ValueError, match="Legacy backups"):
+        backup.verify(root)
+
+
+def test_active_revision_refuses_backup(monkeypatch):
+    answers = iter(["0", "t", "0", "t", "1"])
+    monkeypatch.setattr(backup, "sql", lambda *args, **kwargs: next(answers))
+    with pytest.raises(ValueError, match="input revisions"):
+        backup.require_idle("database")
+
+
 @pytest.mark.parametrize("suffix", ["/original", "/data.csv", "/publication-manifest.json"])
 def test_v2_rehashed_input_cannot_replace_database_publication(tmp_path, suffix):
     root, manifest = acquisition_bundle(tmp_path)

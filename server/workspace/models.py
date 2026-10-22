@@ -214,3 +214,78 @@ class UploadChunk(models.Model):
     class Meta:
         ordering = ["offset"]
         constraints = [models.UniqueConstraint(fields=["acquisition", "offset"], name="acquisition_chunk_unique")]
+
+
+class SensorArtifact(models.Model):
+    """Immutable uploaded calibration/timing declaration; archive changes visibility only."""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="sensor_artifacts")
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="sensor_artifacts")
+    name = models.CharField(max_length=100)
+    kind = models.CharField(max_length=24)
+    descriptor_text = models.TextField()
+    descriptor_sha256 = models.CharField(max_length=64)
+    contract = models.JSONField()
+    contract_sha256 = models.CharField(max_length=64)
+    source_bindings = models.JSONField()
+    idempotency_key = models.UUIDField()
+    request_sha256 = models.CharField(max_length=64)
+    archived_at = models.DateTimeField(null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at", "id"]
+        constraints = [
+            models.UniqueConstraint(fields=["owner", "idempotency_key"], name="sensor_artifact_submission_unique"),
+            models.CheckConstraint(condition=models.Q(kind__in=["calibration", "clock_mapping"]), name="sensor_artifact_kind_valid"),
+        ]
+
+    def save(self, *args, **kwargs):
+        if not self._state.adding:
+            raise ValidationError("Sensor artifacts cannot be edited; import another artifact.")
+        return super().save(*args, **kwargs)
+
+
+class InputRevision(models.Model):
+    """Frozen preparation selection with a separately fenced derived publication."""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="input_revisions")
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="input_revisions")
+    acquisition = models.ForeignKey(Acquisition, on_delete=models.CASCADE, related_name="input_revisions")
+    name = models.CharField(max_length=100)
+    source_attempt = models.UUIDField()
+    source_identity = models.JSONField()
+    selection = models.JSONField()
+    request = models.JSONField()
+    plan = models.JSONField()
+    idempotency_key = models.UUIDField()
+    request_sha256 = models.CharField(max_length=64)
+    state = models.CharField(max_length=16, default="queued")
+    phase = models.CharField(max_length=24, default="queued")
+    attempt_count = models.PositiveSmallIntegerField(default=0)
+    current_attempt = models.UUIDField(null=True)
+    worker_id = models.UUIDField(null=True)
+    lease_until = models.DateTimeField(null=True)
+    cancel_requested_at = models.DateTimeField(null=True)
+    prepared_input = models.JSONField(null=True)
+    result = models.JSONField(null=True)
+    failure = models.JSONField(null=True)
+    manifest = models.JSONField(null=True)
+    published_attempt = models.UUIDField(null=True)
+    files_available = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(null=True)
+    reserved_bytes = models.PositiveBigIntegerField(default=0)
+    retained_bytes = models.PositiveBigIntegerField(default=0)
+    reserved_files = models.PositiveIntegerField(default=0)
+    retained_files = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    finished_at = models.DateTimeField(null=True)
+
+    class Meta:
+        ordering = ["-created_at", "id"]
+        constraints = [
+            models.UniqueConstraint(fields=["owner", "idempotency_key"], name="input_revision_submission_unique"),
+            models.CheckConstraint(condition=models.Q(state__in=["queued", "preparing", "ready", "rejected", "cancelled"]), name="input_revision_state_valid"),
+        ]
+        indexes = [models.Index(fields=["state", "created_at"], name="input_revision_queue_order")]

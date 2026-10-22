@@ -2,8 +2,8 @@
 
 The acquisition remains the immutable source declaration. Preparation records
 SI and integer-nanosecond conversions separately, preserves row identities and
-keeps evaluation references outside the sensor tree. Calibration and clock
-correction execution are deliberately not part of this preparation version.
+keeps evaluation references outside the sensor tree. Supplied correction plans
+create a separate method-v2 revision; unselected preparation retains method v1.
 """
 
 from __future__ import annotations
@@ -20,6 +20,9 @@ import sys
 import zlib
 
 from .sensor_contract import contract_sha256, loads_contract, validate_bundle
+from .sensor_calibration import (
+    apply_clock, apply_imu, selected_streams, validate_application_request,
+)
 from .sensor_conventions import accel_to_m_s2, gyro_to_rad_s, timestamp_to_ns
 from .sensor_package import (
     DEFAULT_LIMITS, copy_regular, file_identity, iter_stream_rows,
@@ -145,38 +148,14 @@ def _operation(kind, stream, parameters, description):
 
 
 def _selected_streams(acquisition, imu_stream, include_reference):
-    imus = [s for s in acquisition["streams"] if s["kind"] == "imu"]
-    if imu_stream is None:
-        if len(imus) != 1:
-            raise ValueError("Select one IMU stream explicitly when the recording has multiple IMUs.")
-        imu = imus[0]
-    else:
-        matches = [s for s in imus if s["id"] == imu_stream]
-        if len(matches) != 1:
-            raise ValueError("Selected IMU stream does not exist.")
-        imu = matches[0]
-    cameras = [s for s in acquisition["streams"] if s["kind"] == "camera"]
-    if cameras:
-        pairing = acquisition["stereo_pairing"]
-        if (len(cameras) != 2 or pairing is None
-                or pairing["policy"] != "exact_timestamp_pairs"):
-            raise ValueError("Preparation requires exactly one declared synchronized stereo pair.")
-        if imu["measurement_semantics"] != "instantaneous_imu":
-            raise ValueError("Stereo preparation requires instantaneous IMU semantics.")
-        profile = "stereo_imu_candidate_v1"
-    else:
-        if imu["measurement_semantics"] != "filtered_snapshot":
-            raise ValueError("IMU-only preparation currently supports filtered snapshots.")
-        profile = "imu_snapshot_candidate_v1"
-    selected = [s for s in acquisition["streams"]
-                if s is imu or s["kind"] == "camera"
-                or (include_reference and s["kind"] == "reference_pose")]
-    return selected, profile
+    return selected_streams(acquisition, imu_stream, include_reference)
 
 
 def prepare_package(source: Path, output: Path, *, prepared_id=None, imu_stream=None,
                     include_reference=True, image_encoding="preserve",
-                    limits=DEFAULT_LIMITS, output_limits=None) -> dict:
+                    limits=DEFAULT_LIMITS, output_limits=None, calibration=None,
+                    clock_mappings=(), dependency_acquisitions=(),
+                    apply_imu_intrinsics=False, imu_target_frame=None) -> dict:
     """Prepare all segments of a validated acquisition into a new directory.
 
     Explicitly choose an IMU when several are present. Reference copying can be
@@ -198,11 +177,26 @@ def prepare_package(source: Path, output: Path, *, prepared_id=None, imu_stream=
     streams, profile = _selected_streams(acquisition, imu_stream, include_reference)
     clocks = {clock["id"]: clock for clock in acquisition["clocks"]}
     inventory = {entry["path"]: entry for entry in acquisition["files"]}
+    application = None
+    if (calibration is not None or clock_mappings or dependency_acquisitions
+            or apply_imu_intrinsics is not False or imu_target_frame is not None):
+        application = validate_application_request(acquisition, calibration=calibration,
+            clock_mappings=clock_mappings, dependency_acquisitions=dependency_acquisitions,
+            apply_imu_intrinsics=apply_imu_intrinsics, imu_target_frame=imu_target_frame,
+            imu_stream=imu_stream, include_reference=include_reference, image_encoding=image_encoding)
+        request = application["request"]
+        calibration, clock_mappings, dependency_acquisitions = (
+            request["calibration"], request["clock_mappings"], request["dependency_acquisitions"])
+    method = application["method"] if application else METHOD
+    mapping_index = {(m["source_stream_id"], m["source_segment_id"]): m for m in clock_mappings}
+    rotation = next((t["rotation"] for t in calibration["transforms"] if t["target_frame"] == imu_target_frame
+                     and t["source_frame"] == next(s["frame_id"] for s in streams if s["kind"] == "imu")), None) if calibration and imu_target_frame else None
     prepared = {
         "format": "meridian-sensor-contract", "schema_version": 1,
-        "kind": "prepared_input", "id": prepared_id or f"prepared-{contract_sha256(acquisition)[:24]}",
-        "acquisition": _identity(acquisition), "calibration": None, "clock_mappings": [],
-        "method": dict(METHOD),
+        "kind": "prepared_input", "id": prepared_id or (application["prepared_id"] if application else f"prepared-{contract_sha256(acquisition)[:24]}"),
+        "acquisition": _identity(acquisition), "calibration": _identity(calibration) if calibration else None,
+        "clock_mappings": [_identity(m) for m in clock_mappings],
+        "method": dict(method),
         "selections": [{"stream_id": stream["id"], "segment_id": segment["id"],
                         "first_tick": segment["first_tick"], "last_tick": segment["last_tick"]}
                        for stream in streams for segment in stream["segments"]],
@@ -252,6 +246,9 @@ def prepare_package(source: Path, output: Path, *, prepared_id=None, imu_stream=
                 for raw in iter_stream_rows(source, stream, limits=limits):
                     row = list(raw)
                     row[2] = str(timestamp_to_ns(raw[2], source_unit))
+                    mapping = mapping_index.get((stream["id"], raw[1]))
+                    if mapping is not None:
+                        row[2] = str(apply_clock(int(row[2]), mapping))
                     if kind == "imu":
                         if imu["angular_velocity_unit"] != "rad/s":
                             row[3:6] = [repr(gyro_to_rad_s(float(v), imu["angular_velocity_unit"]))
@@ -260,6 +257,10 @@ def prepare_package(source: Path, output: Path, *, prepared_id=None, imu_stream=
                             row[6:9] = [repr(accel_to_m_s2(
                                 float(v), imu["specific_force_unit"],
                                 local_gravity_m_s2=imu["local_gravity_m_s2"])) for v in raw[6:9]]
+                        if apply_imu_intrinsics or rotation is not None:
+                            row[3:9] = [repr(v) for v in apply_imu(list(map(float, row[3:9])),
+                                intrinsics=calibration["imu"] if apply_imu_intrinsics else None,
+                                rotation=rotation)]
                     elif kind == "camera":
                         relative = (Path(stream["index_path"]).parent / raw[3]).as_posix()
                         target_relative = f"{branch}/{stream['id']}/images/{raw[0]}.png"
@@ -310,8 +311,25 @@ def prepare_package(source: Path, output: Path, *, prepared_id=None, imu_stream=
                               "measurement_semantics": stream["measurement_semantics"],
                               "image_encoding": (("mono8" if convert_image else stream["camera"]["encoding"])
                                                  if kind == "camera" else None)})
+        if application:
+            prepared["operations"] = application["operations"]
+            prepared["outputs"] = application["outputs"]
+            documents = ([('calibration.json', calibration)] if calibration else []) + [
+                (f"clock-{i:04d}.json", document) for i, document in enumerate(clock_mappings)] + [
+                (f"acquisition-{i:04d}.json", document) for i, document in enumerate(dependency_acquisitions)]
+            for name, document in documents:
+                relative = "evidence/" + name
+                encoded = (json.dumps(document, indent=2, sort_keys=True, ensure_ascii=True, allow_nan=False) + "\n").encode()
+                account(len(encoded))
+                target = output / relative
+                target.parent.mkdir(exist_ok=True)
+                with target.open("xb") as handle:
+                    handle.write(encoded)
+                prepared["files"].append({"path": relative, **file_identity(target), "role": "evidence"})
         prepared["files"].sort(key=lambda item: item["path"])
-        validate_bundle([acquisition, prepared])
+        records = {document["id"]: document for document in [acquisition, *dependency_acquisitions,
+                   *([calibration] if calibration else []), *clock_mappings, prepared]}
+        validate_bundle(list(records.values()))
         # Detect input changes while preparation was running, including sources
         # used by a decoder. Concurrent source mutation is not a supported mode.
         for relative, expected in inventory.items():
@@ -327,12 +345,19 @@ def prepare_package(source: Path, output: Path, *, prepared_id=None, imu_stream=
         report = {
             "format": "meridian-sensor-preparation-report", "schema_version": 1,
             "status": "accepted", "acquisition": _identity(acquisition),
-            "prepared_input": _identity(prepared), "method": dict(METHOD),
+            "prepared_input": _identity(prepared), "method": dict(method),
             "input_validation": result["report"],
             "streams": summaries, "image_conversions": conversion_evidence,
             "reference_preparation": "included" if any(s["kind"] == "reference_pose" for s in streams) else "absent",
             "execution_readiness": "not_assessed", "calibration_validity": "not_assessed",
         }
+        if application:
+            report["application"] = {"request_sha256": application["request_sha256"],
+                                     **application["assessment"]}
+            report["application"]["application_status"] = "completed"
+            for key in ("imu_intrinsics", "imu_frame_rotation"):
+                if report["application"][key] == "selected_for_application":
+                    report["application"][key] = "applied"
         _json(output / "preparation-report.json", report)
         return {"prepared_input": prepared, "report": report}
     except BaseException:
@@ -373,6 +398,11 @@ def main(argv=None) -> int:
             command.add_argument("--imu-stream")
             command.add_argument("--without-reference", action="store_true")
             command.add_argument("--image-encoding", choices=("preserve", "mono8"), default="preserve")
+            command.add_argument("--calibration", type=Path)
+            command.add_argument("--clock-mapping", type=Path, action="append", default=[])
+            command.add_argument("--dependency-acquisition", type=Path, action="append", default=[])
+            command.add_argument("--apply-imu-intrinsics", action="store_true")
+            command.add_argument("--imu-target-frame")
         elif name == "tumvi":
             command.add_argument("--id", dest="acquisition_id", required=True)
             command.add_argument("--sequence", required=True)
@@ -386,10 +416,17 @@ def main(argv=None) -> int:
         elif args.command == "package":
             report = import_package(args.source, args.output)
         elif args.command == "prepare":
+            from .sensor_package import _read_bytes
+            read_contract = lambda path: loads_contract(_read_bytes(path, DEFAULT_LIMITS.max_descriptor_bytes))
             report = prepare_package(args.source, args.output, prepared_id=args.prepared_id,
                                      imu_stream=args.imu_stream,
                                      include_reference=not args.without_reference,
-                                     image_encoding=args.image_encoding)["report"]
+                                     image_encoding=args.image_encoding,
+                                     calibration=read_contract(args.calibration) if args.calibration else None,
+                                     clock_mappings=[read_contract(path) for path in args.clock_mapping],
+                                     dependency_acquisitions=[read_contract(path) for path in args.dependency_acquisition],
+                                     apply_imu_intrinsics=args.apply_imu_intrinsics,
+                                     imu_target_frame=args.imu_target_frame)["report"]
         elif args.command == "tumvi":
             from .sensor_tumvi import adapt_tumvi
             acquisition = adapt_tumvi(args.source, args.output, acquisition_id=args.acquisition_id,

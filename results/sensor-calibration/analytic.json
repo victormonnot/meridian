@@ -1,0 +1,237 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-22",
+  "environment": "local_isolated_workspace",
+  "synthetic": true,
+  "method": {
+    "name": "meridian-sensor-preparation",
+    "version": "2"
+  },
+  "generator": "scripts/make-calibration-fixture.py",
+  "packages": {
+    "replay": {
+      "archive_size_bytes": 9068,
+      "archive_sha256": "d795a9537d6c0a7b014865788ceb89d3791ed4e26756b86d2d1a1d7f9dad0979",
+      "acquisition_contract_sha256": "666f8d9b7451e3f11a35696ebde580e2ecf34cbed4d66f224737e1378d412e22",
+      "browser_upload_identity_verified": true
+    },
+    "source": {
+      "archive_size_bytes": 9068,
+      "archive_sha256": "282271190381d692e82c56f672df2bd30de6c1b7f5ffd8a8c697c013036874a3",
+      "acquisition_contract_sha256": "911f79bdbae96f63e1028889edeac8ffa5883a571fbee9bd55c5aa93afeab1bb",
+      "browser_upload_identity_verified": true
+    },
+    "validation": {
+      "archive_size_bytes": 9076,
+      "archive_sha256": "d3e216df9b66a9f3f589bd878b52c4d178d41bdadb1f5811beafde89d235a3d7",
+      "acquisition_contract_sha256": "1eba4f7b18e04258e0c4e1765fa221c30ffa33d5e3c798c68a2202cc13733d9c",
+      "browser_upload_identity_verified": true
+    }
+  },
+  "supplied_parameters": {
+    "gyro_bias_rad_s": [
+      0.1,
+      0.2,
+      0.3
+    ],
+    "accel_bias_m_s2": [
+      1,
+      2,
+      3
+    ],
+    "gyro_scale": [
+      2,
+      3,
+      4
+    ],
+    "accel_scale": [
+      0.5,
+      2,
+      1
+    ],
+    "rotation_target_source": [
+      [
+        0,
+        -1,
+        0
+      ],
+      [
+        1,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        1
+      ]
+    ],
+    "translation_m": [
+      0,
+      0,
+      0
+    ],
+    "alternative_gyro_bias_x_rad_s": 0.6,
+    "clock_mapping_purpose": "clock_domain_mapping",
+    "offset_ns": "2"
+  },
+  "application_order": [
+    "retain source SI measurements",
+    "subtract supplied bias",
+    "apply diagonal gain",
+    "direct zero-translation rotation"
+  ],
+  "independent_expected_calculation": "The fixture generator directly evaluates the componentwise formula and quarter-turn coordinates (-y,x,z), without calling the preparation or rotation helpers.",
+  "csv_columns": [
+    "sample_id",
+    "segment_id",
+    "timestamp_ns",
+    "wx_rad_s",
+    "wy_rad_s",
+    "wz_rad_s",
+    "fx_m_s2",
+    "fy_m_s2",
+    "fz_m_s2"
+  ],
+  "corrected_revisions": [
+    {
+      "candidate": "a",
+      "expected_imu_csv": {
+        "sha256": "e5d933a8691379cfafb632510a64a27386ad876816ed4e6fe925ff77f866f529",
+        "size_bytes": 254
+      },
+      "observed_imu_csv": {
+        "sha256": "e5d933a8691379cfafb632510a64a27386ad876816ed4e6fe925ff77f866f529",
+        "size_bytes": 254
+      },
+      "sample_count": 3,
+      "exact_bytes_match": true,
+      "rows_match_independent_expected": true,
+      "expected_rows": [
+        [
+          "0",
+          "segment0",
+          "1520530308194447628",
+          "-5.4",
+          "1.8",
+          "10.8",
+          "-6.0",
+          "1.5",
+          "3.0"
+        ],
+        [
+          "1",
+          "segment0",
+          "1520530308224447628",
+          "0.6000000000000001",
+          "-2.2",
+          "6.8",
+          "0.0",
+          "0.0",
+          "0.0"
+        ],
+        [
+          "2",
+          "segment0",
+          "1520530308254447628",
+          "-2.4000000000000004",
+          "-0.2",
+          "-5.2",
+          "-4.0",
+          "-1.5",
+          "-3.0"
+        ]
+      ],
+      "output_clock_id": "camera-clock",
+      "output_frame_id": "imu-corrected",
+      "source_contract_sha256": "666f8d9b7451e3f11a35696ebde580e2ecf34cbed4d66f224737e1378d412e22",
+      "calibration": {
+        "contract_sha256": "95b71c0e400cbd7c50773900ebc601ca98c64ba84cccba635f22184e9af632dd",
+        "descriptor_sha256": "e1ce00f44fbb8fd47cf5a3aec84b570b2358911a64a05e3f153c61ccf112b118",
+        "descriptor_size_bytes": 3444
+      }
+    },
+    {
+      "candidate": "b",
+      "expected_imu_csv": {
+        "sha256": "92dba61a567e326ccdf0b3be6106319cecd710087508325612da5fd0200feca0",
+        "size_bytes": 254
+      },
+      "observed_imu_csv": {
+        "sha256": "92dba61a567e326ccdf0b3be6106319cecd710087508325612da5fd0200feca0",
+        "size_bytes": 254
+      },
+      "sample_count": 3,
+      "exact_bytes_match": true,
+      "rows_match_independent_expected": true,
+      "expected_rows": [
+        [
+          "0",
+          "segment0",
+          "1520530308194447628",
+          "-5.4",
+          "0.8",
+          "10.8",
+          "-6.0",
+          "1.5",
+          "3.0"
+        ],
+        [
+          "1",
+          "segment0",
+          "1520530308224447628",
+          "0.6000000000000001",
+          "-3.2",
+          "6.8",
+          "0.0",
+          "0.0",
+          "0.0"
+        ],
+        [
+          "2",
+          "segment0",
+          "1520530308254447628",
+          "-2.4000000000000004",
+          "-1.2",
+          "-5.2",
+          "-4.0",
+          "-1.5",
+          "-3.0"
+        ]
+      ],
+      "output_clock_id": "camera-clock",
+      "output_frame_id": "imu-corrected",
+      "source_contract_sha256": "666f8d9b7451e3f11a35696ebde580e2ecf34cbed4d66f224737e1378d412e22",
+      "calibration": {
+        "contract_sha256": "43eb05efb8600008a2fd0ebfbe5769459a2b2c9e43044b84adbe46980d3380c7",
+        "descriptor_sha256": "826c81463d63a683e7245ea59b4d20a8c8d584202f40be7b4115d72193b9e450",
+        "descriptor_size_bytes": 3456
+      }
+    }
+  ],
+  "verified_behavior": {
+    "selection_only_applies_no_correction": true,
+    "changed_candidate_preserves_prior_revision": true,
+    "original_sensor_inspection_unchanged": true,
+    "timestamp_above_2_pow_53_preserved_exactly": true,
+    "overlapping_domain_and_sensor_offset_rejected": true,
+    "invalid_descriptor_cases": [
+      "duplicate_json_key",
+      "improper_rotation",
+      "resolution_mismatch",
+      "unsupported_noise_unit"
+    ]
+  },
+  "limitations": [
+    "All observations and supplied parameters are synthetic; no parameter fitting or physical calibration validation is claimed.",
+    "Distinct synthetic source, replay and reported-validation descriptors exercise provenance, not independent physical sessions.",
+    "The exact corrected CSV comparisons cover three IMU samples per candidate in the qualified environment.",
+    "Camera geometry parameters are retained without image rectification; noise parameters are retained without estimator consumption.",
+    "No estimator, flight execution, held-out recording or clock-drift estimation is used."
+  ],
+  "clock_mapping": {
+    "contract_sha256": "bfee549627b665db6042979e0c3fdbaf924ad3245e18c8b14c36fd896f1c81b4",
+    "descriptor_sha256": "28df9af916b2c9e8980f092c01696356878c60c6754fbccec3dd7ea65d504619",
+    "descriptor_size_bytes": 797
+  }
+}

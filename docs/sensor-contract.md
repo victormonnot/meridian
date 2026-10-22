@@ -267,7 +267,10 @@ records. Their representations are deliberately limited:
 
 This record describes a preparation, not an executable shell/YAML/URL recipe.
 Increment 2.2 executes a bounded subset: SI/ns conversion and optional image
-conversion. Calibration, frame and clock corrections remain future work.
+conversion. [Method version 2](sensor-calibration.md) additionally executes
+explicit supplied IMU calibration, direct zero-translation IMU rotations and
+one constant clock correction per selected source segment. The contract schema
+remains version 1; stricter application eligibility is checked by the executor.
 Image conversion records the existing OpenCV convention; its actual bytes require the identified implementation,
 including rounding/saturation behavior. Exact duplicate declarations and
 repeated conversion of the same measurement quantity are rejected. The bounded

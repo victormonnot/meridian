@@ -158,16 +158,22 @@ open deleted data. A download already holding an open file descriptor may finish
 deletion cannot revoke bytes already delivered to a client. Descriptor/report
 metadata remain traceable until the project itself is deleted.
 
-This increment creates no calibration or experiment revision that depends on a
-private acquisition. Existing public-reference experiments, retained results and
+[Supplied calibration and time mappings](sensor-calibration.md) now create
+separate immutable input revisions. Source-file deletion is refused while a
+queued or preparing revision requires those files. Completed revisions own their
+prepared payloads and remain available after source-file deletion; artifact
+bindings retain the source metadata. Project deletion also refuses active input
+preparations and cleans completed revision files before deleting their metadata.
+Existing public-reference experiments, retained results and
 downloaded complete experiment packages remain unchanged. Future private-input
 replay must require an available exact input version; a retained descriptor alone
 is insufficient. Copying a complete package outside the service preserves that
 copy independently of later service-side deletion.
 
 The [backup tool](workspace-backup.md) captures the database, retained originals,
-prepared snapshots and job artifacts together while writers are stopped. It
-refuses active imports and incomplete transfers. Restoration checks both
+prepared snapshots, calibration/time artifacts, input revisions and job artifacts
+together while writers are stopped. It refuses active imports, input preparations
+and incomplete transfers. Restoration checks both
 database fingerprints and every retained file identity before clearing copied
 sessions. Operator backups may contain subsequently deleted inputs until those
 copies expire; the manual rehearsal does not establish scheduled backups or a

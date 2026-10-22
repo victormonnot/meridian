@@ -9,6 +9,8 @@ import { acquisitionRoute, renderAcquisitionList, renderAcquisitionDetail, mount
 import './workspace-acquisitions.css';
 import { inspectionShell, mountAcquisitionInspection } from './workspace-acquisition-inspection.js';
 import './workspace-acquisition-inspection.css';
+import { calibrationShell, mountCalibration } from './workspace-calibration.js';
+import './workspace-calibration.css';
 
 initializeTheme();
 const api = createApiClient();
@@ -36,6 +38,7 @@ let exportView;
 let acquisitionsView;
 let acquisitionsMount;
 let acquisitionInspection;
+let calibrationMount;
 const submissions = new Map();
 const comparisonSubmissions = new Map();
 
@@ -54,6 +57,7 @@ function announce(message = '', isError = false) {
 }
 
 function setSession(value) {
+  calibrationMount?.destroy();
   acquisitionInspection?.destroy();
   acquisitionsMount?.destroy();
   acquisitionsView = null;
@@ -78,6 +82,7 @@ function setSession(value) {
 }
 
 function removePrivateState() {
+  calibrationMount?.destroy();
   acquisitionInspection?.destroy();
   acquisitionsMount?.destroy();
   acquisitionsView = null;
@@ -240,7 +245,9 @@ function renderProject(project, section) {
   const tabs = [['data', 'Data'], ['experiments', 'Experiments'], ['results', 'Results'], ['settings', 'Settings']];
   const dataset = datasets.find(item => item.id === project.dataset_id);
   let content;
-  if (section === 'data') content = acquisitionsView?.inspection
+  if (section === 'data') content = acquisitionsView?.calibration
+    ? calibrationShell(acquisitionsView.acquisition)
+    : acquisitionsView?.inspection
     ? inspectionShell(acquisitionsView.acquisition)
     : `<div id="acquisitions-content">${acquisitionsView?.acquisition ? renderAcquisitionDetail(project, acquisitionsView) : renderAcquisitionList(project, acquisitionsView || {})}</div>${acquisitionsView?.acquisition ? '' : renderDataset(dataset)}`;
   else if (section === 'settings') content = renderSettings(project);
@@ -257,7 +264,10 @@ function renderProject(project, section) {
   if (section === 'data' && acquisitionsView?.inspection) acquisitionInspection = mountAcquisitionInspection(
     app.querySelector('#acquisition-inspection-content'), { api, acquisition: acquisitionsView.acquisition,
       descriptor: acquisitionsView.descriptor, onSessionExpired: expireSession });
-  if (section === 'data' && !acquisitionsView?.inspection) acquisitionsMount = mountAcquisitions(app.querySelector('#acquisitions-content'), {
+  if (section === 'data' && acquisitionsView?.calibration) calibrationMount = mountCalibration(
+    app.querySelector('#calibration-content'), { api, project, acquisition: acquisitionsView.acquisition,
+      descriptor: acquisitionsView.descriptor, revisionId: acquisitionsView.inputRevisionId, onSessionExpired: expireSession });
+  if (section === 'data' && !acquisitionsView?.inspection && !acquisitionsView?.calibration) acquisitionsMount = mountAcquisitions(app.querySelector('#acquisitions-content'), {
     api, project, view: acquisitionsView || { acquisitions: [] }, onSessionExpired: expireSession,
     onNavigate: acquisitionId => navigateTo(acquisitionRoute(project.id, acquisitionId)),
   });
@@ -288,6 +298,8 @@ async function renderRoute() {
   exportView?.destroy();
   acquisitionsMount?.destroy();
   acquisitionInspection?.destroy();
+  calibrationMount?.destroy();
+  calibrationMount = null;
   acquisitionInspection = null;
   acquisitionsMount = null;
   acquisitionsView = null;
@@ -316,6 +328,8 @@ async function renderRoute() {
         acquisitionsView = await api.request(`/projects/${route.id}/acquisitions${route.acquisitionId ? `/${route.acquisitionId}` : ''}`, { signal: controller.signal });
         if (id !== navigation) return;
         acquisitionsView.inspection = Boolean(route.inspection);
+        acquisitionsView.calibration = Boolean(route.calibration);
+        acquisitionsView.inputRevisionId = route.inputRevisionId;
         if (acquisitionsView.acquisition?.state === 'ready' && acquisitionsView.acquisition.files_available) {
           const metadata = await api.request(`/projects/${route.id}/acquisitions/${route.acquisitionId}/descriptor`, { signal: controller.signal });
           if (id !== navigation) return;

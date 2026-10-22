@@ -14,7 +14,7 @@ from meridian.vio_job_control import AttemptCancelled, AttemptLeaseLost
 from . import acquisition_queue as queue
 from . import acquisition_storage as storage
 from .acquisition_execution import ImportFailure, cleanup_import, execute_import, verify_scratch
-from .models import Acquisition
+from .models import Acquisition, InputRevision
 
 
 FAILURES = {
@@ -56,8 +56,9 @@ def validate_storage():
 
 
 class LeaseGuard:
-    def __init__(self, acquisition_id, attempt_id, shutdown):
+    def __init__(self, acquisition_id, attempt_id, shutdown, *, heartbeat=None):
         self.acquisition_id, self.attempt_id, self.shutdown = acquisition_id, attempt_id, shutdown
+        self.heartbeat = heartbeat
         self.lock, self.stop, self.wake = threading.RLock(), threading.Event(), threading.Event()
         self.reason, self.phase, self.deadline = "continue", "validating", 0.0
         self.attempt_deadline = time.monotonic() + 900
@@ -70,7 +71,7 @@ class LeaseGuard:
             phase = self.phase
         started = time.monotonic()
         try:
-            reason = queue.heartbeat_import(self.acquisition_id, self.attempt_id, phase)
+            reason = (self.heartbeat or queue.heartbeat_import)(self.acquisition_id, self.attempt_id, phase)
         except Exception:
             reason = "lost"
         with self.lock:
@@ -102,7 +103,7 @@ class LeaseGuard:
 
     def checkpoint(self, phase="validating", progress=None):
         with self.lock:
-            if phase in {"validating", "publishing"} and phase != self.phase:
+            if phase in {"validating", "preparing", "publishing"} and phase != self.phase:
                 self.phase = phase
                 self.wake.set()
             if self.shutdown.is_set() or self.reason == "lost" or time.monotonic() >= self.deadline:
@@ -175,7 +176,9 @@ def collect_scratch():
         except ValueError:
             continue
         if (str(attempt) != path.name or not path.is_dir() or path.is_symlink()
-                or Acquisition.objects.filter(current_attempt=attempt, state="validating").exists()):
+                or Acquisition.objects.filter(current_attempt=attempt, state="validating").exists()
+                or InputRevision.objects.filter(current_attempt=attempt, state="preparing").exists()):
             continue
-        if cleanup_import(path.name):
+        from .revision_execution import cleanup_revision
+        if cleanup_import(path.name) and cleanup_revision(path.name):
             shutil.rmtree(path)

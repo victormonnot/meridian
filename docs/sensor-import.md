@@ -206,8 +206,10 @@ an explicit `--imu-stream` choice. All selected segments are retained. Other
 topologies remain importable when their declared streams are supported, but
 cannot be prepared into these profiles.
 
-Applying a supplied calibration, changing frames or correcting clocks belongs
-to 2.5. Prepared candidates cannot be submitted to the existing hosted runner.
+[Supplied calibration application](sensor-calibration.md) extends preparation in
+2.5 with explicit IMU corrections, supported frame rotation and constant clock
+mappings. Selected artifacts use method version 2; the unselected path retains
+version 1. Prepared candidates cannot be submitted to the existing hosted runner.
 
 ## Resource limits and evidence
 

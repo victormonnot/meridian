@@ -10,7 +10,7 @@ from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 
-from .models import Acquisition, ComputeQueue, Job, JobAttempt
+from .models import Acquisition, ComputeQueue, Job, JobAttempt, InputRevision
 
 ACTIVE = ("queued", "running", "evaluating")
 RUNNING = ("running", "evaluating")
@@ -75,7 +75,8 @@ def claim(worker_id):
     with transaction.atomic():
         queue_lock()
         if (not enabled() or Job.objects.filter(state__in=RUNNING).exists()
-                or Acquisition.objects.filter(state="validating", current_attempt__isnull=False).exists()):
+                or Acquisition.objects.filter(state="validating", current_attempt__isnull=False).exists()
+                or InputRevision.objects.filter(state="preparing", current_attempt__isnull=False).exists()):
             return None
         job = Job.objects.filter(state="queued").order_by("created_at", "id").first()
         if job is None:

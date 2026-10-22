@@ -220,6 +220,7 @@ export function renderAcquisitionDetail(project, view) {
       ${acquisition.expires_at && acquisition.state === 'receiving' ? detail('Resume before', e(new Date(acquisition.expires_at).toLocaleString('en'))) : ''}
     </dl>
     ${ready ? `<div class="acquisition-downloads"><a class="button primary" href="${acquisitionRoute(project.id, acquisition.id)}/inspection">Inspect sensor data</a><a class="button" href="/api/v1${path}/original" download>Download original archive</a><button type="button" data-acquisition-action="descriptor">Download descriptor</button><button type="button" data-acquisition-action="report">Download import report</button></div>` : ''}
+    ${acquisition.state === 'ready' ? `<p><a class="button" href="${acquisitionRoute(project.id, acquisition.id)}/calibration">Calibration &amp; timing</a></p>` : ''}
     ${ready ? basicMetadata(view.descriptor) : ''}
     <div class="acquisition-actions">${active && !acquisition.cancel_requested ? '<button type="button" class="danger" data-acquisition-action="cancel">Cancel acquisition</button>' : ''}
       ${!active && !deleted ? '<button type="button" class="danger" data-acquisition-action="delete">Delete acquisition</button>' : ''}

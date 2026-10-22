@@ -1,0 +1,187 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-22",
+  "scope": "Supplied calibration and constant time-mapping increment 2.5",
+  "regression": {
+    "python_and_native_parity": {
+      "passed": 1801
+    },
+    "ctest": {
+      "passed": 1,
+      "failed": 0,
+      "native_assertions_passed": 22294
+    },
+    "backend_exact_api_image": {
+      "passed": 242,
+      "image_id": "sha256:83b4791b3da15111f84d753f9d6983f1b0745a504c1c59cf2992725bb2a7d9a6",
+      "runtime_files_verified": 77,
+      "pillow_available": false,
+      "numpy_available": false,
+      "database": "Dedicated PostgreSQL 17.11 test database",
+      "test_support": "Read-only tests and fixtures plus two standard-library orchestration exception classes.",
+      "temporary_storage": "Disk-backed test directory; production API tmpfs is not used for storage-quota tests."
+    },
+    "web": {
+      "passed": 284,
+      "failed": 0,
+      "production_build_passed": true
+    }
+  },
+  "browser": [
+    {
+      "environment": "local",
+      "calibration_checks_passed": 64,
+      "workspace_checks_passed": 49,
+      "uncaught_page_errors": 0,
+      "csp_errors": 0,
+      "workspace_http_error_console_messages": 16,
+      "calibration_source_synthetic": true
+    },
+    {
+      "environment": "hosted",
+      "calibration_checks_passed": 65,
+      "workspace_checks_passed": 49,
+      "uncaught_page_errors": 0,
+      "csp_errors": 0,
+      "workspace_http_error_console_messages": 16,
+      "calibration_source_synthetic": true
+    }
+  ],
+  "mobile_followup": {
+    "viewport_width_px": 390,
+    "targeted_layout_check_passed": true,
+    "horizontal_overflow": false,
+    "hosted_full_browser_includes_fix": true,
+    "hosted_screenshot_review_checks": 3,
+    "hosted_screenshot_review_issues": 0
+  },
+  "analytic": {
+    "details": "analytic.json",
+    "corrected_candidates": 2,
+    "imu_samples_per_candidate": 3,
+    "exact_expected_csv_matches": 2,
+    "synthetic": true
+  },
+  "fault_operations": {
+    "details": "operations.json",
+    "environment": "local",
+    "checks_passed": 18,
+    "observations": 33,
+    "maximum_active_global_slots": 1,
+    "vio_attempts_created": 0,
+    "recovery_attempts": 2,
+    "recovered_files_verified": 12,
+    "importer_restored_healthy": true
+  },
+  "hosted_release": {
+    "allowlisted_source_files_verified": 137,
+    "bundle_sha256": "6889591687b8c93d751f8b7bb23b9503202fe25a50680b580c6f8dfe2c96d38c",
+    "bundle_bytes": 1895101,
+    "runtime_source_files_verified": {
+      "api": 44,
+      "worker": 48,
+      "importer": 48
+    },
+    "healthy_services": 5,
+    "database_container_image_mounts_and_start_time_preserved": true,
+    "import_scratch": {
+      "filesystem": "ext4",
+      "capacity_bytes": 8438378496,
+      "mount_enabled": true,
+      "mount_active": true
+    }
+  },
+  "backup_and_restore": [
+    {
+      "environment": "local",
+      "backup_schema_version": 3,
+      "backup_files": 179,
+      "backup_payload_bytes": 268833008,
+      "backup_manifest_sha256": "9801a3d07b341c78d18c91744ed10a09609878c4fcb80b91d1dcb890d028f9f0",
+      "write_pause_seconds": 11.211027,
+      "source_database_size_bytes": 10278579,
+      "retained_acquisitions": 4,
+      "retained_input_revisions": 3,
+      "retained_jobs": 0,
+      "database_metadata_fingerprints_verified": true,
+      "retained_files_verified": true,
+      "copied_sessions_cleared": 18,
+      "copied_sessions_present_before_login": 0,
+      "restored_database_network": "none",
+      "restored_database_storage_mib": 256,
+      "restored_database_memory_mib": 512,
+      "ordinary_application_role": true,
+      "access_checks_passed": 159,
+      "revision_files_verified_by_access_checks": 30,
+      "input_revisions_verified_by_access_checks": 2,
+      "sensor_artifacts_verified_by_access_checks": 4,
+      "original_archive_bytes_verified": 9068,
+      "original_archive_sha256_verified": "d795a9537d6c0a7b014865788ceb89d3791ed4e26756b86d2d1a1d7f9dad0979",
+      "prepared_csv_files_verified": 4,
+      "prepared_csv_bytes_verified": 536,
+      "prepared_csv_inventory_sha256": "e102180ef9113e79b1defc1f95e309f9fa098d6361536ecb2568fe79b9a0aec7",
+      "source_credentials_modified": false,
+      "access_method": "Django in-process client with real password and CSRF authentication in the pinned API image; isolated restored PostgreSQL network namespace.",
+      "api_image_id": "sha256:83b4791b3da15111f84d753f9d6983f1b0745a504c1c59cf2992725bb2a7d9a6"
+    },
+    {
+      "environment": "hosted",
+      "backup_schema_version": 3,
+      "backup_files": 132,
+      "backup_payload_bytes": 313612,
+      "backup_manifest_sha256": "1eb842bf267c2d3d8165eb80cccd6be0d4ab5d75c7df5dde006a423240dd36c4",
+      "write_pause_seconds": 23.665557,
+      "source_database_size_bytes": 10155699,
+      "retained_acquisitions": 3,
+      "retained_input_revisions": 2,
+      "retained_jobs": 0,
+      "database_metadata_fingerprints_verified": true,
+      "retained_files_verified": true,
+      "copied_sessions_cleared": 3,
+      "copied_sessions_present_before_login": 0,
+      "restored_database_network": "none",
+      "restored_database_storage_mib": 256,
+      "restored_database_memory_mib": 512,
+      "ordinary_application_role": true,
+      "access_checks_passed": 159,
+      "revision_files_verified_by_access_checks": 30,
+      "input_revisions_verified_by_access_checks": 2,
+      "sensor_artifacts_verified_by_access_checks": 4,
+      "original_archive_bytes_verified": 9068,
+      "original_archive_sha256_verified": "d795a9537d6c0a7b014865788ceb89d3791ed4e26756b86d2d1a1d7f9dad0979",
+      "prepared_csv_files_verified": 4,
+      "prepared_csv_bytes_verified": 536,
+      "prepared_csv_inventory_sha256": "e102180ef9113e79b1defc1f95e309f9fa098d6361536ecb2568fe79b9a0aec7",
+      "source_credentials_modified": false,
+      "access_method": "Django in-process client with real password and CSRF authentication in the pinned API image; isolated restored PostgreSQL network namespace.",
+      "api_image_id": "sha256:13ea0729dfd88c10fd26ccf771a650baf1e1f7c9fbd383403d9496a768c08ff1"
+    }
+  ],
+  "offserver_backup_transfer": {
+    "authenticated_ssh_with_pinned_hosts": true,
+    "manifest_identity_preserved": true,
+    "snapshot_verified": true,
+    "archive_sha256": "5467b3633ca58dfa60fb17c41eb5c65e99070c96e9f2690fb7545b84b226e059",
+    "archive_bytes": 808960
+  },
+  "api_image_transfer": {
+    "source_image_id": "sha256:da7522989664f7cff5cc01a026cf872311569b7d53467ddc1358787a23303b86",
+    "destination_image_id": "sha256:13ea0729dfd88c10fd26ccf771a650baf1e1f7c9fbd383403d9496a768c08ff1",
+    "architecture": "amd64",
+    "os": "linux",
+    "config_and_rootfs_layer_ids_equal": true,
+    "archive_sha256": "df0c09856a5dd4a0df38fb2215fe983df82df51c559018f6fb282ff71a185d0a",
+    "archive_bytes": 63094272
+  },
+  "limitations": [
+    "Calibration observations and supplied parameters are synthetic. No calibration fitting, independent physical validation, new VIO execution, held-out evaluation or flight result is claimed.",
+    "Backup snapshots contain observed small databases and synthetic retained inputs; they do not qualify restoration at full storage quota.",
+    "Restored access uses the Django in-process client and pinned API image, not a restored browser or TLS deployment. The disposable API reads the restored acquisition tree read-only using the operator filesystem identity.",
+    "The isolated restore clears copied sessions and modifies credentials only in restored copies; source credentials are unchanged.",
+    "Local importer faults are operator induced. Polling bounds observed concurrency, not every instant of execution.",
+    "Source and destination API image identifiers can differ between containerd OCI and classic Docker representations; configuration and every rootfs layer identity were compared exactly.",
+    "The local full browser run preceded the final mobile history layout adjustment; the targeted local check and full hosted browser run verify that adjustment.",
+    "Workspace browser negative cases produce HTTP-error console messages; no uncaught page exception or CSP error was observed.",
+    "No automatic backup scheduler, retention service or embedded execution is qualified."
+  ]
+}

@@ -99,8 +99,11 @@ def container_command(source, staging, *, image, attempt_id):
     ]
 
 
-def supervise(command, *, attempt_id, checkpoint, timeout=TIMEOUT_SECONDS):
+def supervise(command, *, attempt_id, checkpoint, timeout=TIMEOUT_SECONDS,
+              name_for_attempt=None, cleanup=None):
     """Drain bounded logs while wall time, cancellation and lease expiry remain live."""
+    name_for_attempt = name_for_attempt or container_name
+    cleanup = cleanup or cleanup_import
     process, captured, started = None, io.BytesIO(), time.monotonic()
     try:
         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -125,7 +128,7 @@ def supervise(command, *, attempt_id, checkpoint, timeout=TIMEOUT_SECONDS):
             code = process.wait(timeout=5)
         checkpoint("validating", {})
         inspected = subprocess.run(["docker", "inspect", "--format", "{{json .State}}",
-                                    container_name(attempt_id)], check=True, capture_output=True,
+                                    name_for_attempt(attempt_id)], check=True, capture_output=True,
                                    text=True, timeout=15)
         if json.loads(inspected.stdout).get("OOMKilled") or code in {137, 152, 153}:
             raise ImportFailure("resource_exhaustion")
@@ -133,7 +136,7 @@ def supervise(command, *, attempt_id, checkpoint, timeout=TIMEOUT_SECONDS):
             raise ImportFailure("invalid_package" if code == 2 else "infrastructure_failure")
     finally:
         # The worker separately confirms cleanup before releasing any lease.
-        cleanup_import(attempt_id)
+        cleanup(attempt_id)
         if process is not None:
             try:
                 process.wait(timeout=5)

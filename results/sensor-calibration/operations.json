@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-22",
+  "environment": "local_isolated_workspace",
+  "synthetic": true,
+  "passed": true,
+  "checks_passed": 18,
+  "worker_image_id": "sha256:fedacaf51f35c8d64ca8563056c28ec3285bcf0c270a1fedb7c43bc6908cf0f1",
+  "fixture": {
+    "size_bytes": 134227229,
+    "sha256": "ee5ead7adbdc383c69c67ab1d3fd85d6ccfd712c729662d0278f195ed74c9e6d",
+    "padding_bytes": 134217728
+  },
+  "operation": {
+    "purpose": "clock_domain_mapping",
+    "offset_ns": "2",
+    "imu_intrinsics_applied": false,
+    "frame_transform_applied": false
+  },
+  "revision_reservation": {
+    "max_bytes": 2147483648,
+    "max_files_including_publication_metadata": 30000
+  },
+  "running_cancellation": {
+    "fault_window": "exact owned sandbox paused after its attempt started",
+    "terminal_state": "cancelled",
+    "attempt_count": 1,
+    "paused_sandbox_removed": true,
+    "visible_publication_count": 0,
+    "reserved_bytes_after_cleanup": 0,
+    "reserved_files_after_cleanup": 0
+  },
+  "queued_exclusion": {
+    "terminal_state": "cancelled",
+    "attempt_count": 0,
+    "held_queued_while_other_revision_active": true,
+    "reservation_released_after_idle_cleanup": true
+  },
+  "importer_restart": {
+    "fault": "SIGKILL of the importer while its owned sandbox was paused",
+    "terminal_state": "ready",
+    "attempt_count": 2,
+    "old_child_absent_when_retry_observed": true,
+    "only_second_attempt_published": true,
+    "publication_count": 1,
+    "downloaded_files_verified": 12,
+    "verification": "Authenticated download bytes and SHA-256 match every manifest entry.",
+    "retained_bytes_including_publication_metadata": 19518,
+    "retained_files_including_publication_metadata": 13,
+    "importer_release_image_unchanged": true
+  },
+  "concurrency_observations": {
+    "count": 33,
+    "maximum_active_global_slots": 1,
+    "maximum_running_revision_children": 1,
+    "vio_attempts_created": 0
+  },
+  "preservation": {
+    "source_files_descriptor_manifest_and_reservation_unchanged": true,
+    "prior_tracked_database_records_unchanged": true,
+    "tracked_record_types": [
+      "users",
+      "projects",
+      "acquisitions",
+      "input_revisions",
+      "sensor_artifacts",
+      "jobs",
+      "job_attempts"
+    ]
+  },
+  "restored_importer_healthy": true,
+  "cleanup_error_count": 0,
+  "limitations": [
+    "Faults are operator induced in the local isolated stack; no spontaneous failure or production fault was tested.",
+    "Polling observations bound the observed concurrency, not every instant of execution.",
+    "The 128 MiB synthetic original-file padding creates an observable processing window; it is not sensor evidence or a throughput benchmark.",
+    "This run verifies constant-clock revision lifecycle behavior; numerical calibration application is qualified separately in analytic.json.",
+    "No estimator, calibration fitting, independent physical calibration, held-out recording or flight execution is used."
+  ]
+}

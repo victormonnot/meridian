@@ -29,6 +29,8 @@
 !src/meridian/sensor_import.py
 !src/meridian/sensor_hosted_import.py
 !src/meridian/sensor_inspection.py
+!src/meridian/sensor_calibration.py
+!src/meridian/sensor_hosted_revision.py
 !integrations/
 !integrations/openvins/
 !integrations/openvins/Dockerfile
