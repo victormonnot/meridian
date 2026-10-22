@@ -22,7 +22,7 @@ The interface distinguishes:
 | Import validity | The supported package passed its structural and payload checks. |
 | Inspection availability | This immutable version has a complete inspection artifact. |
 | Calibration suitability | Not assessed by this method. |
-| Estimator compatibility | Not assessed; private-input VIO remains a later increment. |
+| Estimator compatibility | Not assessed by inspection; [private-input VIO](private-vio.md) checks compatibility separately. |
 | Reference support | Measured separately at camera timestamps, when clocks are comparable. |
 | Estimate support | Not generated; an input inspection has no estimator output. |
 

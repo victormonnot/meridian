@@ -1,17 +1,14 @@
-import { select, scaleLinear, axisBottom, axisLeft, line, extent } from 'd3';
-import { finite, plotSegments, supportIntervals } from './workspace-investigation-data.js';
+import { select, scaleLinear, axisBottom, axisLeft, line } from 'd3';
+import { plotSegments, supportIntervals, investigationPresentation, finitePlotDomain } from './workspace-investigation-data.js';
 
 const dimensions = { width: 600, height: 210, left: 55, right: 16, top: 18, bottom: 32 };
 const series = (label, className, value, angular = false) => ({ label, className, value, angular });
-const safeExtent = values => {
-  const [lo, hi] = extent(values.filter(finite));
-  if (lo === undefined) return [-1, 1];
-  const pad = Math.max((hi - lo) * 0.08, Math.abs(hi) * 0.01, 0.01);
-  return [lo - pad, hi + pad];
-};
 const pathLine = line().x(point => point[0]).y(point => point[1]);
 
 export function createInvestigationPlots(container, data, onSelect) {
+  const presentation = investigationPresentation(data);
+  const estimate = frame => frame[presentation.poseKey];
+  const reference = frame => presentation.showReference ? frame.reference : null;
   let interval = [0, data.frames.length - 1];
   let cursor = 0;
   let markers = [];
@@ -38,28 +35,29 @@ export function createInvestigationPlots(container, data, onSelect) {
     for (const item of entries) legend.append('span').attr('class', item.className).text(item.label);
   }
   function buildProjection(parent, rows, a, b, axisNames) {
-    const { node, svg } = chart(parent, `${axisNames[0]}–${axisNames[1]} trajectory`, 'Reference world · m · equal axis scale');
+    const { node, svg } = chart(parent, `${axisNames[0]}–${axisNames[1]} trajectory`, `${presentation.worldLabel} · m · equal axis scale`);
     const width = Math.max(260, node.node().clientWidth - 28);
     const height = 260;
     svg.attr('viewBox', `0 0 ${width} ${height}`);
-    const positions = rows.flatMap(frame => [frame.estimate?.position_m, frame.reference?.position_m].filter(Boolean));
-    const xe = safeExtent(positions.map(p => p[a]));
-    const ye = safeExtent(positions.map(p => p[b]));
+    const positions = rows.flatMap(frame => [estimate(frame)?.position_m, reference(frame)?.position_m].filter(Boolean));
+    const xe = finitePlotDomain(positions.map(p => p[a]));
+    const ye = finitePlotDomain(positions.map(p => p[b]));
+    if (!xe || !ye) { node.append('p').text('Values exceed the supported display range. Exact observations remain in the retained evidence.'); return; }
     const plotWidth = width - dimensions.left - dimensions.right;
     const plotHeight = height - dimensions.top - dimensions.bottom;
     const unit = Math.max((xe[1] - xe[0]) / plotWidth, (ye[1] - ye[0]) / plotHeight);
-    const xc = (xe[0] + xe[1]) / 2;
-    const yc = (ye[0] + ye[1]) / 2;
+    const xc = xe[0] / 2 + xe[1] / 2;
+    const yc = ye[0] / 2 + ye[1] / 2;
     const x = scaleLinear().domain([xc - unit * plotWidth / 2, xc + unit * plotWidth / 2]).range([dimensions.left, width - dimensions.right]);
     const y = scaleLinear().domain([yc - unit * plotHeight / 2, yc + unit * plotHeight / 2]).range([height - dimensions.bottom, dimensions.top]);
     axes(svg, x, y, width, height);
-    for (const [key, className] of [['reference', 'series-reference'], ['estimate', 'series-estimate']]) {
-      const draw = line().defined(frame => Boolean(frame[key])).x(frame => x(frame[key].position_m[a])).y(frame => y(frame[key].position_m[b]));
+    for (const [pose, className] of [[reference, 'series-reference'], [estimate, 'series-estimate']]) {
+      const draw = line().defined(frame => Boolean(pose(frame))).x(frame => x(pose(frame).position_m[a])).y(frame => y(pose(frame).position_m[b]));
       svg.append('path').datum(rows).attr('class', `plot-line ${className}`).attr('d', draw);
       const marker = svg.append('circle').attr('r', 4).attr('class', `plot-marker ${className}`);
-      markers.push(frame => marker.attr('display', frame[key] ? null : 'none').attr('cx', frame[key] ? x(frame[key].position_m[a]) : 0).attr('cy', frame[key] ? y(frame[key].position_m[b]) : 0));
+      markers.push(frame => marker.attr('display', pose(frame) ? null : 'none').attr('cx', pose(frame) ? x(pose(frame).position_m[a]) : 0).attr('cy', pose(frame) ? y(pose(frame).position_m[b]) : 0));
     }
-    addLegend(node, [{ label: 'Aligned estimate', className: 'series-estimate' }, { label: 'Reference', className: 'series-reference' }]);
+    addLegend(node, [{ label: presentation.estimateLabel, className: 'series-estimate' }, ...(presentation.showReference ? [{ label: 'Reference', className: 'series-reference' }] : [])]);
   }
   function timeChart(parent, title, note, rows, definitions, domain) {
     const { node, svg } = chart(parent, title, note);
@@ -68,7 +66,9 @@ export function createInvestigationPlots(container, data, onSelect) {
     svg.attr('viewBox', `0 0 ${width} ${height}`);
     const x = scaleLinear().domain(domain[0] === domain[1] ? [domain[0] - .025, domain[1] + .025] : domain).range([dimensions.left, width - dimensions.right]);
     const allValues = rows.flatMap(row => definitions.map(def => def.value(row)));
-    const y = scaleLinear().domain(safeExtent(allValues)).range([height - dimensions.bottom, dimensions.top]);
+    const range = finitePlotDomain(allValues);
+    if (!range) { node.append('p').text('Values exceed the supported display range. Exact observations remain in the retained evidence.'); return; }
+    const y = scaleLinear().domain(range).range([height - dimensions.bottom, dimensions.top]);
     axes(svg, x, y, width, height);
     for (const def of definitions) {
       const segments = plotSegments(rows, def.value, { angular: def.angular, maxPoints: 1200 });
@@ -113,12 +113,14 @@ export function createInvestigationPlots(container, data, onSelect) {
     const rows = data.frames.slice(interval[0], interval[1] + 1);
     const domain = [rows[0].time_s, rows.at(-1).time_s];
     for (const [a, b, names] of [[0, 1, ['X', 'Y']], [0, 2, ['X', 'Z']], [1, 2, ['Y', 'Z']]]) buildProjection(projection, rows, a, b, names);
-    timeChart(signals, 'Position error', 'Euclidean distance · m · evaluated samples only', rows, [series('Position error', 'series-estimate', row => row.position_error_m)], domain);
-    timeChart(signals, 'Orientation error', 'Quaternion geodesic angle · deg · evaluated samples only', rows, [series('Orientation error', 'series-estimate', row => row.orientation_error_deg)], domain);
+    if (presentation.accuracyAvailable) {
+      timeChart(signals, 'Position error', 'Euclidean distance · m · evaluated samples only', rows, [series('Position error', 'series-estimate', row => row.position_error_m)], domain);
+      timeChart(signals, 'Orientation error', 'Quaternion geodesic angle · deg · evaluated samples only', rows, [series('Orientation error', 'series-estimate', row => row.orientation_error_deg)], domain);
+    }
     supportChart(signals, rows, domain);
-    for (const [axis, label] of ['Roll', 'Pitch', 'Yaw'].entries()) timeChart(signals, `${label} attitude`, 'Body → reference world · deg · principal Euler angles', rows, [series('Aligned estimate', 'series-estimate', row => row.estimate?.rpy_deg[axis], true), series('Reference', 'series-reference', row => row.reference?.rpy_deg[axis], true)], domain);
+    for (const [axis, label] of ['Roll', 'Pitch', 'Yaw'].entries()) timeChart(signals, `${label} attitude`, `Body → ${presentation.worldLabel.toLowerCase()} · deg · principal Euler angles`, rows, [series(presentation.estimateLabel, 'series-estimate', row => estimate(row)?.rpy_deg[axis], true), ...(presentation.showReference ? [series('Reference', 'series-reference', row => reference(row)?.rpy_deg[axis], true)] : [])], domain);
     const imu = data.imu.samples.filter(sample => sample.time_s >= domain[0] && sample.time_s <= domain[1]);
-    for (const [key, label, unit] of [['gyro_rad_s', 'Raw angular velocity', 'rad/s'], ['accel_m_s2', 'Raw acceleration', 'm/s²']]) timeChart(signals, label, `IMU body · ${unit} · ${imu.length.toLocaleString('en')} input samples in interval`, imu, ['X', 'Y', 'Z'].map((label, axis) => series(label, `series-axis-${axis}`, row => row[key][axis])), domain);
+    for (const [key, label, unit] of [['gyro_rad_s', 'angular velocity', 'rad/s'], ['accel_m_s2', 'specific force', 'm/s²']]) timeChart(signals, `${presentation.imuLabel} ${label === 'specific force' && !presentation.privateInput ? 'acceleration' : label}`, `${presentation.imuFrame} · ${unit} · ${imu.length.toLocaleString('en')} input samples in interval`, imu, ['X', 'Y', 'Z'].map((label, axis) => series(label, `series-axis-${axis}`, row => row[key][axis])), domain);
     setCursor(cursor);
   }
   function setCursor(index) {

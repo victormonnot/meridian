@@ -1,6 +1,6 @@
 from django.urls import path, re_path
 from workspace import acquisition_inspection, acquisitions, api, comparisons, experiments, exports, investigation, jobs
-from workspace import sensor_artifact_api, input_revision_api
+from workspace import sensor_artifact_api, input_revision_api, private_inputs
 
 urlpatterns = [
     path("api/v1/session", api.session),
@@ -9,6 +9,8 @@ urlpatterns = [
     path("api/v1/auth/logout", api.sign_out),
     path("api/v1/projects", api.projects),
     path("api/v1/projects/<uuid:project_id>", api.project),
+    path("api/v1/projects/<uuid:project_id>/execution-inputs", private_inputs.inputs),
+    path("api/v1/projects/<uuid:project_id>/execution-inputs/assess", private_inputs.assess),
     path("api/v1/projects/<uuid:project_id>/sensor-artifacts", sensor_artifact_api.artifacts),
     path("api/v1/projects/<uuid:project_id>/sensor-artifacts/<uuid:artifact_id>", sensor_artifact_api.artifact),
     path("api/v1/projects/<uuid:project_id>/sensor-artifacts/<uuid:artifact_id>/contract", sensor_artifact_api.contract),

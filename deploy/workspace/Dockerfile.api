@@ -17,6 +17,7 @@ COPY src/meridian/__init__.py src/meridian/vio_specification.py \
 COPY src/meridian/sensor_contract.py src/meridian/sensor_conventions.py /app/src/meridian/
 COPY src/meridian/sensor_inspection.py /app/src/meridian/
 COPY src/meridian/sensor_calibration.py /app/src/meridian/
+COPY src/meridian/vio_private_specification.py src/meridian/vio_private_inputs.py /app/src/meridian/
 # Export only the standalone reproduction sources, never the hosted application.
 COPY src/meridian/__init__.py src/meridian/vio_dataset.py \
     src/meridian/vio_evaluation.py src/meridian/vio_reference.py \

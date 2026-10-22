@@ -5,6 +5,13 @@ input IMU, estimated and reference poses, error samples and coverage. It consume
 evidence from that job's published attempt. It does not substitute qualification
 results for an account's own execution.
 
+[Private-input VIO](private-vio.md) extends this view with actual camera metadata,
+prepared IMU provenance and optional reference evaluation. With unavailable
+accuracy, the raw trajectory and attitude remain visible in the estimator's
+local frame; missing errors are not replaced by zero. Deleting input files
+disables associated image reads while retained numerical investigation remains
+available under the job retention policy. The original room1 schema is unchanged.
+
 ## Time, frames and support
 
 The common timeline uses the prepared recording's sensor timestamps. Absolute

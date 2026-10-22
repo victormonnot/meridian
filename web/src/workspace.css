@@ -3,6 +3,14 @@
 @import '@fontsource/ibm-plex-mono/latin-400.css';
 @import '@fontsource/marcellus/latin-400.css';
 
+.execution-input-controls { margin: 24px 0; padding-top: 20px; border-top: 1px solid var(--line); }
+.execution-input-controls > p, .execution-admission > p { margin: 12px 0; }
+.execution-interval { display: grid; gap: 16px; margin-top: 20px; }
+.execution-admission { margin-top: 24px; overflow-wrap: anywhere; }
+.execution-admission ul { padding-left: 22px; }
+.execution-admission li { margin: 8px 0; }
+.execution-admission details { margin: 16px 0; }
+
 :root {
   color-scheme: dark;
   --bg: #1c1e1c; --surface: #252923; --soft: #30372e; --text: #eeeae0;

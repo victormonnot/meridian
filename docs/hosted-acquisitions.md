@@ -9,9 +9,10 @@ prepared snapshot. Each file remains restricted to the project's owner.
 This is an input-management workflow. **Ready to inspect** means the declared
 payloads passed structural and identity checks and the supported preparation
 completed. It does not establish physical calibration, synchronization quality
-or estimator compatibility. The existing hosted OpenVINS experiments still use
-the frozen public room1 reference; private-input execution belongs to increment
-2.6. No new benchmark reservation or physical recording is consumed here.
+or estimator compatibility. [Private-input execution](private-vio.md) separately
+checks an exact prepared revision against its supported stereo/IMU profile.
+The frozen public room1 reference remains available. No new benchmark reservation
+or physical recording is consumed by this acquisition-management increment.
 
 The [acceptance evidence](../results/acquisitions/README.md) records local and
 HTTPS browser checks, import recovery, the existing room1 sandbox regression
@@ -165,8 +166,8 @@ prepared payloads and remain available after source-file deletion; artifact
 bindings retain the source metadata. Project deletion also refuses active input
 preparations and cleans completed revision files before deleting their metadata.
 Existing public-reference experiments, retained results and
-downloaded complete experiment packages remain unchanged. Future private-input
-replay must require an available exact input version; a retained descriptor alone
+downloaded complete experiment packages remain unchanged. Private-input
+execution requires an available exact input version; a retained descriptor alone
 is insufficient. Copying a complete package outside the service preserves that
 copy independently of later service-side deletion.
 

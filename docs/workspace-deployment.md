@@ -160,13 +160,16 @@ reproduction requirements.
 
 If a release is transferred as a curated source bundle, its allowlist must also
 include `sensor_contract.py`, `sensor_conventions.py`, `sensor_package.py`,
-`sensor_import.py` and `sensor_hosted_import.py` from `src/meridian`, the new
+`sensor_import.py`, `sensor_hosted_import.py`, `sensor_inspection.py`,
+`sensor_calibration.py`, `sensor_hosted_revision.py`, `vio_private_specification.py`,
+`vio_private_inputs.py` and `vio_private_evaluation.py` from `src/meridian`, the new
 server modules and migration, the acquisition web sources, and
 `compose.acquisitions.yaml` plus `provision-import-scratch.py` from
 `deploy/workspace`. Preserve the checked-in Dockerfiles, dependency lock and
 `.dockerignore`; never transfer the working directory wholesale. Record the
-source manifest and image identities. The API copies only the two standard-library
-sensor contract modules; Pillow and archive preparation remain in the worker image.
+source manifest and image identities. The API copies only standard-library
+contract and access/inspection helpers; Pillow, numerical evaluation and archive
+preparation remain in the worker image.
 
 For an application-only upgrade, preserve the existing database container with
 `--no-recreate`; moving to a new source-release directory otherwise changes the
@@ -313,8 +316,11 @@ the tested release, artifact sizes and observed browser/API resource measurement
 
 The [acquisition contract](hosted-acquisitions.md) defines supported packages,
 transfer states and quotas. This overlay requires no new reference dataset.
-Upload conversion and preparation are independent of native VIO execution;
-private acquisitions are not yet executable by the hosted estimator.
+Upload conversion and preparation are independent of native VIO execution.
+[Supported private revisions](private-vio.md) execute through the existing VIO
+worker. The overlay mounts retained acquisitions read-only into that trusted
+worker at their host path so it can bind only the exact selected camera
+directories into the isolated native child.
 
 Provision an ordinary private retained directory and a separate finite ext4
 scratch filesystem. The retained directory uses database-enforced 12 GiB account
@@ -450,8 +456,9 @@ operator-triggered idle database/artifact snapshot and isolated restoration
 rehearsal. It never replaces production storage. Scheduled backups, recurring
 off-server retention and a recovery-time guarantee are not established by the
 Compose file; treat this hosted preview as an additional copy of engineering work.
-Private recordings can be uploaded and prepared with the acquisition overlay;
-only the maintained room1 profile executes. Independent exports preserve a downloaded experiment outside
+Private recordings can be uploaded, prepared and executed through the supported
+fixed-calibration stereo profile with the acquisition overlay. The maintained
+room1 profile also remains available. Independent room1 exports preserve a downloaded experiment outside
 the service; later hosted deletion cannot revoke a copy already downloaded.
 If operators retain database snapshots, deleted records may remain in them until
 those snapshots are removed; publish their retention period before relying on

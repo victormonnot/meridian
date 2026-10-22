@@ -40,7 +40,10 @@ and support diagnostics, bounded image previews and an owner-scoped Data view
 without estimator execution. [Supplied calibration and time mappings](sensor-calibration.md)
 add immutable parameter artifacts and prepared revisions with explicit SI
 bias/scale corrections, supported IMU rotations and constant clock mappings.
-Calibration fitting and VIO on private inputs remain unimplemented.
+[Private-input VIO](private-vio.md) binds an owned prepared revision and exact
+interval to a separate fixed-calibration execution profile. Reference-free runs
+retain raw local-frame investigation evidence with accuracy explicitly unavailable.
+Calibration fitting remains unimplemented.
 [Recording reservations](sensor-data-sources.md) separate future
 fitting and evaluation before any new payload inspection.
 General 3D estimator development, broader visual-inertial development and

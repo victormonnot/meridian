@@ -1,0 +1,72 @@
+{
+  "calibration": {
+    "contract": {
+      "id": "room1-supplied-regression-calibration",
+      "sha256": "66828300e850ebd62b382882859cb8923faf2042b21f706af70340672df7d6f6"
+    },
+    "file": "calibration.json",
+    "sha256": "189d788b2240324dbd7467a74aa29c84ad85a34ca3f690d7c31c62900f04218a",
+    "size_bytes": 3663
+  },
+  "configuration_sources": {
+    "kalibr_imu_chain.yaml": {
+      "sha256": "cb598952ee3766492a332eaae8567fe2b63a9bf6d63b9c0a7b9d988471600a3d",
+      "size_bytes": 1351
+    },
+    "kalibr_imucam_chain.yaml": {
+      "sha256": "072d26e3dd20844ae7402f508c51cf7e899a401634ba6b0db0e08cd2880b7dab",
+      "size_bytes": 1530
+    }
+  },
+  "counts": {
+    "cam0": 600,
+    "cam1": 600,
+    "imu0": 5973,
+    "mocap0": 3596
+  },
+  "interval": {
+    "attribution": "TUM VI Benchmark: David Schubert, Thore Goll, Nikolaus Demmel, Vladyslav Usenko, Joerg Stueckler, Daniel Cremers (2018)",
+    "end_exclusive_ns": "1520530338199447626",
+    "image_bytes_preserved": true,
+    "last_camera_ns": "1520530338150863679",
+    "license": "CC-BY-4.0",
+    "purpose": "Consumed real recording regression; not a held-out or independent physical validation.",
+    "recording_group": "tumvi-room1",
+    "schema_version": 1,
+    "selection": "First 30 seconds from first camera, half-open; adjacent IMU/reference samples bracket retained camera epochs.",
+    "source_acquisition": {
+      "id": "tumvi-room1-regression",
+      "sha256": "f4187ed3a4c55166f6b22d11bba41f85895aada06e26afcaff1d7281dbb25d67"
+    },
+    "source_archive": {
+      "sha256": "20354392eab5cc82c9770ed29cf0130c5acce0db54a257571499008fb34c398f",
+      "size_bytes": 1707110400
+    },
+    "source_sample_ids_preserved": true,
+    "start_ns": "1520530308199447626"
+  },
+  "limitations": "Same consumed recording, supplied parameters and fixed predeclared crop; no fitting, untouched evaluation, hardware or flight qualification.",
+  "package": {
+    "acquisition": {
+      "id": "tumvi-room1-first30s-private-vio-regression",
+      "sha256": "52778cca0387af7900f29fa18d7719f0449881a957f4866e71dea01da1f18324"
+    },
+    "file": "room1-first30s.zip",
+    "sha256": "3aa0f80e002f70c672136926d96532b319a010f14136745d6981b16867cbccd5",
+    "size_bytes": 349197677
+  },
+  "preparation": {
+    "apply_imu_intrinsics": false,
+    "clock_mappings": [],
+    "image_encoding": "preserve",
+    "imu_stream": "imu0",
+    "imu_target_frame": null
+  },
+  "recording_group": "tumvi-room1",
+  "reference_variants": [
+    "included",
+    "excluded_by_preparation"
+  ],
+  "schema_version": 1,
+  "synthetic": false
+}

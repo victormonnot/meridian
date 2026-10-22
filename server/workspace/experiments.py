@@ -6,10 +6,12 @@ from django.conf import settings
 from django.core.exceptions import RequestDataTooBig
 from django.db import transaction
 
-from meridian.vio_specification import build_specification, configuration_profile, specification_sha256
+from meridian.vio_specification import build_specification, configuration_profile, PROFILE_ID
+from meridian import vio_private_specification as private_profile
 
 from .api import endpoint, error, not_found, response
 from .models import Experiment, ExperimentRevision, Project
+from .execution_profiles import input_selection, is_private, specification_sha256
 
 
 def limits():
@@ -74,11 +76,16 @@ def specification(dataset_id, parameters, schema_version):
     return value, digest, None
 
 
-def experiment_payload(value):
-    return {"id": str(value.pk), "project_id": str(value.project_id), "name": value.name,
+def experiment_payload(value, revision=None):
+    result = {"id": str(value.pk), "project_id": str(value.project_id), "name": value.name,
             "description": value.description, "version": value.current_version,
             "parameters": value.parameters, "specification_sha256": value.specification_sha256,
             "created_at": value.created_at.isoformat(), "updated_at": value.updated_at.isoformat()}
+    revision = revision or value.revisions.get(version=value.current_version)
+    if is_private(revision.specification):
+        result.update(profile_id=private_profile.PROFILE_ID,
+                      input_selection=input_selection(revision.specification))
+    return result
 
 
 def revision_payload(value, summary=False):
@@ -86,12 +93,44 @@ def revision_payload(value, summary=False):
               "specification_sha256": value.specification_sha256, "created_at": value.created_at.isoformat(),
               "copied_from": value.copied_from}
     result["parameters" if summary else "specification"] = value.specification["parameters"] if summary else value.specification
+    if is_private(value.specification):
+        result.update(profile_id=private_profile.PROFILE_ID,
+                      input_selection=input_selection(value.specification))
     return result
 
 
 def detail(value, revision=None, **extra):
     revision = revision or value.revisions.get(version=value.current_version)
-    return {"experiment": experiment_payload(value), "revision": revision_payload(revision), **extra}
+    result = {"experiment": experiment_payload(value, revision), "revision": revision_payload(revision), **extra}
+    if is_private(revision.specification):
+        result["profile"] = private_profile.configuration_profile()
+    return result
+
+
+def requested_specification(project, owner, data, *, previous=None):
+    selected_profile = data.get("profile_id", PROFILE_ID)
+    if selected_profile == private_profile.PROFILE_ID:
+        if not {"input_revision_id", "interval"} <= set(data) or "dataset_id" in data:
+            return None, None, error("invalid_request", "Private execution requires an exact input revision and interval.", 400)
+        from .private_inputs import build, owned
+        try:
+            selected = owned(project, owner, data["input_revision_id"])
+        except (ValueError, AttributeError):
+            return None, None, error("invalid_request", "Select a valid input revision UUID.", 400)
+        if selected is None:
+            return None, None, error("not_found", "The requested resource was not found.", 404)
+        try:
+            spec = build(selected, parameters=data["parameters"], interval=data["interval"])
+            return spec, specification_sha256(spec), None
+        except (OSError, ValueError, TypeError, KeyError, RecursionError) as exc:
+            message = str(exc) if isinstance(exc, ValueError) else "The selected prepared input is unavailable or invalid."
+            return None, None, error("unsupported_input", message, 409)
+    if (selected_profile != PROFILE_ID or {"input_revision_id", "interval"} & set(data)
+            or (previous is not None and is_private(previous) and "profile_id" not in data)):
+        return None, None, error("invalid_request", "Select an explicit supported execution profile and its inputs.", 400)
+    if "dataset_id" in data and data["dataset_id"] != project.dataset_id:
+        return None, None, error("validation_error", "The experiment dataset must match its project.", 400)
+    return specification(project.dataset_id, data["parameters"], data["schema_version"])
 
 
 def owned_project(request, project_id, lock=False):
@@ -127,13 +166,14 @@ def experiments(request, project_id):
         if request.method == "GET":
             return response({"experiments": [experiment_payload(item) for item in project.experiments.all()],
                              "limits": limits()})
-        fields = {"schema_version", "name", "description", "dataset_id", "parameters"}
-        data, failure = payload(request, fields, fields - {"description"})
+        fields = {"schema_version", "name", "description", "dataset_id", "parameters",
+                  "profile_id", "input_revision_id", "interval"}
+        data, failure = payload(request, fields, {"schema_version", "name", "parameters"})
         if failure is not None:
             return failure
-        if data["dataset_id"] != project.dataset_id:
-            return error("validation_error", "The experiment dataset must match its project.", 400)
-        spec, digest, failure = specification(project.dataset_id, data["parameters"], data["schema_version"])
+        if data.get("profile_id", PROFILE_ID) == PROFILE_ID and "dataset_id" not in data:
+            return error("invalid_request", "The public reference profile requires a dataset identity.", 400)
+        spec, digest, failure = requested_specification(project, request.user, data)
         if failure is not None:
             return failure
         if project.experiments.count() >= limits()["experiments"]:
@@ -158,13 +198,15 @@ def experiment(request, project_id, experiment_id):
                 return error("active_jobs", "Cancel active executions and wait for them to stop before deleting this experiment.", 409)
             value.delete()
             return response({"deleted": True})
-        fields = {"schema_version", "base_version", "name", "description", "parameters"}
-        data, failure = payload(request, fields, fields - {"description"})
+        fields = {"schema_version", "base_version", "name", "description", "parameters",
+                  "profile_id", "input_revision_id", "interval"}
+        data, failure = payload(request, fields, {"schema_version", "base_version", "name", "parameters"})
         if failure is not None:
             return failure
         if data["base_version"] != value.current_version:
             return error("version_conflict", "This experiment changed. Review its latest revision before saving.", 409)
-        spec, digest, failure = specification(project.dataset_id, data["parameters"], data["schema_version"])
+        previous = value.revisions.get(version=value.current_version).specification
+        spec, digest, failure = requested_specification(project, request.user, data, previous=previous)
         if failure is not None:
             return failure
         description = data.get("description", "")
@@ -249,4 +291,10 @@ def compare(request, project_id, experiment_id):
         left, right = before.specification["parameters"][key], after.specification["parameters"][key]
         if left != right:
             changes.append({"field": "parameters." + key, "before": left, "after": right})
+    if before.specification["profile_id"] != after.specification["profile_id"]:
+        changes.append({"field": "profile_id", "before": before.specification["profile_id"],
+                        "after": after.specification["profile_id"]})
+    left, right = input_selection(before.specification), input_selection(after.specification)
+    if left != right:
+        changes.append({"field": "input_selection", "before": left, "after": right})
     return response({"from_version": versions[0], "to_version": versions[1], "changes": changes})

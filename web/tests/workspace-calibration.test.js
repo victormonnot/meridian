@@ -164,7 +164,7 @@ test('unavailable revision files do not expose downloads or imply corrected sour
   assert.match(html, /earlier revisions are unchanged/);
   assert.doesNotMatch(html, /files\?path|Download|delete-revision-files/);
   const shell = calibrationShell({ project_id: project, id: acquisition, name: 'Acquisition' });
-  assert.match(shell, /VIO execution is not available yet/);
+  assert.match(shell, /Select a prepared revision in Experiments to check eligibility/);
 });
 
 test('checked plan preserves operation order and does not claim physical accuracy', () => {

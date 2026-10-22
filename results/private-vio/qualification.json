@@ -1,0 +1,454 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-22",
+  "scope": "Consumed real room1 regression of private-input execution; no calibration fit, held-out, embedded or flight validation.",
+  "input_manifest_sha256": "0aa4beff4e4a36f39f691b857080f1cdb7da76c508249a1ac259028d87ba65e6",
+  "profile_id": "openvins-private-stereo-v1",
+  "predeclared_feature_budget": 200,
+  "tests": {
+    "python_with_cpp": {
+      "passed": 1831,
+      "seconds": 59.14
+    },
+    "ctest": {
+      "passed": 1
+    },
+    "postgresql_host": {
+      "passed": 257,
+      "seconds": 75.207
+    },
+    "postgresql_final_minimal_api": {
+      "passed": 257,
+      "seconds": 63.774,
+      "numpy_present": false,
+      "pillow_present": false
+    },
+    "web": {
+      "passed": 298,
+      "production_build_passed": true
+    }
+  },
+  "browser": {
+    "local": {
+      "passed": true,
+      "assertions": 73,
+      "fresh_run": false,
+      "page_errors": 0,
+      "csp_errors": 0,
+      "six_screenshots_visually_reviewed": true,
+      "method": "Assertions accumulated across documented harness resumes; one pre-native infrastructure failure retained, repaired without changing input, interval or feature budget."
+    },
+    "https": {
+      "passed": true,
+      "assertions": 65,
+      "fresh_run": true,
+      "page_errors": 0,
+      "csp_errors": 0,
+      "six_screenshots_visually_reviewed": true
+    },
+    "workspace": {
+      "local": {
+        "passed": true,
+        "assertions": 49
+      },
+      "hosted": {
+        "passed": true,
+        "assertions": 49
+      }
+    },
+    "legacy_jobs_local": {
+      "passed": true,
+      "assertions": 22
+    }
+  },
+  "private_runs": {
+    "local": {
+      "with_reference": {
+        "evaluation": {
+          "counts": {
+            "estimate_samples": 468,
+            "reference_samples": 3596,
+            "expected_camera_samples": 600,
+            "evaluated_camera_samples": 468,
+            "missing_initial_camera_samples": 132,
+            "missing_interior_camera_samples": 0,
+            "missing_trailing_camera_samples": 0,
+            "reference_supported_camera_samples": 600
+          },
+          "status": "ok",
+          "metrics": {
+            "ate_rmse_m": 0.013023062010210721,
+            "orientation_rmse_deg": 0.6223799158481512,
+            "orientation_rmse_rad": 0.010862578729835475,
+            "position_error_max_m": 0.038512993938017034,
+            "position_error_mean_m": 0.011933001126802388,
+            "orientation_error_max_deg": 1.4366764878130087,
+            "orientation_error_mean_deg": 0.6029823641918907
+          },
+          "protocol": {
+            "name": "meridian-vio-se3",
+            "version": 1,
+            "alignment": "global_se3_least_squares_over_all_evaluated_positions",
+            "weighting": "equal_weight_per_evaluated_camera_sample",
+            "scale_fitted": false,
+            "removed_gauge": "constant_world_rotation_including_roll_pitch_yaw_and_translation",
+            "time_offset_fitted": false,
+            "max_reference_gap_ns": 20000000,
+            "quaternion_convention": "Hamilton_xyzw_body_to_world",
+            "reference_association": "linear_position_shortest_arc_slerp_without_extrapolation",
+            "estimate_interpolation": false,
+            "initialization_exclusion": "none",
+            "initialization_delay_definition": "first_estimated_camera_timestamp_minus_first_expected_timestamp",
+            "max_estimate_timestamp_error_ns": 1000
+          },
+          "availability": {
+            "reason": null,
+            "status": "available"
+          },
+          "coverage_fraction": 0.78,
+          "evaluated_fraction": 0.78,
+          "initialization_delay_s": 6.600339685000001,
+          "reference_coverage_fraction": 1
+        },
+        "qualification": {
+          "checks": {},
+          "passed": null,
+          "reason": "No physical-accuracy qualification gates are defined for private inputs.",
+          "status": "not_assessed",
+          "applicable": false
+        },
+        "camera_epochs": 600,
+        "imu_samples": 5973
+      },
+      "without_reference": {
+        "evaluation": {
+          "counts": {
+            "estimate_samples": 468,
+            "reference_samples": 0,
+            "expected_camera_samples": 600,
+            "evaluated_camera_samples": 0,
+            "missing_initial_camera_samples": 132,
+            "missing_interior_camera_samples": 0,
+            "missing_trailing_camera_samples": 0,
+            "reference_supported_camera_samples": 0
+          },
+          "status": "insufficient_associations",
+          "metrics": null,
+          "protocol": {
+            "name": "meridian-vio-se3",
+            "version": 1,
+            "alignment": "global_se3_least_squares_over_all_evaluated_positions",
+            "weighting": "equal_weight_per_evaluated_camera_sample",
+            "scale_fitted": false,
+            "removed_gauge": "constant_world_rotation_including_roll_pitch_yaw_and_translation",
+            "time_offset_fitted": false,
+            "max_reference_gap_ns": 20000000,
+            "quaternion_convention": "Hamilton_xyzw_body_to_world",
+            "reference_association": "linear_position_shortest_arc_slerp_without_extrapolation",
+            "estimate_interpolation": false,
+            "initialization_exclusion": "none",
+            "initialization_delay_definition": "first_estimated_camera_timestamp_minus_first_expected_timestamp",
+            "max_estimate_timestamp_error_ns": 1000
+          },
+          "availability": {
+            "reason": "reference_absent",
+            "status": "unavailable"
+          },
+          "coverage_fraction": 0.78,
+          "evaluated_fraction": 0,
+          "initialization_delay_s": 6.600339685000001,
+          "reference_coverage_fraction": 0
+        },
+        "qualification": {
+          "checks": {},
+          "passed": null,
+          "reason": "No physical-accuracy qualification gates are defined for private inputs.",
+          "status": "not_assessed",
+          "applicable": false
+        },
+        "camera_epochs": 600,
+        "imu_samples": 5973
+      }
+    },
+    "https": {
+      "with_reference": {
+        "evaluation": {
+          "counts": {
+            "estimate_samples": 468,
+            "reference_samples": 3596,
+            "expected_camera_samples": 600,
+            "evaluated_camera_samples": 468,
+            "missing_initial_camera_samples": 132,
+            "missing_interior_camera_samples": 0,
+            "missing_trailing_camera_samples": 0,
+            "reference_supported_camera_samples": 600
+          },
+          "status": "ok",
+          "metrics": {
+            "ate_rmse_m": 0.013023062010210721,
+            "orientation_rmse_deg": 0.6223799158481512,
+            "orientation_rmse_rad": 0.010862578729835475,
+            "position_error_max_m": 0.038512993938017034,
+            "position_error_mean_m": 0.011933001126802388,
+            "orientation_error_max_deg": 1.4366764878130087,
+            "orientation_error_mean_deg": 0.6029823641918907
+          },
+          "protocol": {
+            "name": "meridian-vio-se3",
+            "version": 1,
+            "alignment": "global_se3_least_squares_over_all_evaluated_positions",
+            "weighting": "equal_weight_per_evaluated_camera_sample",
+            "scale_fitted": false,
+            "removed_gauge": "constant_world_rotation_including_roll_pitch_yaw_and_translation",
+            "time_offset_fitted": false,
+            "max_reference_gap_ns": 20000000,
+            "quaternion_convention": "Hamilton_xyzw_body_to_world",
+            "reference_association": "linear_position_shortest_arc_slerp_without_extrapolation",
+            "estimate_interpolation": false,
+            "initialization_exclusion": "none",
+            "initialization_delay_definition": "first_estimated_camera_timestamp_minus_first_expected_timestamp",
+            "max_estimate_timestamp_error_ns": 1000
+          },
+          "availability": {
+            "reason": null,
+            "status": "available"
+          },
+          "coverage_fraction": 0.78,
+          "evaluated_fraction": 0.78,
+          "initialization_delay_s": 6.600339685000001,
+          "reference_coverage_fraction": 1
+        },
+        "qualification": {
+          "checks": {},
+          "passed": null,
+          "reason": "No physical-accuracy qualification gates are defined for private inputs.",
+          "status": "not_assessed",
+          "applicable": false
+        },
+        "camera_epochs": 600,
+        "imu_samples": 5973
+      },
+      "without_reference": {
+        "evaluation": {
+          "counts": {
+            "estimate_samples": 468,
+            "reference_samples": 0,
+            "expected_camera_samples": 600,
+            "evaluated_camera_samples": 0,
+            "missing_initial_camera_samples": 132,
+            "missing_interior_camera_samples": 0,
+            "missing_trailing_camera_samples": 0,
+            "reference_supported_camera_samples": 0
+          },
+          "status": "insufficient_associations",
+          "metrics": null,
+          "protocol": {
+            "name": "meridian-vio-se3",
+            "version": 1,
+            "alignment": "global_se3_least_squares_over_all_evaluated_positions",
+            "weighting": "equal_weight_per_evaluated_camera_sample",
+            "scale_fitted": false,
+            "removed_gauge": "constant_world_rotation_including_roll_pitch_yaw_and_translation",
+            "time_offset_fitted": false,
+            "max_reference_gap_ns": 20000000,
+            "quaternion_convention": "Hamilton_xyzw_body_to_world",
+            "reference_association": "linear_position_shortest_arc_slerp_without_extrapolation",
+            "estimate_interpolation": false,
+            "initialization_exclusion": "none",
+            "initialization_delay_definition": "first_estimated_camera_timestamp_minus_first_expected_timestamp",
+            "max_estimate_timestamp_error_ns": 1000
+          },
+          "availability": {
+            "reason": "reference_absent",
+            "status": "unavailable"
+          },
+          "coverage_fraction": 0.78,
+          "evaluated_fraction": 0,
+          "initialization_delay_s": 6.600339685000001,
+          "reference_coverage_fraction": 0
+        },
+        "qualification": {
+          "checks": {},
+          "passed": null,
+          "reason": "No physical-accuracy qualification gates are defined for private inputs.",
+          "status": "not_assessed",
+          "applicable": false
+        },
+        "camera_epochs": 600,
+        "imu_samples": 5973
+      }
+    }
+  },
+  "legacy_room1": {
+    "execution": {
+      "native_cpu_seconds": 47.814687,
+      "native_peak_rss_kib": 80924,
+      "native_wall_seconds": 46.609971761,
+      "container_wall_seconds": 47.10556697799984
+    },
+    "evaluation": {
+      "counts": {
+        "estimate_samples": 2689,
+        "reference_samples": 16541,
+        "expected_camera_samples": 2821,
+        "evaluated_camera_samples": 2624,
+        "missing_initial_camera_samples": 132,
+        "missing_interior_camera_samples": 0,
+        "missing_trailing_camera_samples": 0,
+        "reference_supported_camera_samples": 2756
+      },
+      "status": "ok",
+      "metrics": {
+        "ate_rmse_m": 0.0612163695742259,
+        "orientation_rmse_deg": 1.3255413925517476,
+        "orientation_rmse_rad": 0.023135061671498636,
+        "position_error_max_m": 0.109949022489596,
+        "position_error_mean_m": 0.05697479331128086,
+        "orientation_error_max_deg": 4.307316076259924,
+        "orientation_error_mean_deg": 1.2005629690623147
+      },
+      "protocol": {
+        "name": "meridian-vio-se3",
+        "version": 1,
+        "alignment": "global_se3_least_squares_over_all_evaluated_positions",
+        "weighting": "equal_weight_per_evaluated_camera_sample",
+        "scale_fitted": false,
+        "removed_gauge": "constant_world_rotation_including_roll_pitch_yaw_and_translation",
+        "time_offset_fitted": false,
+        "max_reference_gap_ns": 20000000,
+        "quaternion_convention": "Hamilton_xyzw_body_to_world",
+        "reference_association": "linear_position_shortest_arc_slerp_without_extrapolation",
+        "estimate_interpolation": false,
+        "initialization_exclusion": "none",
+        "initialization_delay_definition": "first_estimated_camera_timestamp_minus_first_expected_timestamp",
+        "max_estimate_timestamp_error_ns": 1000
+      },
+      "coverage_fraction": 0.9532080822403403,
+      "evaluated_fraction": 0.9301666075859625,
+      "initialization_delay_s": 6.600339685000001,
+      "reference_coverage_fraction": 0.9769585253456221
+    },
+    "qualification": {
+      "checks": {
+        "evaluation_ok": true,
+        "position_error": true,
+        "estimate_coverage": true,
+        "evaluated_samples": true,
+        "orientation_error": true,
+        "evaluated_coverage": true,
+        "reference_coverage": true,
+        "initialization_delay": true
+      },
+      "passed": true
+    }
+  },
+  "operations": {
+    "passed": true,
+    "checks": 8,
+    "worker_restart": "Explicit operator start after manual KILL; automatic restart is not claimed.",
+    "two_additional_jobs_cancelled": true,
+    "expired_attempt_fenced": true,
+    "retained_main_evidence_unchanged": true
+  },
+  "deployment": {
+    "release": "20261022-70090dc264be",
+    "bundle_sha256": "70090dc264be6523b8b8cac21ae634bbdde9a280f913662ff0015a2cc82368b9",
+    "release_files_verified": 145,
+    "runtime_sources_verified": {
+      "api": 50,
+      "worker": 58,
+      "importer": 58
+    },
+    "database_container_image_mounts_start_preserved": true,
+    "native_image_id": "sha256:54863f14d9f92d2805f5fddcfb78d146c6aac2ad77dc348e304059e2252a400a",
+    "prepared_manifest_sha256": "e55f0480533611fc1e198d16b181814a8d34752cb748becbfeec7bcb4908ba6d",
+    "vio_scratch_capacity_bytes": 134217728
+  },
+  "local_private_trajectory_bytes_identical": true,
+  "https_private_trajectory_bytes_identical": true,
+  "runtime_isolation": {
+    "local_observed": true,
+    "https_observed": true,
+    "successful_private_pairs_per_environment": 2,
+    "native_has_reference": false,
+    "native_has_service_credentials_or_daemon_access": false,
+    "child_network": "none",
+    "child_root_filesystem_read_only": true
+  },
+  "backup_and_restoration": {
+    "local": {
+      "backup_format": 3,
+      "complete_inventory_verified": true,
+      "files": 9808,
+      "bytes": 2911427611,
+      "manifest_sha256": "3324aad14f4bb1c35a29aa999830a3bb5756b167d6399fa590551c2d5d538af3",
+      "write_pause_seconds": 81.46116094299941,
+      "isolated_restore_passed": true,
+      "database_network": "none",
+      "copied_sessions_cleared": 28,
+      "access_checks_passed": 71,
+      "jobs_checked": 2,
+      "input_revisions_checked": 2,
+      "calibration_artifacts_checked": 1,
+      "investigation_responses_byte_identical": 2,
+      "sampled_pngs_sha256_verified": 2,
+      "sampled_prepared_csvs_sha256_verified": 4,
+      "real_password_csrf_owner_peer_anonymous_checked": true,
+      "source_accounts_modified": false,
+      "method": "Django in-process API client using the source API image and isolated restored PostgreSQL, with restored data mounted read-only. No restored browser/TLS or estimator rerun; the backup verifier covers the full inventory."
+    },
+    "https": {
+      "backup_format": 3,
+      "complete_inventory_verified": true,
+      "files": 6116,
+      "bytes": 1801456717,
+      "manifest_sha256": "5bc2d8a9cbc6553e12500519c99bee6755f595904355701f4e012306afdf21be",
+      "write_pause_seconds": 41.55436816578731,
+      "isolated_restore_passed": true,
+      "database_network": "none",
+      "copied_sessions_cleared": 3,
+      "access_checks_passed": 71,
+      "jobs_checked": 2,
+      "input_revisions_checked": 2,
+      "calibration_artifacts_checked": 1,
+      "investigation_responses_byte_identical": 2,
+      "sampled_pngs_sha256_verified": 2,
+      "sampled_prepared_csvs_sha256_verified": 4,
+      "real_password_csrf_owner_peer_anonymous_checked": true,
+      "source_accounts_modified": false,
+      "method": "Django in-process API client using the source API image and isolated restored PostgreSQL, with restored data mounted read-only. No restored browser/TLS or estimator rerun; the backup verifier covers the full inventory.",
+      "offserver_transfer_verified": true,
+      "transfer_archive_sha256": "f66e74b059880268dec7ff9577067894e940f0841b39461c14e60bc6e9c275d5",
+      "transfer_archive_bytes": 1814773760,
+      "source_image_oci_to_loaded_config_and_rootfs_verified": true
+    }
+  },
+  "qa_cleanup": {
+    "local": {
+      "passed": true,
+      "exact_recorded_accounts_removed": 7,
+      "baseline_owned_record_counts_restored": true,
+      "protected_rows_unchanged": true,
+      "authentication_budgets_preserved": true,
+      "input_and_job_artifacts_collected": true,
+      "five_services_healthy": true
+    },
+    "https": {
+      "passed": true,
+      "exact_recorded_accounts_removed": 4,
+      "baseline_owned_record_counts_restored": true,
+      "protected_rows_unchanged": true,
+      "authentication_budgets_preserved": true,
+      "input_and_job_artifacts_collected": true,
+      "five_services_healthy": true,
+      "other_applications_and_native_runtime_unchanged": true
+    },
+    "recovery_copies": {
+      "local_and_offserver_payload_copies_removed": true,
+      "remote_before_and_after_backup_directories_removed": true,
+      "both_disposable_restore_databases_removed": true,
+      "unused_transferred_api_image_removed_without_force": true,
+      "manifests_reports_and_logs_retained": true
+    }
+  }
+}

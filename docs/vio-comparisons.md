@@ -7,6 +7,10 @@ The values come from those executions, never from substituted qualification runs
 The maintained profile remains OpenVINS on calibrated TUM-VI room1; `num_pts`
 is the supported configuration change. No automatic optimization is performed.
 
+[Private-input VIO](private-vio.md) jobs are explicitly ineligible for this
+comparison profile. Controlled calibration and timing comparisons remain a
+separate planned increment; incompatible inputs are not compared implicitly.
+
 ## Compatibility before arithmetic
 
 Both saved specifications must validate against the supported immutable profile.

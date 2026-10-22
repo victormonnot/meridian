@@ -13,6 +13,11 @@ handles Docker configuration versus OCI manifest IDs without changing saved
 specifications. This increment adds execution
 orchestration, not a new estimator or a flight-validation claim.
 
+[Private-input VIO](private-vio.md) uses the same queue and supervisor with a
+separate specification profile. It binds exact owned prepared inputs, uses fixed
+supplied calibration and can succeed with evaluation unavailable. The room1
+qualification gates described below apply only to the historical room1 profile.
+
 ## Browser and API
 
 Select an immutable experiment version and choose **Run version N**. Runs are
@@ -77,7 +82,8 @@ The optional [investigation overlay](vio-investigation.md) mounts published file
 and the two camera directories read-only for authenticated access; that reference
 recording's raw IMU, reference and scratch directories remain unavailable to HTTP.
 The separate [acquisition overlay](hosted-acquisitions.md) permits owned downloads
-of retained private inputs. Only the maintained reference is executable.
+of retained private inputs. Supported immutable revisions also execute through
+the separate [private-input profile](private-vio.md).
 
 | Component | Limits and access |
 | --- | --- |

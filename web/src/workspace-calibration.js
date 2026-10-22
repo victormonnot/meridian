@@ -20,7 +20,7 @@ export function calibrationShell(acquisition) {
   return `<section class="calibration-workspace" aria-labelledby="calibration-heading">
     <a class="back-link" href="${acquisitionRoute(acquisition.project_id, acquisition.id)}">← Acquisition overview</a>
     <div class="section-heading"><div><p class="eyebrow">Versioned sensor inputs</p><h2 id="calibration-heading">Calibration &amp; timing</h2><p class="muted">${e(acquisition.name)}</p></div><span class="pill">Private to your account</span></div>
-    <p class="section-note">Supplied parameters and exact corrections create immutable input revisions. A valid artifact does not establish physical accuracy, synchronization quality or estimator compatibility. Private-recording VIO execution is not available yet.</p>
+    <p class="section-note">Supplied parameters and exact corrections create immutable input revisions. A valid artifact does not establish physical accuracy, synchronization quality or estimator compatibility. Select a prepared revision in Experiments to check eligibility for private-recording VIO.</p>
     <div id="calibration-content"><p class="loading" role="status">Loading calibration artifacts and input revisions…</p></div></section>`;
 }
 

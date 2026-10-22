@@ -46,8 +46,10 @@ imports, calibration and timing. Its initial increments add
 and [sensor inspection before estimation](docs/sensor-inspection.md), with
 [recorded room2 regression evidence](results/sensor-inspection/README.md).
 [Supplied calibration and time mappings](docs/sensor-calibration.md) create
-immutable input revisions with explicit supported corrections. Calibration fitting
-and VIO on private inputs remain planned. The
+immutable input revisions with explicit supported corrections.
+[VIO on private acquisitions](docs/private-vio.md) binds exact prepared inputs
+and fixed supplied calibration, with optional independent reference evaluation.
+Calibration fitting remains planned. The
 [calibration qualification](results/sensor-calibration/README.md) records analytic
 corrections, browser workflows, fault recovery and backup restoration.
 
@@ -106,6 +108,9 @@ The [earlier export report](results/exports/README.md) and
 - Supplied calibration/time artifacts with exact provenance, compatibility checks
   and immutable prepared revisions. Explicit IMU corrections and constant clock
   mappings preserve original observations and prior candidates.
+- VIO on supported private stereo/IMU revisions, with bounded interval admission,
+  fixed supplied calibration and retained local-frame trajectories when no
+  compatible evaluation reference is available.
 
 The original roll study still needs a new bench recording with known angles
 to check the estimates against a physical reference. The historical
@@ -147,6 +152,7 @@ The simulations include known motion for comparison; the historical log does not
 
 | Study | What it looks at |
 | --- | --- |
+| [Private-input VIO](results/private-vio/README.md) | Fixed supplied calibration, exact prepared inputs, real execution with and without reference, and retained investigation. |
 | [Private acquisition validation](results/acquisitions/README.md) | Resumable transfers, isolated preparation, cancellation/recovery, ownership and input-aware backup restoration. |
 | [Complete hosted acceptance](results/hosted-acceptance/README.md) | Full local/HTTPS workflow, bounded faults and quotas, off-server restoration, independent replay and the reserved room2 coverage failure. |
 | [Independent VIO exports](results/exports/README.md) | Verified experiment downloads and source-built reproduction outside the service after source deletion. |

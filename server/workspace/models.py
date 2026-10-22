@@ -80,6 +80,8 @@ class Job(models.Model):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="vio_jobs")
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="jobs")
     experiment = models.ForeignKey(Experiment, on_delete=models.CASCADE, related_name="jobs")
+    input_revision = models.ForeignKey("InputRevision", on_delete=models.SET_NULL, null=True,
+                                       related_name="vio_jobs")
     experiment_name = models.CharField(max_length=100)
     revision_version = models.PositiveIntegerField()
     specification = models.JSONField()

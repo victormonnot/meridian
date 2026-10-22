@@ -6,12 +6,26 @@ const pose = value => value === null || value && vector(value.position_m, 3) && 
 
 export function validateInvestigation(value, specificationSha256) {
   const invalid = () => { throw new Error('The investigation artifact has an unsupported or inconsistent structure.'); };
-  if (value?.schema_version !== 1 || value.specification_sha256 !== specificationSha256 || !Array.isArray(value.frames) || !value.frames.length || !Array.isArray(value.imu?.samples) || !value.summary || !timestamp(value.time?.origin_timestamp_ns)) invalid();
+  if (![1, 2].includes(value?.schema_version) || value.specification_sha256 !== specificationSha256 || !Array.isArray(value.frames) || !value.frames.length || !Array.isArray(value.imu?.samples) || !value.summary || !timestamp(value.time?.origin_timestamp_ns)) invalid();
+  if (value.schema_version === 2) {
+    if (value.input?.profile_id !== 'openvins-private-stereo-v1'
+      || typeof value.input.input_revision_id !== 'string' || typeof value.input.prepared_input_sha256 !== 'string'
+      || typeof value.input.imu_frame_id !== 'string' || typeof value.input.clock_id !== 'string'
+      || !Array.isArray(value.input.processing) || !['available', 'partial', 'unavailable'].includes(value.evaluation?.status)
+      || !Array.isArray(value.cameras) || value.cameras.length !== 2) invalid();
+    for (const [index, camera] of value.cameras.entries()) {
+      if (camera.slot !== `cam${index}` || typeof camera.stream_id !== 'string' || typeof camera.frame_id !== 'string'
+        || !['mono8', 'mono16'].includes(camera.encoding) || !Array.isArray(camera.resolution)
+        || camera.resolution.length !== 2 || camera.resolution.some(size => !Number.isSafeInteger(size) || size < 1)) invalid();
+    }
+  }
   let previousTime = -Infinity;
   let previousNs = -1n;
   for (const [index, frame] of value.frames.entries()) {
     if (frame.index !== index || !timestamp(frame.timestamp_ns) || BigInt(frame.timestamp_ns) <= previousNs || !finite(frame.time_s) || frame.time_s <= previousTime || !pose(frame.estimate) || !pose(frame.reference) || ['estimated', 'reference_supported', 'associated', 'evaluated'].some(key => typeof frame[key] !== 'boolean') || [frame.position_error_m, frame.orientation_error_deg].some(error => error !== null && (!finite(error) || error < 0))) invalid();
     if (!pose(frame.estimate_raw) || frame.estimated !== Boolean(frame.estimate_raw) || frame.evaluated && (!frame.estimated || !frame.reference_supported || !frame.reference || !frame.estimate)) invalid();
+    if (value.schema_version === 2 && (value.alignment === null && frame.estimate !== null
+      || value.evaluation.status === 'unavailable' && (frame.evaluated || frame.position_error_m !== null || frame.orientation_error_deg !== null))) invalid();
     previousNs = BigInt(frame.timestamp_ns);
     previousTime = frame.time_s;
   }
@@ -21,6 +35,28 @@ export function validateInvestigation(value, specificationSha256) {
     previousTime = sample.time_s;
   }
   return value;
+}
+
+export function investigationPresentation(data) {
+  const privateInput = data.schema_version === 2;
+  const raw = privateInput && data.alignment === null;
+  return { privateInput, raw, poseKey: raw ? 'estimate_raw' : 'estimate',
+    estimateLabel: raw ? 'Estimate · estimator world' : 'Aligned estimate',
+    worldLabel: raw ? 'Estimator world' : 'Reference world',
+    showReference: !raw,
+    accuracyAvailable: !privateInput || data.evaluation.status !== 'unavailable',
+    imuLabel: privateInput ? 'Prepared' : 'Raw',
+    imuFrame: privateInput ? data.input.imu_frame_id : 'IMU body' };
+}
+
+export function finitePlotDomain(values) {
+  const numbers = values.filter(finite);
+  if (!numbers.length) return [-1, 1];
+  let low = Infinity, high = -Infinity;
+  for (const value of numbers) { low = Math.min(low, value); high = Math.max(high, value); }
+  const pad = Math.max((high - low) * .08, Math.abs(high) * .01, .01);
+  const bounds = [low - pad, high + pad];
+  return bounds.every(finite) && finite(bounds[1] - bounds[0]) ? bounds : null;
 }
 
 export function nearestFrame(frames, time) {

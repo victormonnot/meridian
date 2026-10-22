@@ -14,7 +14,7 @@ from django.conf import settings
 from django.db import close_old_connections, transaction
 from django.utils import timezone
 
-from meridian.vio_specification import specification_sha256, validate_specification
+from .execution_profiles import is_private, specification_sha256, validate_specification
 from meridian.vio_job_control import AttemptCancelled, AttemptLeaseLost
 from . import job_queue as queue
 from .models import Job
@@ -226,8 +226,15 @@ def run_one(worker_id, shutdown):
             validate_specification(job.specification)
             if specification_sha256(job.specification) != job.specification_sha256:
                 raise ValueError("Stored specification identity mismatch")
+            if is_private(job.specification):
+                from .private_inputs import resolve_job
+                from .private_job_execution import execute_private_attempt
+                _, prepared = resolve_job(job)
+                execute = execute_private_attempt
+            else:
+                prepared, execute = settings.MERIDIAN_VIO_PREPARED, execute_attempt
             validated_input = True
-            outcome = execute_attempt(job.specification, settings.MERIDIAN_VIO_PREPARED, staging,
+            outcome = execute(job.specification, prepared, staging,
                                       attempt_id=str(attempt.pk), checkpoint=guard.checkpoint,
                                       evaluation_image=settings.MERIDIAN_EVALUATION_IMAGE,
                                       configuration_parent=configuration_parent)

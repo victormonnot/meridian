@@ -107,6 +107,9 @@ def comparisons(request, project_id):
         jobs = {item.pk: item for item in project.jobs.filter(pk__in=[baseline_id, candidate_id], owner=request.user)}
         if len(jobs) != 2:
             return not_found(request)
+        from .execution_profiles import is_private
+        if any(is_private(item.specification) for item in jobs.values()):
+            return error("private_comparison_unavailable", "Controlled private-input comparisons are a separate increment.", 409)
         if any(item.state not in TERMINAL for item in jobs.values()):
             return error("active_runs", "Wait for both executions to finish before saving their comparison.", 409)
         if project.comparisons.count() >= limits()["comparisons"]:

@@ -1,6 +1,6 @@
 # Part 2 — Sensor data, calibration, and timing
 
-**Status: increments 2.1–2.5 implemented, 2026-10-22. Increments 2.6–2.13 remain planned.**
+**Status: increments 2.1–2.6 implemented, 2026-10-22. Increments 2.7–2.13 remain planned.**
 
 The intended outcome is a private, versioned acquisition with traceable sensor
 semantics, calibration and timing, usable by a supported estimator and
@@ -232,6 +232,15 @@ versions reproducible. A valid file alone does not establish physical accuracy.
 ### 2.6 — VIO execution on private acquisitions
 
 **Dependency:** 2.5.
+
+**Implemented:** [private-input VIO](private-vio.md) binds an exact owned prepared
+revision and interval to a separate fixed-calibration profile. Admission checks
+supported sensor/calibration semantics and actual bounded CSV timing; the worker
+verifies retained identities and separates native sensor access from evaluation.
+Reference-free runs retain local-frame investigation with accuracy unavailable.
+The [qualification report](../results/private-vio/README.md) records the consumed
+room1 regression. The original room1 profile and its numerical pins are unchanged.
+Private calibration comparisons and portable exports remain 2.10 and 2.11.
 
 **Deliverable:** a new versioned execution profile selecting exact acquisition,
 preparation, calibration, timing and interval versions. Resolve private inputs

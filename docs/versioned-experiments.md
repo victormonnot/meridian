@@ -3,7 +3,10 @@
 An experiment belongs to a private project and records a supported OpenVINS
 configuration for its selected TUM-VI dataset. Increment 1.3 adds creation,
 editing, duplication, history and configuration differences. Hosted execution
-remains increment 1.4; saving an experiment does not queue or run it.
+is implemented by the [durable job service](hosted-vio-jobs.md); saving an
+experiment does not queue or run it. [Private-input VIO](private-vio.md) adds a
+separate profile selecting an exact owned input revision and camera interval.
+The room1 profile and its historical specifications remain unchanged.
 
 ## Supported configuration
 
@@ -103,8 +106,11 @@ Creation takes `schema_version`, `name`, optional `description`, `dataset_id` an
 
 The API and local reference runner share the standard-library-only
 [`vio_specification.py`](../src/meridian/vio_specification.py) contract. The API
-image copies only this contract and the package marker; it does not install the
-numerical dependencies or receive a VIO runtime, sensor files or Docker access.
+image includes the standard-library contracts and access/inspection helpers;
+it does not install numerical dependencies or receive a VIO runtime or Docker
+access. The acquisition overlay mounts retained private inputs for owned reads
+and bounded compatibility checks. The local runner below supports the original
+room1 specification; private-input jobs use their separate worker handoff.
 
 The local runner accepts the stored revision's `specification` object unchanged
 through `--specification`. It checks the pinned prepared inputs, runtime and

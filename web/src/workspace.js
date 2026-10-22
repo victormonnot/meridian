@@ -11,6 +11,7 @@ import { inspectionShell, mountAcquisitionInspection } from './workspace-acquisi
 import './workspace-acquisition-inspection.css';
 import { calibrationShell, mountCalibration } from './workspace-calibration.js';
 import './workspace-calibration.css';
+import { PRIVATE_PROFILE, privateExperimentPayload, mountExecutionInputs } from './workspace-execution-inputs.js';
 
 initializeTheme();
 const api = createApiClient();
@@ -39,6 +40,7 @@ let acquisitionsView;
 let acquisitionsMount;
 let acquisitionInspection;
 let calibrationMount;
+let executionInputMount;
 const submissions = new Map();
 const comparisonSubmissions = new Map();
 
@@ -57,6 +59,7 @@ function announce(message = '', isError = false) {
 }
 
 function setSession(value) {
+  executionInputMount?.destroy();
   calibrationMount?.destroy();
   acquisitionInspection?.destroy();
   acquisitionsMount?.destroy();
@@ -82,6 +85,7 @@ function setSession(value) {
 }
 
 function removePrivateState() {
+  executionInputMount?.destroy();
   calibrationMount?.destroy();
   acquisitionInspection?.destroy();
   acquisitionsMount?.destroy();
@@ -107,6 +111,8 @@ function removePrivateState() {
 }
 
 function mount(html, title, focus = false) {
+  executionInputMount?.destroy();
+  executionInputMount = null;
   app.innerHTML = html;
   document.title = `${title} — Meridian`;
   if (focus) {
@@ -271,6 +277,7 @@ function renderProject(project, section) {
     api, project, view: acquisitionsView || { acquisitions: [] }, onSessionExpired: expireSession,
     onNavigate: acquisitionId => navigateTo(acquisitionRoute(project.id, acquisitionId)),
   });
+  if (section === 'experiments' && draftState?.kind === 'edit') attachExecutionInputs(app.querySelector('#edit-experiment-form'));
 }
 
 function routeError(error) {
@@ -337,15 +344,17 @@ async function renderRoute() {
         }
       } else if (route.section === 'experiments') {
         const path = `/projects/${route.id}/experiments`;
-        const tasks = [api.request('/configuration-profile', { signal: controller.signal }), api.request(path, { signal: controller.signal })];
+        const tasks = [api.request('/configuration-profile', { signal: controller.signal }), api.request(path, { signal: controller.signal }),
+          api.request(`/projects/${route.id}/execution-inputs`, { signal: controller.signal })];
         if (route.experimentId) {
           tasks.push(api.request(`${path}/${route.experimentId}`, { signal: controller.signal }));
           tasks.push(api.request(`${path}/${route.experimentId}/revisions`, { signal: controller.signal }));
           if (route.version !== undefined) tasks.push(api.request(`${path}/${route.experimentId}/revisions/${route.version}`, { signal: controller.signal }));
         }
-        const [profile, list, detail, history, historical] = await Promise.all(tasks);
+        const [profile, list, executionInputs, detail, history, historical] = await Promise.all(tasks);
         if (id !== navigation) return;
-        const view = { profile: profile.profile, experiments: list.experiments, limits: list.limits, execution: session.capabilities.execution };
+        const view = { profile: historical?.profile || detail?.profile || profile.profile, referenceProfile: profile.profile,
+          executionInputs, experiments: list.experiments, limits: list.limits, execution: session.capabilities.execution };
         if (detail) {
           view.experiment = detail.experiment;
           view.revision = historical?.revision || detail.revision;
@@ -436,12 +445,22 @@ async function navigateTo(hash) {
 }
 
 function openNewExperiment() {
-  const values = revisionDraft(null, experimentView.profile);
+  const profile = experimentView.referenceProfile || experimentView.profile;
+  const values = { ...revisionDraft(null, profile), profile_id: profile.id };
   draftState = { kind: 'create', baseline: { ...values }, values };
-  app.insertAdjacentHTML('beforeend', createExperimentDialog(currentProject, experimentView.profile, values));
+  app.insertAdjacentHTML('beforeend', createExperimentDialog(currentProject, profile, values, experimentView.executionInputs));
   const dialog = app.querySelector('#experiment-dialog');
-  dialog.addEventListener('close', () => { if (draftState?.kind === 'create') draftState = null; dialog.remove(); }, { once: true });
+  attachExecutionInputs(dialog.querySelector('form'));
+  dialog.addEventListener('close', () => { executionInputMount?.destroy(); if (draftState?.kind === 'create') draftState = null; dialog.remove(); }, { once: true });
   dialog.showModal();
+}
+
+function attachExecutionInputs(form) {
+  executionInputMount?.destroy();
+  executionInputMount = mountExecutionInputs(form, { api, projectId: currentProject.id,
+    profile: experimentView.executionInputs?.profile,
+    onChange: values => { if (draftState) draftState.values = values; },
+    onSessionExpired: expireSession });
 }
 
 async function submitExperiment(form, data, epoch) {
@@ -451,10 +470,16 @@ async function submitExperiment(form, data, epoch) {
   const experimentId = experimentView.experiment?.id;
   const selectedVersion = experimentView.revision?.version;
   let response;
+  const privateInput = data.profile_id === PRIVATE_PROFILE;
+  if (privateInput && !executionInputMount?.isChecked(data)) throw new Error('Check this exact input selection before saving.');
   if (form.id === 'create-experiment-form') {
-    response = await api.request(path, { method: 'POST', body: experimentPayload(data, experimentView.profile, { datasetId: currentProject.dataset_id }) });
+    response = await api.request(path, { method: 'POST', body: privateInput
+      ? privateExperimentPayload(data, experimentView.executionInputs.profile)
+      : experimentPayload(data, experimentView.referenceProfile || experimentView.profile, { datasetId: currentProject.dataset_id }) });
   } else if (form.id === 'edit-experiment-form') {
-    response = await api.request(`${path}/${experimentId}`, { method: 'PATCH', body: experimentPayload(data, experimentView.profile, { baseVersion: draftState.baseVersion }) });
+    response = await api.request(`${path}/${experimentId}`, { method: 'PATCH', body: privateInput
+      ? privateExperimentPayload(data, experimentView.executionInputs.profile, { baseVersion: draftState.baseVersion })
+      : experimentPayload(data, experimentView.profile, { baseVersion: draftState.baseVersion }) });
   } else if (form.id === 'duplicate-experiment-form') {
     response = await api.request(`${path}/${experimentId}/duplicate`, { method: 'POST', body: { schema_version: 1, source_version: selectedVersion, name: data.name } });
   } else if (form.id === 'delete-experiment-form') {

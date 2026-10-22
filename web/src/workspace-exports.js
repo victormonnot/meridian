@@ -1,8 +1,9 @@
 import { escapeHtml as e, errorMessage } from './workspace-api.js';
 
 export function renderRunExport(job) {
-  const available = job.state === 'succeeded' && job.export_available === true;
-  const reason = job.export_unavailable_reason || (['queued', 'running', 'evaluating'].includes(job.state)
+  const privateInput = job.profile_id === 'openvins-private-stereo-v1';
+  const available = !privateInput && job.state === 'succeeded' && job.export_available === true;
+  const reason = privateInput ? 'Portable reproduction archives for private inputs are not available yet. Retained results and input identities remain accessible to their owner.' : job.export_unavailable_reason || (['queued', 'running', 'evaluating'].includes(job.state)
     ? 'The reproduction archive becomes available after a successful run with complete retained evidence.'
     : job.state === 'cancelled' ? 'Cancelled runs have no complete reproduction archive.'
       : job.state === 'failed' ? 'This failed run has no complete reproduction archive.'

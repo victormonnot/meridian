@@ -18,6 +18,12 @@ owner-only, and rejects links and unexpected files. These permissions and hashes
 a backup. Store off-server copies through an authenticated private channel and
 restrict access and retention separately.
 
+[Private-input VIO](private-vio.md) uses this same format: the complete job row
+includes its exact input-revision dependency, and retained input publications
+and job artifacts are copied together. Recovery checks must preserve both
+reference-backed evaluations and reference-free local-frame investigations;
+metadata restoration alone does not establish image availability.
+
 ## Capture an idle deployment
 
 The supported source is the dedicated Meridian Compose project on Linux with

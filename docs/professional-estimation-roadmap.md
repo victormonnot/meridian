@@ -331,8 +331,9 @@ isolated preparation and coherent input backups. Increment 2.4 adds
 [sensor inspection before estimation](sensor-inspection.md), with exact sample
 identities, camera/IMU timing and separate reference support. Increment 2.5 adds
 [supplied calibration and time mappings](sensor-calibration.md), preserving
-parameter provenance and creating immutable corrected input revisions. Calibration fitting
-and VIO on private inputs remain planned. Parts 3–8 are not
+parameter provenance and creating immutable corrected input revisions. Increment
+2.6 adds [private-input VIO](private-vio.md) with fixed supplied calibration and
+optional reference evaluation. Calibration fitting remains planned. Parts 3–8 are not
 detailed here.
 
 ## Existing tools and research

@@ -12,6 +12,9 @@
 !src/meridian/
 !src/meridian/__init__.py
 !src/meridian/vio_specification.py
+!src/meridian/vio_private_specification.py
+!src/meridian/vio_private_inputs.py
+!src/meridian/vio_private_evaluation.py
 !src/meridian/vio_dataset.py
 !src/meridian/vio_evaluation.py
 !src/meridian/vio_reference.py

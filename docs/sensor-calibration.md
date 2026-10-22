@@ -140,6 +140,11 @@ revision remains self-contained after source-file deletion; source metadata and
 provenance remain available. Deleting revision files retains a metadata tombstone
 and explicitly marks downloads unavailable.
 
+[Private-input VIO](private-vio.md) can consume supported revisions after a
+separate compatibility check. Queued and active VIO jobs protect their exact
+revision files. Deleting files after completion leaves retained numerical job
+evidence readable, while associated image reads become unavailable.
+
 Calibration and clock descriptors are limited to 64 KiB each; imports use a
 256 KiB request limit. A frozen execution request is limited to 2 MiB and may
 include up to 16 clock mappings and 16 dependency acquisitions. Oversized

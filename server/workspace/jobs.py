@@ -7,7 +7,7 @@ from django.db import transaction
 from django.utils import timezone
 from django.utils.crypto import salted_hmac
 
-from meridian.vio_specification import specification_sha256, validate_specification
+from .execution_profiles import input_selection, is_private, specification_sha256, validate_specification
 
 from .api import endpoint, error, not_found, response
 from .experiments import owned_project, payload
@@ -23,7 +23,7 @@ def _date(value):
 
 def job_payload(job):
     export_reason = export_unavailable_reason(job)
-    return {"id": str(job.pk), "project_id": str(job.project_id),
+    result = {"id": str(job.pk), "project_id": str(job.project_id),
             "experiment_id": str(job.experiment_id), "experiment_name": job.experiment_name,
             "revision_version": job.revision_version, "specification_sha256": job.specification_sha256,
             "parameters": job.specification["parameters"], "state": job.state, "phase": job.phase,
@@ -40,6 +40,13 @@ def job_payload(job):
             "attempts": [{"number": item.number, "state": item.state,
                           "started_at": _date(item.started_at), "finished_at": _date(item.finished_at),
                           "failure": item.failure} for item in job.attempts.all()]}
+    if is_private(job.specification):
+        source = job.input_revision
+        result.update(profile_id=job.specification["profile_id"], input_selection=input_selection(job.specification),
+                      input_availability="available" if source and source.files_available else "unavailable",
+                      comparison_available=False,
+                      comparison_unavailable_reason="Private input comparisons are not supported by this profile.")
+    return result
 
 
 def _uuid(value):
@@ -125,6 +132,19 @@ def jobs(request, project_id):
                 raise ValueError("Snapshot identity mismatch")
         except ValueError:
             return error("invalid_specification", "This saved revision is not supported by the execution profile.", 409)
+        selected_input = None
+        if is_private(revision.specification):
+            from .private_inputs import build, owned
+            try:
+                selected_input = owned(project, request.user, revision.specification["input"]["input_revision_id"])
+                if selected_input is None:
+                    return not_found(request)
+                actual = build(selected_input, parameters=revision.specification["parameters"],
+                               interval=revision.specification["interval"])
+                if specification_sha256(actual) != digest:
+                    raise ValueError("Frozen input changed.")
+            except (OSError, ValueError, TypeError, KeyError, RecursionError):
+                return error("inputs_unavailable", "The exact saved prepared input is unavailable or changed.", 409)
         if (Job.objects.filter(owner=request.user).count() >= limits()["retained_per_account"]
                 or Job.objects.count() >= limits()["retained_global"]):
             return error("job_limit", "The retained job limit has been reached. Delete completed jobs before submitting more.", 409)
@@ -137,6 +157,7 @@ def jobs(request, project_id):
             result["Retry-After"] = str(retry_after)
             return result
         job = Job.objects.create(owner=request.user, project=project, experiment=experiment,
+                                 input_revision=selected_input,
                                  experiment_name=revision.name, revision_version=version,
                                  specification=revision.specification, specification_sha256=digest,
                                  idempotency_key=key)

@@ -10,6 +10,17 @@ services:
         source: ${MERIDIAN_ACQUISITION_ROOT:-/srv/meridian-workspace/acquisitions}
         target: ${MERIDIAN_ACQUISITION_ROOT:-/srv/meridian-workspace/acquisitions}
         bind: {create_host_path: false}
+  # The trusted VIO orchestrator resolves exact owned revisions. Native children
+  # receive only selected sensor mounts, never this root or evaluation references.
+  worker:
+    environment:
+      MERIDIAN_ACQUISITION_ROOT: ${MERIDIAN_ACQUISITION_ROOT:-/srv/meridian-workspace/acquisitions}
+    volumes:
+      - type: bind
+        source: ${MERIDIAN_ACQUISITION_ROOT:-/srv/meridian-workspace/acquisitions}
+        target: ${MERIDIAN_ACQUISITION_ROOT:-/srv/meridian-workspace/acquisitions}
+        read_only: true
+        bind: {create_host_path: false}
   importer:
     profiles: [compute]
     image: ${MERIDIAN_WORKER_IMAGE:-meridian-workspace-worker:local}

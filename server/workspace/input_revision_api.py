@@ -258,6 +258,8 @@ def files(request, project_id, acquisition_id, revision_id):
                 return not_found(request)
             if value.state in {"queued", "preparing"}:
                 return error("active_preparation", "Cancel the preparation and wait for it to stop before deleting files.", 409)
+            if value.vio_jobs.filter(state__in={"queued", "running", "evaluating"}).exists():
+                return error("active_jobs", "Cancel dependent executions and wait for them to stop before deleting these inputs.", 409)
             if acquisition_queue.compute_active():
                 return error("cleanup_busy", "Wait for active computations to stop before deleting files.", 409)
             try:

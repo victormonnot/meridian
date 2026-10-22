@@ -5,6 +5,11 @@ configuration, estimates and evaluation evidence remain useful without a
 Meridian account. A saved comparison is a distinct object; this format exports
 one exact execution, not a benchmark campaign or averaged comparison.
 
+This format supports the maintained room1 profile. [Private-input VIO](private-vio.md)
+jobs report export unavailable: a public room1 reacquisition recipe cannot
+reproduce an arbitrary private recording. Portable private inputs and calibration
+evidence remain a separate planned format.
+
 ## Hosted access and retention
 
 `GET /api/v1/projects/{project}/jobs/{job}/export?schema_version=1` requires the

@@ -19,6 +19,9 @@ from .models import Job
 
 def unavailable_reason(job):
     """Metadata hint only; each download verifies the retained files again."""
+    from .execution_profiles import is_private
+    if is_private(job.specification):
+        return "Portable exports for private inputs are not supported by this profile."
     if job.state != "succeeded":
         return "Independent reproduction requires a successfully completed execution."
     if job.artifacts_expire_at and job.artifacts_expire_at <= timezone.now():
@@ -101,6 +104,9 @@ def download(request, project_id, job_id):
     job = owned.first()
     if job is None:
         return not_found(request)
+    from .execution_profiles import is_private
+    if is_private(job.specification):
+        return error("private_export_unavailable", "Portable private-input exports are a separate increment.", 409)
     if set(request.GET) != {"schema_version"} or len(request.GET.getlist("schema_version")) != 1:
         return error("invalid_request", "Provide exactly one export schema_version.", 400)
     if request.GET["schema_version"] != "1":
